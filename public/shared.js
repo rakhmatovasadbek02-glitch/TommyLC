@@ -87,10 +87,10 @@ function renderSidebar(activePage) {
   }).join('');
 
   const sidebarHTML = `
-    <div class="sidebar-brand">
+    <a href="index.html" class="sidebar-brand" style="text-decoration:none;display:block;">
       <div class="brand-name">TommyLC</div>
       <div class="brand-sub">Admin Portal</div>
-    </div>
+    </a>
     <div class="nav-section">
       <div class="nav-label">Main</div>
       ${navHTML}
