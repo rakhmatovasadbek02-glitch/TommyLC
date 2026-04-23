@@ -141,7 +141,6 @@
     <div class="page-title">Dashboard</div>
     <div class="topbar-right">
       <span class="text-muted" id="currentDate"></span>
-      <button class="btn btn-outline btn-sm" onclick="openModal('classroomModal')">🏛 Classrooms</button>
     </div>
   </div>
 
@@ -162,13 +161,13 @@
     <!-- Timetable -->
     <div class="timetable-header">
       <div class="timetable-title">Timetable</div>
-      <div style="display:flex;align-items:center;gap:10px;">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <div class="day-tabs">
           <button class="day-tab active" onclick="setDayTab('odd',this)">Odd Days</button>
           <button class="day-tab" onclick="setDayTab('even',this)">Even Days</button>
           <button class="day-tab" onclick="setDayTab('custom',this)">Custom</button>
         </div>
-        <a href="groups.html" class="btn btn-outline btn-sm">Full Groups →</a>
+        <a href="groups.html" class="btn btn-outline btn-sm">All Groups →</a>
       </div>
     </div>
 
@@ -188,37 +187,6 @@
       <div id="ttGrid"></div>
     </div>
 
-  </div>
-</div>
-
-<!-- Classroom Modal -->
-<div class="modal-overlay" id="classroomModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">🏛 Classrooms</div>
-      <button class="modal-close" onclick="closeModal('classroomModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <!-- Add form -->
-      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)">
-        <div class="form-group" style="margin:0">
-          <label>Room Name *</label>
-          <input type="text" id="roomName" placeholder="e.g. Room 1, Lab A">
-        </div>
-        <div class="form-group" style="margin:0">
-          <label>Capacity</label>
-          <input type="number" id="roomCapacity" placeholder="e.g. 12" min="1">
-        </div>
-        <button class="btn btn-primary" style="height:40px" onclick="addClassroom()">Add</button>
-      </div>
-      <!-- List -->
-      <div id="classroomList">
-        <div class="empty-state"><div class="empty-icon">🏛</div><p>No classrooms yet.</p></div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('classroomModal')">Close</button>
-    </div>
   </div>
 </div>
 
@@ -491,80 +459,16 @@
     openModal('classDetailModal');
   }
 
-  /* ══════════════════════════════════
-     CLASSROOMS
-  ══════════════════════════════════ */
-  function renderClassrooms() {
-    const rooms = getDB('classrooms');
-    const el = document.getElementById('classroomList');
-    if (!rooms.length) {
-      el.innerHTML = '<div class="empty-state"><div class="empty-icon">🏛</div><p>No classrooms yet. Add one above.</p></div>';
-      return;
-    }
-    el.innerHTML = rooms.map(r => `
-      <div class="room-item">
-        <div>
-          <div class="room-name">🏛 ${r.name}</div>
-          <div class="room-capacity">${r.capacity ? `Capacity: ${r.capacity} students` : 'No capacity set'}</div>
-        </div>
-        <button class="btn btn-danger btn-sm" onclick="deleteClassroom('${r.id}')">Delete</button>
-      </div>
-    `).join('');
-  }
-
-  function addClassroom() {
-    const name     = document.getElementById('roomName').value.trim();
-    const capacity = document.getElementById('roomCapacity').value.trim();
-    if (!name) { showToast('Room name is required.', 'error'); return; }
-
-    const rooms = getDB('classrooms');
-    if (rooms.find(r => r.name.toLowerCase() === name.toLowerCase())) {
-      showToast('A classroom with that name already exists.', 'error'); return;
-    }
-
-    rooms.push({ id: genId(), name, capacity: capacity ? Number(capacity) : null });
-    setDB('classrooms', rooms);
-    document.getElementById('roomName').value = '';
-    document.getElementById('roomCapacity').value = '';
-    renderClassrooms();
-    logActivity(`Added classroom: ${name}`, 'green');
-    showToast(`Classroom "${name}" added!`);
-  }
-
-  function deleteClassroom(id) {
-    const rooms = getDB('classrooms');
-    const r = rooms.find(r => r.id === id);
-    if (!confirm(`Delete "${r?.name}"?`)) return;
-    setDB('classrooms', rooms.filter(r => r.id !== id));
-    if (r) logActivity(`Removed classroom: ${r.name}`, 'red');
-    renderClassrooms();
-    showToast('Classroom deleted.', 'error');
-  }
-
-  // Seed classrooms if empty
-  if (!getDB('classrooms').length) {
-    setDB('classrooms', [
-      { id: genId(), name: 'Room 1', capacity: 12 },
-      { id: genId(), name: 'Room 2', capacity: 8 },
-    ]);
-  }
-
   /* ── Init ── */
   renderStats();
 
-  // Auto-detect: today is odd or even date → activate matching tab
-  // Custom is never auto-activated
-  const autoTab = autoDetectTab(); // 'odd' or 'even'
+  // Auto-detect: today is odd or even → activate matching tab
+  const autoTab = autoDetectTab();
   dayFilter = autoTab;
   document.querySelectorAll('.day-tab').forEach(btn => {
-    if (btn.textContent.toLowerCase().startsWith(autoTab)) {
-      btn.classList.add('active');
-    } else {
-      btn.classList.remove('active');
-    }
+    btn.classList.toggle('active', btn.textContent.toLowerCase().startsWith(autoTab));
   });
   renderTimetable();
-  renderClassrooms();
 </script>
 </body>
 </html>
