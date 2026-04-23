@@ -21,10 +21,10 @@ function genId() {
 // ══════════════════════════════════════════
 
 const ROLE_PERMISSIONS = {
-  'CEO':        ['dashboard', 'students', 'groups', 'payments', 'teachers', 'settings'],
-  'Manager':    ['dashboard', 'students', 'groups', 'payments', 'teachers', 'settings'],
-  'Head Admin': ['dashboard', 'students', 'groups', 'teachers'],
-  'Admin':      ['dashboard', 'students', 'groups'],
+  'CEO':        ['dashboard', 'students', 'groups', 'payments', 'teachers', 'classrooms', 'settings'],
+  'Manager':    ['dashboard', 'students', 'groups', 'payments', 'teachers', 'classrooms', 'settings'],
+  'Head Admin': ['dashboard', 'students', 'groups', 'teachers', 'classrooms'],
+  'Admin':      ['dashboard', 'students', 'groups', 'classrooms'],
 };
 
 const ROLE_META = {
@@ -70,12 +70,13 @@ function renderSidebar(activePage) {
   if (!session) return;
 
   const NAV_ITEMS = [
-    { feature: 'dashboard', href: 'index.html',    icon: '⊞', label: 'Dashboard' },
-    { feature: 'students',  href: 'students.html', icon: '👤', label: 'Students'  },
-    { feature: 'groups',    href: 'groups.html', icon: '👥', label: 'Groups'    },
-    { feature: 'payments',  href: 'payments.html', icon: '💳', label: 'Payments'  },
-    { feature: 'teachers',  href: 'teachers.html', icon: '🎓', label: 'Teachers'  },
-    { feature: 'settings',  href: 'users.html',    icon: '🔧', label: 'Users'     },
+    { feature: 'dashboard', href: 'index.html',    icon: '⊞', label: 'Dashboard'  },
+    { feature: 'students',  href: 'students.html', icon: '👤', label: 'Students'   },
+    { feature: 'groups',    href: 'groups.html',   icon: '👥', label: 'Groups'     },
+    { feature: 'payments',  href: 'payments.html', icon: '💳', label: 'Payments'   },
+    { feature: 'teachers',  href: 'teachers.html', icon: '🎓', label: 'Teachers'   },
+    { feature: 'classrooms',href: 'classrooms.html',icon:'🏛', label: 'Classrooms' },
+    { feature: 'settings',  href: 'users.html',    icon: '🔧', label: 'Users'      },
   ];
 
   const meta = ROLE_META[session.role] || ROLE_META['Admin'];
