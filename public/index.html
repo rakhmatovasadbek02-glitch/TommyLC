@@ -302,10 +302,6 @@
   const PALETTE = ['#FF0000','#1D4ED8','#1E6B45','#7C3AED','#A05C00','#0891B2','#BE185D'];
   let dayFilter = 'odd';
 
-  // Time slots 08:00–20:00, every hour
-  const TIME_SLOTS = [];
-  for (let h = 8; h <= 20; h++) TIME_SLOTS.push(`${String(h).padStart(2,'0')}:00`);
-
   function classColor(id) {
     let h = 0;
     for (let c of (id||'?')) h = (h<<5)-h+c.charCodeAt(0);
@@ -358,11 +354,10 @@
       grid.innerHTML = `<div style="padding:40px;text-align:center;color:var(--muted)">
         <div style="font-size:32px;margin-bottom:10px">🏛</div>
         <p>No classrooms yet.</p>
-        <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="openModal('classroomModal')">Add Classrooms</button>
+        <a href="classrooms.html" class="btn btn-outline btn-sm" style="margin-top:10px">Add Classrooms</a>
       </div>`;
       return;
     }
-
     if (dayFilter === 'custom' && getCustomDow() === null) {
       grid.innerHTML = `<div style="padding:40px;text-align:center;color:var(--muted)">
         <p>Select a day above to view the groups.</p>
@@ -371,58 +366,153 @@
     }
 
     const visibleClasses = classes.filter(classVisible);
-    const COL_W  = 100;  // px per time slot
-    const ROOM_W = 130;  // px for room label column
 
-    /* ── Header: Classroom corner + time slots ── */
+    /* ── Build time range ──
+       Default 09:00–18:00 in 30-min steps.
+       Expand if any group starts earlier or ends later. */
+    function timeToMin(t) {
+      if (!t) return 0;
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + (m || 0);
+    }
+    function minToTime(m) {
+      return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
+    }
+
+    let rangeStart = 9 * 60;   // 09:00
+    let rangeEnd   = 18 * 60;  // 18:00
+
+    // Collect all significant times (starts and ends of groups)
+    const significantMins = new Set();
+    visibleClasses.forEach(cls => {
+      const start = timeToMin(cls.time);
+      const end   = start + Number(cls.duration || 60);
+      significantMins.add(start);
+      significantMins.add(end);
+      // Expand range if needed
+      const slotStart = Math.floor(start / 60) * 60; // round to hour
+      const slotEnd   = Math.ceil(end / 60) * 60;
+      if (start < rangeStart) rangeStart = Math.floor(start / 60) * 60;
+      if (end   > rangeEnd)   rangeEnd   = Math.ceil(end / 60) * 60;
+    });
+
+    // Build slots: every 30 minutes within the range
+    const slots = [];
+    for (let m = rangeStart; m < rangeEnd; m += 30) slots.push(m);
+
+    /* ── Determine which slots are "active" (have a group starting or spanning) ── */
+    function slotHasClass(slotMin, roomName) {
+      return visibleClasses.some(cls => {
+        if (roomName && cls.room !== roomName) return false;
+        const start = timeToMin(cls.time);
+        const end   = start + Number(cls.duration || 60);
+        return slotMin >= start && slotMin < end;
+      });
+    }
+
+    // Per-room: which slots are occupied
+    function slotsOccupied(roomName) {
+      const set = new Set();
+      visibleClasses.filter(c => c.room === roomName).forEach(cls => {
+        const start = timeToMin(cls.time);
+        const end   = start + Number(cls.duration || 60);
+        slots.forEach(s => { if (s >= start && s < end) set.add(s); });
+      });
+      return set;
+    }
+
+    // Globally: which slots are occupied by ANY room
+    const globalOccupied = new Set();
+    visibleClasses.forEach(cls => {
+      const start = timeToMin(cls.time);
+      const end   = start + Number(cls.duration || 60);
+      slots.forEach(s => { if (s >= start && s < end) globalOccupied.add(s); });
+    });
+
+    /* Column widths: occupied = 110px, empty = 40px */
+    const COL_BUSY  = 110;
+    const COL_EMPTY = 55;
+    const ROOM_W    = 130;
+
+    function colW(slotMin) {
+      return globalOccupied.has(slotMin) ? COL_BUSY : COL_EMPTY;
+    }
+
+    /* ── Header ── */
     let html = `<div style="display:flex;position:sticky;top:0;z-index:5;">
       <div style="width:${ROOM_W}px;flex-shrink:0;background:var(--crimson);padding:12px 16px;
         font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
         color:rgba(255,255,255,0.65);border-right:1px solid rgba(255,255,255,0.15);">
         Classroom
       </div>
-      ${TIME_SLOTS.map(t => `
-        <div style="width:${COL_W}px;flex-shrink:0;background:var(--crimson);
-          padding:12px 8px;text-align:center;border-right:1px solid rgba(255,255,255,0.12);">
-          <div style="font-size:13px;font-weight:700;color:#fff;">${t}</div>
-        </div>
-      `).join('')}
+      ${slots.map(s => {
+        const w = colW(s);
+        const label = minToTime(s);
+        const isHour = s % 60 === 0;
+        return `<div style="width:${w}px;flex-shrink:0;background:var(--crimson);
+          padding:10px 4px;text-align:center;
+          border-right:1px solid rgba(255,255,255,0.12);overflow:hidden;">
+          <div style="font-size:${isHour?12:10}px;font-weight:${isHour?700:400};
+            color:${isHour?'#fff':'rgba(255,255,255,0.6)'};
+            white-space:nowrap;overflow:hidden;text-overflow:clip;">${label}</div>
+        </div>`;
+      }).join('')}
     </div>`;
 
     /* ── Room rows ── */
     rooms.forEach(room => {
       const roomClasses = visibleClasses.filter(c => c.room === room.name);
 
-      html += `<div style="display:flex;border-bottom:1px solid var(--border);min-height:80px;">
+      html += `<div style="display:flex;border-bottom:1px solid var(--border);">
         <div style="width:${ROOM_W}px;flex-shrink:0;padding:14px 16px;
           border-right:1px solid var(--border);background:var(--crimson-soft);
-          display:flex;flex-direction:column;justify-content:center;flex-shrink:0;">
+          display:flex;flex-direction:column;justify-content:center;">
           <div style="font-weight:700;font-size:14px;color:var(--crimson)">${room.name}</div>
           ${room.capacity?`<div style="font-size:11px;color:var(--muted);margin-top:2px">Cap. ${room.capacity}</div>`:''}
         </div>
-        ${TIME_SLOTS.map(slot => {
-          // Find classes that START at this slot (compare HH:MM)
-          const slotHour = parseInt(slot);
-          const here = roomClasses.filter(cls => {
-            if (!cls.time) return false;
-            return parseInt(cls.time) === slotHour;
+        ${slots.map((s, si) => {
+          const w = colW(s);
+          // Find a class that STARTS at this exact slot
+          const startingHere = roomClasses.filter(cls => timeToMin(cls.time) === s);
+          // Is this slot covered by a class that started earlier? (skip rendering — handled by width span)
+          const coveredByEarlier = roomClasses.some(cls => {
+            const cStart = timeToMin(cls.time);
+            const cEnd   = cStart + Number(cls.duration || 60);
+            return s > cStart && s < cEnd;
           });
-          return `<div style="width:${COL_W}px;flex-shrink:0;border-right:1px solid var(--border);
-            padding:4px 5px;min-height:80px;position:relative;cursor:pointer;transition:background 0.1s;"
+
+          if (coveredByEarlier) {
+            // Render a zero-width spacer so flex layout stays correct
+            return `<div style="width:${w}px;flex-shrink:0;border-right:1px solid var(--border);min-height:72px;background:transparent;pointer-events:none;"></div>`;
+          }
+
+          return `<div style="width:${w}px;flex-shrink:0;border-right:1px solid var(--border);
+            padding:4px;min-height:72px;cursor:pointer;transition:background 0.1s;position:relative;"
             onclick="goToGroups()"
             onmouseover="this.style.background='#FFF0F0'" onmouseout="this.style.background=''">
-            ${here.map(cls => {
-              const c = classColor(cls.id);
+            ${startingHere.map(cls => {
+              const c   = classColor(cls.id);
               const dur = Number(cls.duration || 60);
-              const spanCols = Math.max(1, Math.round(dur / 60));
+              const cStart = timeToMin(cls.time);
+              const cEnd   = cStart + dur;
+              // Sum widths of all slots this class covers
+              let blockW = 0;
+              slots.forEach(s => {
+                // slot covers [s, s + slotDuration]
+                const slotDur = slots[slots.indexOf(s)+1]
+                  ? slots[slots.indexOf(s)+1] - s
+                  : 60; // last slot assumed 60 min
+                if (s >= cStart && s < cEnd) blockW += colW(s);
+              });
               return `<div onclick="event.stopPropagation();showClassDetail('${cls.id}')"
-                style="background:${c}1A;border-left:3px solid ${c};border-radius:5px;
-                  padding:5px 6px;margin-bottom:3px;cursor:pointer;
-                  width:${spanCols * COL_W - 10}px;min-width:0;overflow:hidden;"
+                style="position:absolute;top:4px;left:3px;
+                  width:${blockW - 8}px;bottom:4px;min-height:40px;
+                  background:${c}18;border-left:3px solid ${c};border-radius:6px;
+                  padding:5px 7px;cursor:pointer;overflow:hidden;z-index:2;"
                 onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
                 <div style="font-weight:700;font-size:11px;color:${c};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cls.name}</div>
-                <div style="font-size:10px;color:${c};opacity:0.8;margin-top:1px">${cls.time}–${endTime(cls.time, dur)}</div>
-                ${cls.teacher?`<div style="font-size:10px;color:${c};opacity:0.65">👤 ${cls.teacher}</div>`:''}
+                <div style="font-size:10px;color:${c};opacity:0.8;margin-top:2px">${cls.time} – ${minToTime(cStart+dur)}</div>
+                ${cls.teacher?`<div style="font-size:10px;color:${c};opacity:0.65;margin-top:1px">👤 ${cls.teacher}</div>`:''}
               </div>`;
             }).join('')}
           </div>`;
@@ -431,13 +521,6 @@
     });
 
     grid.innerHTML = `<div style="overflow-x:auto;min-width:100%;">${html}</div>`;
-  }
-
-  function endTime(startStr, durationMin) {
-    if (!startStr) return '';
-    const [h, m] = startStr.split(':').map(Number);
-    const total = h * 60 + (m||0) + durationMin;
-    return `${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;
   }
 
   function goToGroups() { window.location.href = 'groups.html'; }
