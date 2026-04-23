@@ -71,35 +71,35 @@
               <th style="text-align:left;padding:14px 20px;">Role</th>
               <th>Dashboard</th>
               <th>Students</th>
-              <th>Schedule</th>
+              <th>Groups</th>
               <th>Teachers</th>
               <th>Payments</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td style="padding:13px 20px">👑 CEO</td>
-              <td><span class="check">✓</span></td><td><span class="check">✓</span></td>
-              <td><span class="check">✓</span></td><td><span class="check">✓</span></td>
-              <td><span class="check">✓</span></td>
+              <td style="padding:13px 20px" data-label="Role">👑 CEO</td>
+              <td data-label="Dashboard"><span class="check">✓</span></td><td data-label="Students"><span class="check">✓</span></td>
+              <td data-label="Groups"><span class="check">✓</span></td><td data-label="Teachers"><span class="check">✓</span></td>
+              <td data-label="Payments"><span class="check">✓</span></td>
             </tr>
             <tr>
-              <td style="padding:13px 20px">🏢 Manager</td>
-              <td><span class="check">✓</span></td><td><span class="check">✓</span></td>
-              <td><span class="check">✓</span></td><td><span class="check">✓</span></td>
-              <td><span class="check">✓</span></td>
+              <td style="padding:13px 20px" data-label="Role">🏢 Manager</td>
+              <td data-label="Dashboard"><span class="check">✓</span></td><td data-label="Students"><span class="check">✓</span></td>
+              <td data-label="Groups"><span class="check">✓</span></td><td data-label="Teachers"><span class="check">✓</span></td>
+              <td data-label="Payments"><span class="check">✓</span></td>
             </tr>
             <tr>
-              <td style="padding:13px 20px">📋 Head Admin</td>
-              <td><span class="check">✓</span></td><td><span class="check">✓</span></td>
-              <td><span class="check">✓</span></td><td><span class="check">✓</span></td>
-              <td><span class="cross">✕</span></td>
+              <td style="padding:13px 20px" data-label="Role">📋 Head Admin</td>
+              <td data-label="Dashboard"><span class="check">✓</span></td><td data-label="Students"><span class="check">✓</span></td>
+              <td data-label="Groups"><span class="check">✓</span></td><td data-label="Teachers"><span class="check">✓</span></td>
+              <td data-label="Payments"><span class="cross">✕</span></td>
             </tr>
             <tr>
-              <td style="padding:13px 20px">🗂 Admin</td>
-              <td><span class="check">✓</span></td><td><span class="check">✓</span></td>
-              <td><span class="check">✓</span></td><td><span class="cross">✕</span></td>
-              <td><span class="cross">✕</span></td>
+              <td style="padding:13px 20px" data-label="Role">🗂 Admin</td>
+              <td data-label="Dashboard"><span class="check">✓</span></td><td data-label="Students"><span class="check">✓</span></td>
+              <td data-label="Groups"><span class="check">✓</span></td><td data-label="Teachers"><span class="cross">✕</span></td>
+              <td data-label="Payments"><span class="cross">✕</span></td>
             </tr>
           </tbody>
         </table>
@@ -182,7 +182,7 @@
             <div class="role-opt-box">
               <span class="role-opt-icon">🗂</span>
               <div class="role-opt-name">Admin</div>
-              <div class="role-opt-desc">Students & schedule</div>
+              <div class="role-opt-desc">Students & groups</div>
             </div>
           </label>
           <label class="role-option" data-role="Head Admin">
@@ -225,8 +225,8 @@
   requireAuth('settings');
   renderSidebar('settings');
 
-  const ALL_FEATURES = ['dashboard','students','schedule','teachers','payments'];
-  const FEATURE_LABELS = { dashboard:'Dashboard', students:'Students', schedule:'Schedule', teachers:'Teachers', payments:'Payments' };
+  const ALL_FEATURES = ['dashboard','students','groups','teachers','payments'];
+  const FEATURE_LABELS = { dashboard:'Dashboard', students:'Students', groups:'Groups', teachers:'Teachers', payments:'Payments' };
 
   // Format phone input: "XX XXX XX XX"
   function formatPhone(input) {

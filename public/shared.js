@@ -21,10 +21,10 @@ function genId() {
 // ══════════════════════════════════════════
 
 const ROLE_PERMISSIONS = {
-  'CEO':        ['dashboard', 'students', 'schedule', 'payments', 'teachers', 'settings'],
-  'Manager':    ['dashboard', 'students', 'schedule', 'payments', 'teachers', 'settings'],
-  'Head Admin': ['dashboard', 'students', 'schedule', 'teachers'],
-  'Admin':      ['dashboard', 'students', 'schedule'],
+  'CEO':        ['dashboard', 'students', 'groups', 'payments', 'teachers', 'settings'],
+  'Manager':    ['dashboard', 'students', 'groups', 'payments', 'teachers', 'settings'],
+  'Head Admin': ['dashboard', 'students', 'groups', 'teachers'],
+  'Admin':      ['dashboard', 'students', 'groups'],
 };
 
 const ROLE_META = {
@@ -72,10 +72,10 @@ function renderSidebar(activePage) {
   const NAV_ITEMS = [
     { feature: 'dashboard', href: 'index.html',    icon: '⊞', label: 'Dashboard' },
     { feature: 'students',  href: 'students.html', icon: '👤', label: 'Students'  },
-    { feature: 'schedule',  href: 'schedule.html', icon: '📅', label: 'Schedule'  },
+    { feature: 'groups',    href: 'groups.html', icon: '👥', label: 'Groups'    },
     { feature: 'payments',  href: 'payments.html', icon: '💳', label: 'Payments'  },
     { feature: 'teachers',  href: 'teachers.html', icon: '🎓', label: 'Teachers'  },
-    { feature: 'settings',  href: 'users.html',    icon: '👥', label: 'Users'     },
+    { feature: 'settings',  href: 'users.html',    icon: '🔧', label: 'Users'     },
   ];
 
   const meta = ROLE_META[session.role] || ROLE_META['Admin'];
@@ -116,9 +116,48 @@ function renderSidebar(activePage) {
 
   const sidebar = document.querySelector('.sidebar');
   if (sidebar) sidebar.innerHTML = sidebarHTML;
+
+  // ── Mobile hamburger + overlay ──
+  const topbar = document.querySelector('.topbar');
+  if (topbar && !document.getElementById('menuToggle')) {
+    const toggle = document.createElement('button');
+    toggle.id = 'menuToggle';
+    toggle.className = 'menu-toggle';
+    toggle.setAttribute('aria-label', 'Toggle menu');
+    toggle.innerHTML = '<span></span><span></span><span></span>';
+    toggle.onclick = toggleSidebar;
+    topbar.insertBefore(toggle, topbar.firstChild);
+  }
+  if (!document.getElementById('sidebarOverlay')) {
+    const overlay = document.createElement('div');
+    overlay.id = 'sidebarOverlay';
+    overlay.className = 'sidebar-overlay';
+    overlay.onclick = closeSidebar;
+    document.body.appendChild(overlay);
+  }
 }
 
-// ── Activity log ──
+// ── Mobile sidebar toggle ──
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  if (!sidebar) return;
+  const isOpen = sidebar.classList.contains('open');
+  sidebar.classList.toggle('open', !isOpen);
+  if (overlay) overlay.classList.toggle('show', !isOpen);
+}
+
+function closeSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  if (sidebar) sidebar.classList.remove('open');
+  if (overlay) overlay.classList.remove('show');
+}
+
+// Close sidebar when a nav link is tapped on mobile
+document.addEventListener('click', e => {
+  if (e.target.closest('.nav-link') && window.innerWidth <= 640) closeSidebar();
+});
 function logActivity(text, color) {
   const session = getSession();
   const activity = getDB('activity');
@@ -147,7 +186,7 @@ function checkAccessDeniedMessage() {
   const denied = sessionStorage.getItem('lc_access_denied');
   if (denied) {
     sessionStorage.removeItem('lc_access_denied');
-    const labels = { payments:'Payments', teachers:'Teachers', settings:'Settings' };
+    const labels = { payments:'Payments', teachers:'Teachers', settings:'Users', groups:'Groups' };
     showToast(`Your role does not have access to ${labels[denied] || denied}.`, 'error');
   }
 }

@@ -90,127 +90,46 @@
       font-family: 'Playfair Display', serif;
       font-size: 20px; font-weight: 900; color: var(--text);
     }
-    .timetable-controls { display: flex; align-items: center; gap: 10px; }
-    .week-nav-btn {
-      width: 32px; height: 32px; border-radius: 50%;
-      border: 1.5px solid var(--border); background: white;
-      cursor: pointer; font-size: 16px;
-      display: flex; align-items: center; justify-content: center;
-      transition: all 0.15s; color: var(--text);
+
+    /* Day type tabs */
+    .day-tabs { display:flex; gap:4px; }
+    .day-tab {
+      padding: 7px 16px; border-radius: 8px;
+      font-size: 13px; font-weight: 600;
+      border: 1.5px solid var(--border);
+      background: white; color: var(--muted);
+      cursor: pointer; transition: all 0.14s;
+      font-family: 'DM Sans', sans-serif;
     }
-    .week-nav-btn:hover { border-color: var(--crimson); color: var(--crimson); }
-    .week-range { font-size: 13px; font-weight: 600; color: var(--text-2); min-width: 180px; text-align: center; }
+    .day-tab:hover { border-color: var(--crimson); color: var(--crimson); }
+    .day-tab.active { background: var(--crimson); color: white; border-color: var(--crimson); }
+
+    /* Custom day picker chips — radio, single select */
+    .custom-day-row {
+      display: none; gap: 6px; flex-wrap: wrap;
+      margin-bottom: 16px; align-items: center;
+    }
+    .custom-day-row.show { display: flex; }
+    .cday-chip input[type="radio"],
+    .cday-chip input[type="checkbox"] { display:none; }
+    .cday-chip span {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 44px; height: 34px;
+      border: 1.5px solid var(--border); border-radius: 7px;
+      font-size: 12px; font-weight: 700; cursor: pointer;
+      transition: all 0.14s; background: white; color: var(--muted);
+    }
+    .cday-chip input:checked + span { background: var(--crimson); color: white; border-color: var(--crimson); }
+    .cday-chip span:hover { border-color: var(--crimson); color: var(--crimson); }
+    .cday-chip input:checked + span:hover { color: white; }
 
     .timetable-wrap {
       background: white;
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      overflow: hidden;
+      overflow: auto;
       box-shadow: var(--shadow);
     }
-
-    .tt-grid {
-      display: grid;
-      grid-template-columns: 56px repeat(7, 1fr);
-      overflow-x: auto;
-    }
-
-    /* Day headers */
-    .tt-day-header {
-      background: var(--crimson);
-      color: white;
-      text-align: center;
-      padding: 10px 4px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-      border-right: 1px solid rgba(255,255,255,0.15);
-    }
-    .tt-day-header:last-child { border-right: none; }
-    .tt-time-header {
-      background: var(--crimson);
-      border-right: 1px solid rgba(255,255,255,0.15);
-    }
-    .tt-day-header.today {
-      background: #CC0000;
-      font-size: 12px;
-    }
-    .tt-day-num {
-      font-size: 20px;
-      font-weight: 900;
-      font-family: 'Playfair Display', serif;
-      display: block;
-      margin-top: 2px;
-    }
-
-    /* Time rows */
-    .tt-time-cell {
-      height: 56px;
-      border-right: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: flex-start;
-      padding: 5px 6px 0;
-      font-size: 10px; font-weight: 600;
-      color: var(--muted); text-align: right;
-      justify-content: flex-end;
-    }
-    .tt-cell {
-      height: 56px;
-      border-right: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      position: relative;
-      cursor: pointer;
-      transition: background 0.1s;
-    }
-    .tt-cell:hover { background: #FFF0F0; }
-    .tt-cell.today-col { background: #FFFAFA; }
-    .tt-cell:last-child { border-right: none; }
-    .tt-time-cell:last-child { border-bottom: none; }
-
-    /* Class blocks inside cells */
-    .tt-block {
-      position: absolute;
-      left: 2px; right: 2px;
-      border-radius: 5px;
-      padding: 3px 6px;
-      font-size: 10px;
-      font-weight: 700;
-      line-height: 1.3;
-      overflow: hidden;
-      cursor: pointer;
-      z-index: 2;
-      transition: opacity 0.15s, box-shadow 0.15s;
-      border-left: 3px solid rgba(0,0,0,0.2);
-    }
-    .tt-block:hover { opacity: 0.85; box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
-    .tt-block-room {
-      font-weight: 400; opacity: 0.8; font-size: 9px;
-    }
-
-    /* Classroom pill */
-    .room-tag {
-      display: inline-flex; align-items: center; gap: 5px;
-      background: #FFF0F0;
-      border: 1px solid #FFD0D0;
-      border-radius: 100px;
-      padding: 4px 10px;
-      font-size: 12px; font-weight: 600;
-      color: var(--crimson);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .room-tag:hover { background: var(--crimson); color: white; border-color: var(--crimson); }
-
-    /* Classrooms list in modal */
-    .room-item {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .room-item:last-child { border-bottom: none; }
-    .room-name { font-weight: 600; font-size: 14px; }
-    .room-capacity { font-size: 12px; color: var(--muted); }
   </style>
 </head>
 <body>
@@ -242,18 +161,31 @@
 
     <!-- Timetable -->
     <div class="timetable-header">
-      <div class="timetable-title">Weekly Timetable</div>
-      <div class="timetable-controls">
-        <button class="week-nav-btn" onclick="changeWeek(-1)">‹</button>
-        <div class="week-range" id="weekRange"></div>
-        <button class="week-nav-btn" onclick="changeWeek(1)">›</button>
-        <button class="btn btn-ghost btn-sm" onclick="goToday()">Today</button>
-        <a href="schedule.html" class="btn btn-outline btn-sm">Full Schedule</a>
+      <div class="timetable-title">Timetable</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="day-tabs">
+          <button class="day-tab active" onclick="setDayTab('odd',this)">Odd Days</button>
+          <button class="day-tab" onclick="setDayTab('even',this)">Even Days</button>
+          <button class="day-tab" onclick="setDayTab('custom',this)">Custom</button>
+        </div>
+        <a href="groups.html" class="btn btn-outline btn-sm">Full Groups →</a>
       </div>
     </div>
 
+    <!-- Custom day picker (radio = one day at a time) -->
+    <div class="custom-day-row" id="customDayRow">
+      <span style="font-size:12px;font-weight:700;color:var(--muted);margin-right:4px">Day:</span>
+      <label class="cday-chip"><input type="radio" name="customDay" value="1" onchange="renderTimetable()"><span>Mon</span></label>
+      <label class="cday-chip"><input type="radio" name="customDay" value="2" onchange="renderTimetable()"><span>Tue</span></label>
+      <label class="cday-chip"><input type="radio" name="customDay" value="3" onchange="renderTimetable()"><span>Wed</span></label>
+      <label class="cday-chip"><input type="radio" name="customDay" value="4" onchange="renderTimetable()"><span>Thu</span></label>
+      <label class="cday-chip"><input type="radio" name="customDay" value="5" onchange="renderTimetable()"><span>Fri</span></label>
+      <label class="cday-chip"><input type="radio" name="customDay" value="6" onchange="renderTimetable()"><span>Sat</span></label>
+      <label class="cday-chip"><input type="radio" name="customDay" value="0" onchange="renderTimetable()"><span>Sun</span></label>
+    </div>
+
     <div class="timetable-wrap">
-      <div class="tt-grid" id="ttGrid"></div>
+      <div id="ttGrid"></div>
     </div>
 
   </div>
@@ -300,7 +232,7 @@
     <div class="modal-body" id="cdBody"></div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('classDetailModal')">Close</button>
-      <a href="schedule.html" class="btn btn-primary">Open Schedule</a>
+      <a href="groups.html" class="btn btn-primary">Open Groups</a>
     </div>
   </div>
 </div>
@@ -315,7 +247,6 @@
   const session = getSession();
   const role    = getRole();
   const now     = new Date();
-  let weekOffset = 0;
 
   /* ── Date header ── */
   document.getElementById('currentDate').textContent =
@@ -394,119 +325,168 @@
   }
 
   /* ══════════════════════════════════
-     TIMETABLE
+     TIMETABLE — Classrooms × Time slots
+     Columns = time slots (08:00–20:00)
+     Rows    = classrooms
+     Filter  = odd / even / custom (single day)
+     Auto-detect today's type on load
   ══════════════════════════════════ */
-  const HOURS = Array.from({ length: 13 }, (_, i) => i + 7); // 7am–7pm
-  const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const PALETTE = ['#FF0000','#1D4ED8','#1E6B45','#7C3AED','#A05C00','#0891B2','#BE185D'];
+  let dayFilter = 'odd';
 
-  function getWeekDates(offset) {
-    const d = new Date(now);
-    const day = d.getDay();
-    const diff = day === 0 ? -6 : 1 - day;
-    d.setDate(d.getDate() + diff + offset * 7);
-    return Array.from({ length: 7 }, (_, i) => {
-      const x = new Date(d);
-      x.setDate(d.getDate() + i);
-      return x;
-    });
+  // Time slots 08:00–20:00, every hour
+  const TIME_SLOTS = [];
+  for (let h = 8; h <= 20; h++) TIME_SLOTS.push(`${String(h).padStart(2,'0')}:00`);
+
+  function classColor(id) {
+    let h = 0;
+    for (let c of (id||'?')) h = (h<<5)-h+c.charCodeAt(0);
+    return PALETTE[Math.abs(h) % PALETTE.length];
   }
 
-  function toISO(d) { return d.toISOString().split('T')[0]; }
+  /* Auto-detect: day of week → odd or even
+     Odd  days = Mon (1), Wed (3), Fri (5)
+     Even days = Tue (2), Thu (4), Sat (6)
+     Sun (0)   → fallback to odd */
+  function autoDetectTab() {
+    const dow = now.getDay(); // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
+    const evenDays = [2, 4, 6]; // Tue, Thu, Sat
+    return evenDays.includes(dow) ? 'even' : 'odd';
+  }
 
-  function goToday() { weekOffset = 0; renderTimetable(); }
-  function changeWeek(d) { weekOffset += d; renderTimetable(); }
+  function setDayTab(type, btn) {
+    dayFilter = type;
+    document.querySelectorAll('.day-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('customDayRow').classList.toggle('show', type === 'custom');
+    renderTimetable();
+  }
 
-  // Fixed palette for class blocks
-  const BLOCK_COLORS = [
-    { bg:'#FFE8E8', border:'#FF0000', text:'#990000' },
-    { bg:'#E8F4FF', border:'#1D4ED8', text:'#1D4ED8' },
-    { bg:'#E8F9F0', border:'#1E6B45', text:'#1E6B45' },
-    { bg:'#F3E8FF', border:'#7C3AED', text:'#7C3AED' },
-    { bg:'#FFF8E8', border:'#A05C00', text:'#A05C00' },
-  ];
+  /* For custom: returns the single selected DOW (0-6), or null */
+  function getCustomDow() {
+    const r = document.querySelector('input[name="customDay"]:checked');
+    return r ? Number(r.value) : null;
+  }
+
+  /* Does a class appear in the current view?
+     For odd/even: match by schedType
+     For custom:   match by schedType=custom AND customDays includes selected DOW */
+  function classVisible(cls) {
+    if (dayFilter === 'odd')    return cls.schedType === 'odd';
+    if (dayFilter === 'even')   return cls.schedType === 'even';
+    if (dayFilter === 'custom') {
+      const dow = getCustomDow();
+      return dow !== null && cls.schedType === 'custom' && (cls.customDays||[]).includes(dow);
+    }
+    return false;
+  }
 
   function renderTimetable() {
-    const dates   = getWeekDates(weekOffset);
-    const todayStr = toISO(now);
-    const classes  = getDB('classes');
+    const rooms   = getDB('classrooms');
+    const classes = getDB('groups');
+    const grid    = document.getElementById('ttGrid');
 
-    // Week label
-    const s = dates[0].toLocaleDateString('en-US', { month:'short', day:'numeric' });
-    const e = dates[6].toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-    document.getElementById('weekRange').textContent = `${s} – ${e}`;
+    if (!rooms.length) {
+      grid.innerHTML = `<div style="padding:40px;text-align:center;color:var(--muted)">
+        <div style="font-size:32px;margin-bottom:10px">🏛</div>
+        <p>No classrooms yet.</p>
+        <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="openModal('classroomModal')">Add Classrooms</button>
+      </div>`;
+      return;
+    }
 
-    // Color map: assign consistent color per class name
-    const nameColorMap = {};
-    let colorIdx = 0;
-    classes.forEach(c => {
-      if (!nameColorMap[c.name]) {
-        nameColorMap[c.name] = BLOCK_COLORS[colorIdx % BLOCK_COLORS.length];
-        colorIdx++;
-      }
-    });
+    if (dayFilter === 'custom' && getCustomDow() === null) {
+      grid.innerHTML = `<div style="padding:40px;text-align:center;color:var(--muted)">
+        <p>Select a day above to view the groups.</p>
+      </div>`;
+      return;
+    }
 
-    let html = '';
+    const visibleClasses = classes.filter(classVisible);
+    const COL_W  = 100;  // px per time slot
+    const ROOM_W = 130;  // px for room label column
 
-    // Header row
-    html += `<div class="tt-time-header"></div>`;
-    dates.forEach((d, i) => {
-      const isToday = toISO(d) === todayStr;
-      html += `<div class="tt-day-header${isToday ? ' today' : ''}">
-        ${DAY_NAMES[i]}<span class="tt-day-num">${d.getDate()}</span>
+    /* ── Header: Classroom corner + time slots ── */
+    let html = `<div style="display:flex;position:sticky;top:0;z-index:5;">
+      <div style="width:${ROOM_W}px;flex-shrink:0;background:var(--crimson);padding:12px 16px;
+        font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+        color:rgba(255,255,255,0.65);border-right:1px solid rgba(255,255,255,0.15);">
+        Classroom
+      </div>
+      ${TIME_SLOTS.map(t => `
+        <div style="width:${COL_W}px;flex-shrink:0;background:var(--crimson);
+          padding:12px 8px;text-align:center;border-right:1px solid rgba(255,255,255,0.12);">
+          <div style="font-size:13px;font-weight:700;color:#fff;">${t}</div>
+        </div>
+      `).join('')}
+    </div>`;
+
+    /* ── Room rows ── */
+    rooms.forEach(room => {
+      const roomClasses = visibleClasses.filter(c => c.room === room.name);
+
+      html += `<div style="display:flex;border-bottom:1px solid var(--border);min-height:80px;">
+        <div style="width:${ROOM_W}px;flex-shrink:0;padding:14px 16px;
+          border-right:1px solid var(--border);background:var(--crimson-soft);
+          display:flex;flex-direction:column;justify-content:center;flex-shrink:0;">
+          <div style="font-weight:700;font-size:14px;color:var(--crimson)">${room.name}</div>
+          ${room.capacity?`<div style="font-size:11px;color:var(--muted);margin-top:2px">Cap. ${room.capacity}</div>`:''}
+        </div>
+        ${TIME_SLOTS.map(slot => {
+          // Find classes that START at this slot (compare HH:MM)
+          const slotHour = parseInt(slot);
+          const here = roomClasses.filter(cls => {
+            if (!cls.time) return false;
+            return parseInt(cls.time) === slotHour;
+          });
+          return `<div style="width:${COL_W}px;flex-shrink:0;border-right:1px solid var(--border);
+            padding:4px 5px;min-height:80px;position:relative;cursor:pointer;transition:background 0.1s;"
+            onclick="goToGroups()"
+            onmouseover="this.style.background='#FFF0F0'" onmouseout="this.style.background=''">
+            ${here.map(cls => {
+              const c = classColor(cls.id);
+              const dur = Number(cls.duration || 60);
+              const spanCols = Math.max(1, Math.round(dur / 60));
+              return `<div onclick="event.stopPropagation();showClassDetail('${cls.id}')"
+                style="background:${c}1A;border-left:3px solid ${c};border-radius:5px;
+                  padding:5px 6px;margin-bottom:3px;cursor:pointer;
+                  width:${spanCols * COL_W - 10}px;min-width:0;overflow:hidden;"
+                onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
+                <div style="font-weight:700;font-size:11px;color:${c};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cls.name}</div>
+                <div style="font-size:10px;color:${c};opacity:0.8;margin-top:1px">${cls.time}–${endTime(cls.time, dur)}</div>
+                ${cls.teacher?`<div style="font-size:10px;color:${c};opacity:0.65">👤 ${cls.teacher}</div>`:''}
+              </div>`;
+            }).join('')}
+          </div>`;
+        }).join('')}
       </div>`;
     });
 
-    // Time rows
-    HOURS.forEach(h => {
-      const label = h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h-12}pm`;
-      html += `<div class="tt-time-cell">${label}</div>`;
-      dates.forEach(d => {
-        const iso = toISO(d);
-        const isToday = iso === todayStr;
-        const dayClasses = classes.filter(c => c.date === iso);
-
-        html += `<div class="tt-cell${isToday ? ' today-col' : ''}" onclick="ttCellClick('${iso}','${h}')">`;
-        dayClasses.forEach(c => {
-          if (!c.time) return;
-          const [ch, cm] = c.time.split(':').map(Number);
-          if (ch !== h) return;
-          const dur = Number(c.duration || 60);
-          const ht = Math.round((dur / 60) * 56) - 6;
-          const col = nameColorMap[c.name] || BLOCK_COLORS[0];
-          const top = Math.round((cm / 60) * 56);
-          html += `<div class="tt-block"
-            style="background:${col.bg};border-left-color:${col.border};color:${col.text};top:${top+2}px;height:${ht}px"
-            onclick="event.stopPropagation();showClassDetail('${c.id}')">
-            <div style="font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name}</div>
-            <div class="tt-block-room">${c.room || ''}</div>
-          </div>`;
-        });
-        html += `</div>`;
-      });
-    });
-
-    document.getElementById('ttGrid').innerHTML = html;
+    grid.innerHTML = `<div style="overflow-x:auto;min-width:100%;">${html}</div>`;
   }
 
-  function ttCellClick(date, hour) {
-    // Navigate to schedule page with prefilled date/time via sessionStorage
-    sessionStorage.setItem('lc_new_class', JSON.stringify({ date, time: String(hour).padStart(2,'0') + ':00' }));
-    window.location.href = 'schedule.html';
+  function endTime(startStr, durationMin) {
+    if (!startStr) return '';
+    const [h, m] = startStr.split(':').map(Number);
+    const total = h * 60 + (m||0) + durationMin;
+    return `${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;
   }
+
+  function goToGroups() { window.location.href = 'groups.html'; }
 
   function showClassDetail(id) {
-    const c = getDB('classes').find(c => c.id === id);
+    const c = getDB('groups').find(c => c.id === id);
     if (!c) return;
+    const SCHED = { odd:'Odd days', even:'Even days', custom:'Custom' };
     document.getElementById('cdTitle').textContent = c.name;
     document.getElementById('cdBody').innerHTML = `
       <div class="grid-2">
-        <div class="form-group"><label>Date</label><div style="font-weight:600">${formatDate(c.date)}</div></div>
-        <div class="form-group"><label>Time</label><div style="font-weight:600">${c.time || '—'}</div></div>
-        <div class="form-group"><label>Duration</label><div style="font-weight:600">${c.duration || 60} min</div></div>
-        <div class="form-group"><label>Teacher</label><div style="font-weight:600">${c.teacher || '—'}</div></div>
-        <div class="form-group"><label>Room</label><div style="font-weight:600">${c.room || '—'}</div></div>
+        <div class="form-group"><label>Groups</label><div style="font-weight:600">${SCHED[c.schedType]||'—'}</div></div>
+        <div class="form-group"><label>Time</label><div style="font-weight:600">${c.time||'—'} · ${c.duration||60}min</div></div>
+        <div class="form-group"><label>Teacher</label><div style="font-weight:600">${c.teacher||'—'}</div></div>
+        <div class="form-group"><label>Room</label><div style="font-weight:600">${c.room||'—'}</div></div>
       </div>
-      ${c.notes ? `<div class="form-group"><label>Notes</label><div style="background:var(--crimson-soft);padding:12px;border-radius:8px;font-size:14px">${c.notes}</div></div>` : ''}
+      ${c.notes?`<div class="form-group"><label>Notes</label><div style="background:var(--crimson-soft);padding:12px;border-radius:8px;font-size:14px">${c.notes}</div></div>`:''}
     `;
     openModal('classDetailModal');
   }
@@ -571,6 +551,18 @@
 
   /* ── Init ── */
   renderStats();
+
+  // Auto-detect: today is odd or even date → activate matching tab
+  // Custom is never auto-activated
+  const autoTab = autoDetectTab(); // 'odd' or 'even'
+  dayFilter = autoTab;
+  document.querySelectorAll('.day-tab').forEach(btn => {
+    if (btn.textContent.toLowerCase().startsWith(autoTab)) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
   renderTimetable();
   renderClassrooms();
 </script>

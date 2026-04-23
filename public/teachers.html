@@ -189,7 +189,7 @@
       return;
     }
 
-    const classes = getDB('classes');
+    const classes = getDB('groups');
     const statusMap = { Active:'badge-green', 'Part-time':'badge-gold', Inactive:'badge-grey' };
 
     grid.innerHTML = teachers.map(t => {
@@ -284,7 +284,7 @@
     if (!t) return;
     const name = t.firstName + ' ' + t.lastName;
     const color = avatarColor(name);
-    const classes = getDB('classes').filter(c => c.teacher === name);
+    const classes = getDB('groups').filter(c => c.teacher === name);
     const specs = (t.specs || '').split(',').map(s => s.trim()).filter(Boolean);
     const statusMap = { Active:'badge-green', 'Part-time':'badge-gold', Inactive:'badge-grey' };
 
