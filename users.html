@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Users — TommyLC CRM</title>
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    .role-option input[type="radio"] { display:none; }
+    .role-opt-box {
+      border:1.5px solid var(--border);
+      border-radius:10px;
+      padding:12px 14px;
+      cursor:pointer;
+      transition:all 0.15s;
+      background:white;
+    }
+    .role-option input:checked + .role-opt-box {
+      border-color:var(--crimson);
+      background:var(--crimson-soft);
+      box-shadow:0 0 0 3px rgba(255,0,0,0.10);
+    }
+    .role-opt-box:hover { border-color:var(--crimson); }
+    .role-opt-icon { font-size:20px; display:block; margin-bottom:6px; }
+    .role-opt-name { font-size:14px; font-weight:700; color:var(--crimson-deep); }
+    .role-opt-desc { font-size:11px; color:var(--muted); margin-top:2px; }
+
+    .user-row-name { display:flex; align-items:center; gap:12px; }
+    .perm-chips { display:flex; gap:6px; flex-wrap:wrap; }
+    .perm-chip {
+      font-size:10px; font-weight:700; padding:2px 8px;
+      border-radius:100px; letter-spacing:0.5px;
+    }
+    .perm-chip.yes { background:var(--green-light); color:var(--green); }
+    .perm-chip.no  { background:var(--crimson-soft); color:var(--muted); text-decoration:line-through; opacity:0.5; }
+
+    .matrix-card { background:white; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:28px; }
+    .matrix-table th { background:var(--crimson); color:rgba(255,255,255,0.9); }
+    .matrix-table td { text-align:center; }
+    .matrix-table td:first-child { text-align:left; font-weight:600; }
+    .check { color:var(--green); font-size:16px; }
+    .cross { color:var(--muted); font-size:14px; opacity:0.35; }
+
+    .toolbar { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+  </style>
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<div class="main">
+  <div class="topbar">
+    <div class="page-title">User Management</div>
+    <div class="topbar-right">
+      <span id="userCount" class="text-muted"></span>
+      <button class="btn btn-primary" onclick="openModal('userModal')">➕ Add User</button>
+    </div>
+  </div>
+
+  <div class="page-content">
+
+    <!-- Permission Matrix -->
+    <div class="matrix-card">
+      <div class="card-header">
+        <div class="card-title">Permission Matrix</div>
+      </div>
+      <div class="table-wrap">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th style="text-align:left;padding:14px 20px;">Role</th>
+              <th>Dashboard</th>
+              <th>Students</th>
+              <th>Schedule</th>
+              <th>Teachers</th>
+              <th>Payments</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:13px 20px">👑 CEO</td>
+              <td><span class="check">✓</span></td><td><span class="check">✓</span></td>
+              <td><span class="check">✓</span></td><td><span class="check">✓</span></td>
+              <td><span class="check">✓</span></td>
+            </tr>
+            <tr>
+              <td style="padding:13px 20px">🏢 Manager</td>
+              <td><span class="check">✓</span></td><td><span class="check">✓</span></td>
+              <td><span class="check">✓</span></td><td><span class="check">✓</span></td>
+              <td><span class="check">✓</span></td>
+            </tr>
+            <tr>
+              <td style="padding:13px 20px">📋 Head Admin</td>
+              <td><span class="check">✓</span></td><td><span class="check">✓</span></td>
+              <td><span class="check">✓</span></td><td><span class="check">✓</span></td>
+              <td><span class="cross">✕</span></td>
+            </tr>
+            <tr>
+              <td style="padding:13px 20px">🗂 Admin</td>
+              <td><span class="check">✓</span></td><td><span class="check">✓</span></td>
+              <td><span class="check">✓</span></td><td><span class="cross">✕</span></td>
+              <td><span class="cross">✕</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Users table -->
+    <div class="toolbar">
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search users…" oninput="renderUsers()">
+      </div>
+      <select id="filterRole" onchange="renderUsers()" style="width:auto;padding:9px 14px;">
+        <option value="">All Roles</option>
+        <option>CEO</option>
+        <option>Manager</option>
+        <option>Head Admin</option>
+        <option>Admin</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Staff Member</th>
+              <th>Role</th>
+              <th>Access</th>
+              <th>Phone</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="userTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Add/Edit User Modal -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="userModalTitle">Add Staff Member</div>
+      <button class="modal-close" onclick="closeModal('userModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editUserId">
+      <div class="form-row">
+        <div class="form-group">
+          <label>First Name *</label>
+          <input type="text" id="uFirstName" placeholder="Tommy">
+        </div>
+        <div class="form-group">
+          <label>Last Name *</label>
+          <input type="text" id="uLastName" placeholder="Smith">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Phone *</label>
+        <div style="display:flex;align-items:center;gap:0">
+          <span style="padding:10px 14px;background:var(--crimson-soft);border:1.5px solid var(--border);border-right:none;border-radius:8px 0 0 8px;font-size:14px;color:var(--crimson-dark);white-space:nowrap;font-weight:600">+998</span>
+          <input type="tel" id="uPhone" placeholder="90 123 45 67"
+            style="border-radius:0 8px 8px 0;border-left:none"
+            oninput="formatPhone(this)">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Password <span id="pwLabel" style="font-weight:400;text-transform:none;letter-spacing:0">*</span></label>
+        <input type="password" id="uPassword" placeholder="Set a password for this staff member">
+        <div id="pwHint" style="font-size:12px;color:var(--muted);margin-top:5px;display:none">Leave blank to keep the existing password.</div>
+      </div>
+      <div class="form-group">
+        <label>Role *</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px" id="roleSelector">
+          <label class="role-option" data-role="Admin">
+            <input type="radio" name="uRole" value="Admin" checked>
+            <div class="role-opt-box">
+              <span class="role-opt-icon">🗂</span>
+              <div class="role-opt-name">Admin</div>
+              <div class="role-opt-desc">Students & schedule</div>
+            </div>
+          </label>
+          <label class="role-option" data-role="Head Admin">
+            <input type="radio" name="uRole" value="Head Admin">
+            <div class="role-opt-box">
+              <span class="role-opt-icon">📋</span>
+              <div class="role-opt-name">Head Admin</div>
+              <div class="role-opt-desc">No payments access</div>
+            </div>
+          </label>
+          <label class="role-option" data-role="Manager">
+            <input type="radio" name="uRole" value="Manager">
+            <div class="role-opt-box">
+              <span class="role-opt-icon">🏢</span>
+              <div class="role-opt-name">Manager</div>
+              <div class="role-opt-desc">Full access</div>
+            </div>
+          </label>
+          <label class="role-option" data-role="CEO">
+            <input type="radio" name="uRole" value="CEO">
+            <div class="role-opt-box">
+              <span class="role-opt-icon">👑</span>
+              <div class="role-opt-name">CEO</div>
+              <div class="role-opt-desc">Full access</div>
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('userModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveUser()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="shared.js"></script>
+<script>
+  requireAuth('settings');
+  renderSidebar('settings');
+
+  const ALL_FEATURES = ['dashboard','students','schedule','teachers','payments'];
+  const FEATURE_LABELS = { dashboard:'Dashboard', students:'Students', schedule:'Schedule', teachers:'Teachers', payments:'Payments' };
+
+  // Format phone input: "XX XXX XX XX"
+  function formatPhone(input) {
+    let v = input.value.replace(/\D/g, '').slice(0, 9);
+    let out = '';
+    if (v.length > 0) out += v.slice(0,2);
+    if (v.length > 2) out += ' ' + v.slice(2,5);
+    if (v.length > 5) out += ' ' + v.slice(5,7);
+    if (v.length > 7) out += ' ' + v.slice(7,9);
+    input.value = out;
+  }
+
+  function getSelectedRole() {
+    const checked = document.querySelector('input[name="uRole"]:checked');
+    return checked ? checked.value : 'Admin';
+  }
+
+  function setSelectedRole(role) {
+    const radio = document.querySelector(`input[name="uRole"][value="${role}"]`);
+    if (radio) radio.checked = true;
+  }
+
+  function renderUsers() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const fRole = document.getElementById('filterRole').value;
+    const users = JSON.parse(localStorage.getItem('lc_users') || '[]');
+    const session = getSession();
+
+    const filtered = users.filter(u => {
+      const name = (u.firstName + ' ' + u.lastName).toLowerCase();
+      return (!q || name.includes(q) || (u.phone||'').includes(q))
+        && (!fRole || u.role === fRole);
+    });
+
+    document.getElementById('userCount').textContent = `${filtered.length} staff member${filtered.length !== 1 ? 's' : ''}`;
+
+    const ROLE_STYLES = {
+      'CEO':        { bg:'#FFF0F0', color:'#CC0000', emoji:'👑' },
+      'Manager':    { bg:'#FFF0F0', color:'#CC0000', emoji:'🏢' },
+      'Head Admin': { bg:'#dbeafe', color:'#1d4ed8', emoji:'📋' },
+      'Admin':      { bg:'#D1EAD9', color:'#1E6B45', emoji:'🗂' },
+    };
+
+    const tbody = document.getElementById('userTable');
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">👥</div><p>No staff members found.</p></div></td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(u => {
+      const fullName = (u.firstName || '') + ' ' + (u.lastName || '');
+      const color = avatarColor(fullName);
+      const rs = ROLE_STYLES[u.role] || ROLE_STYLES['Admin'];
+      const perms = ROLE_PERMISSIONS[u.role] || [];
+      const isCurrentUser = session && session.id === u.id;
+      const phone = u.phone ? '+998 ' + u.phone : '—';
+      return `<tr>
+        <td>
+          <div class="user-row-name">
+            <div class="avatar" style="background:${color}">${initials(fullName)}</div>
+            <div>
+              <div style="font-weight:600">${fullName.trim()} ${isCurrentUser ? '<span style="font-size:11px;color:var(--muted)">(you)</span>' : ''}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span style="background:${rs.bg};color:${rs.color};padding:4px 10px;border-radius:100px;font-size:12px;font-weight:700">
+            ${rs.emoji} ${u.role}
+          </span>
+        </td>
+        <td>
+          <div class="perm-chips">
+            ${ALL_FEATURES.map(f => {
+              const has = perms.includes(f);
+              return `<span class="perm-chip ${has?'yes':'no'}">${FEATURE_LABELS[f]}</span>`;
+            }).join('')}
+          </div>
+        </td>
+        <td class="text-muted">${phone}</td>
+        <td>
+          <div class="flex gap-8">
+            ${!isCurrentUser
+              ? `<button class="btn btn-ghost btn-sm" onclick="editUser('${u.id}')">Edit</button>
+                 <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">Delete</button>`
+              : '<span class="text-muted text-sm">—</span>'}
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function saveUser() {
+    const firstName = document.getElementById('uFirstName').value.trim();
+    const lastName  = document.getElementById('uLastName').value.trim();
+    const phone     = document.getElementById('uPhone').value.trim();
+    const password  = document.getElementById('uPassword').value;
+    const role      = getSelectedRole();
+    const id        = document.getElementById('editUserId').value;
+
+    if (!firstName || !lastName) { showToast('First and last name are required.', 'error'); return; }
+    if (!phone) { showToast('Phone number is required.', 'error'); return; }
+    if (!id && !password) { showToast('Password is required.', 'error'); return; }
+
+    const users = JSON.parse(localStorage.getItem('lc_users') || '[]');
+    const fullName = firstName + ' ' + lastName;
+
+    if (id) {
+      const idx = users.findIndex(u => u.id === id);
+      if (idx !== -1) {
+        users[idx].firstName = firstName;
+        users[idx].lastName  = lastName;
+        users[idx].name      = fullName;
+        users[idx].phone     = phone;
+        users[idx].role      = role;
+        users[idx].avatar    = initials(fullName);
+        if (password) users[idx].password = password;
+      }
+      logActivity(`Updated staff: ${fullName} (${role})`, '');
+    } else {
+      users.push({ id: genId(), firstName, lastName, name: fullName, phone, password, role, avatar: initials(fullName) });
+      logActivity(`Added staff: ${fullName} (${role})`, 'green');
+    }
+
+    localStorage.setItem('lc_users', JSON.stringify(users));
+    closeModal('userModal');
+    clearUserForm();
+    renderUsers();
+    showToast(id ? 'Staff member updated!' : 'Staff member added!');
+  }
+
+  function clearUserForm() {
+    ['uFirstName','uLastName','uPhone','uPassword','editUserId'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('pwHint').style.display = 'none';
+    document.getElementById('pwLabel').textContent = '*';
+    setSelectedRole('Admin');
+    document.getElementById('userModalTitle').textContent = 'Add Staff Member';
+  }
+
+  function editUser(id) {
+    const users = JSON.parse(localStorage.getItem('lc_users') || '[]');
+    const u = users.find(u => u.id === id);
+    if (!u) return;
+    document.getElementById('editUserId').value  = id;
+    document.getElementById('uFirstName').value  = u.firstName || (u.name||'').split(' ')[0] || '';
+    document.getElementById('uLastName').value   = u.lastName  || (u.name||'').split(' ').slice(1).join(' ') || '';
+    document.getElementById('uPhone').value      = u.phone || '';
+    document.getElementById('uPassword').value   = '';
+    document.getElementById('pwHint').style.display = 'block';
+    document.getElementById('pwLabel').textContent = '(optional)';
+    setSelectedRole(u.role);
+    document.getElementById('userModalTitle').textContent = 'Edit Staff Member';
+    openModal('userModal');
+  }
+
+  function deleteUser(id) {
+    const session = getSession();
+    if (session && session.id === id) { showToast("You can't delete your own account.", 'error'); return; }
+    if (!confirm('Delete this staff member?')) return;
+    const users = JSON.parse(localStorage.getItem('lc_users') || '[]');
+    const u = users.find(u => u.id === id);
+    if (u) logActivity(`Removed staff: ${u.name}`, 'red');
+    localStorage.setItem('lc_users', JSON.stringify(users.filter(u => u.id !== id)));
+    renderUsers();
+    showToast('Staff member deleted.', 'error');
+  }
+
+  renderUsers();
+</script>
+</body>
+</html>

@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schedule — TommyLC CRM</title>
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    /* ── Page layout ── */
+    .sched-page { display:flex; gap:0; height:calc(100vh - 64px); overflow:hidden; }
+
+    /* ── Left sidebar: day filter ── */
+    .day-sidebar {
+      width: 200px;
+      flex-shrink: 0;
+      background: white;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 20px 0;
+    }
+    .day-sidebar-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 20px 12px;
+    }
+    .day-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-2);
+      border: none;
+      background: none;
+      text-align: left;
+      border-left: 3px solid transparent;
+      transition: all 0.14s;
+      width: 100%;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .day-btn:hover { background: var(--crimson-soft); color: var(--crimson); }
+    .day-btn.active {
+      border-left-color: var(--crimson);
+      background: var(--crimson-soft);
+      color: var(--crimson);
+      font-weight: 700;
+    }
+    .day-btn .day-icon { font-size: 16px; }
+
+    .day-sidebar-sep {
+      height: 1px;
+      background: var(--border);
+      margin: 12px 20px;
+    }
+
+    /* Custom day checkboxes */
+    .custom-days { padding: 8px 20px; display:none; }
+    .custom-days.show { display:block; }
+    .cday-check {
+      display:flex; align-items:center; gap:8px;
+      padding: 7px 0;
+      font-size: 13px; font-weight: 500;
+      color: var(--text-2);
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+    }
+    .cday-check:last-child { border-bottom: none; }
+    .cday-check input { accent-color: var(--crimson); width:15px; height:15px; cursor:pointer; }
+
+    /* ── Timetable area ── */
+    .tt-area {
+      flex: 1;
+      overflow: auto;
+      background: var(--surface);
+      padding: 20px;
+    }
+
+    .tt-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .tt-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px; font-weight: 900; color: var(--text);
+    }
+
+    /* ── Timetable grid ── */
+    .tt-wrap {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      min-width: 900px;
+    }
+
+    /* Header: empty corner + time slots */
+    .tt-header {
+      display: flex;
+      background: var(--crimson);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .tt-corner {
+      width: 120px;
+      flex-shrink: 0;
+      padding: 12px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.7);
+      text-transform: uppercase;
+      border-right: 1px solid rgba(255,255,255,0.15);
+    }
+    .tt-timecols {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+    .tt-timecol {
+      flex: 1;
+      min-width: 100px;
+      padding: 12px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.9);
+      text-align: center;
+      border-right: 1px solid rgba(255,255,255,0.12);
+    }
+    .tt-timecol:last-child { border-right: none; }
+
+    /* Row: room label + cells */
+    .tt-row {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      min-height: 80px;
+    }
+    .tt-row:last-child { border-bottom: none; }
+    .tt-row:hover { background: #FFFAFA; }
+
+    .tt-room-label {
+      width: 120px;
+      flex-shrink: 0;
+      padding: 14px 16px;
+      border-right: 1px solid var(--border);
+      background: var(--crimson-soft);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .tt-room-name {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--crimson);
+    }
+    .tt-room-cap {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .tt-cells {
+      flex: 1;
+      display: flex;
+      position: relative;
+    }
+    .tt-cell {
+      flex: 1;
+      min-width: 100px;
+      border-right: 1px solid var(--border);
+      min-height: 80px;
+      cursor: pointer;
+      transition: background 0.1s;
+      position: relative;
+    }
+    .tt-cell:last-child { border-right: none; }
+    .tt-cell:hover { background: #FFF0F0; }
+
+    /* Class block */
+    .class-block {
+      position: absolute;
+      top: 6px;
+      border-radius: 7px;
+      padding: 6px 8px;
+      font-size: 11px;
+      line-height: 1.35;
+      cursor: pointer;
+      z-index: 5;
+      border-left: 3px solid rgba(0,0,0,0.2);
+      transition: opacity 0.15s, box-shadow 0.15s;
+      overflow: hidden;
+    }
+    .class-block:hover { opacity: 0.88; box-shadow: 0 3px 12px rgba(0,0,0,0.18); }
+    .cb-code { font-size: 10px; opacity: 0.75; margin-bottom: 2px; }
+    .cb-name { font-weight: 700; }
+    .cb-teacher { font-size: 10px; opacity: 0.8; margin-top: 1px; }
+    .cb-time { font-size: 10px; opacity: 0.7; margin-top: 2px; }
+
+    /* Empty room row placeholder */
+    .tt-empty-row {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-style: italic;
+    }
+
+    /* ── Schedule type + day modal cards ── */
+    .sched-opt input[type="radio"] { display:none; }
+    .sched-box {
+      border: 1.5px solid var(--border); border-radius: 10px;
+      padding: 12px 10px; text-align: center; cursor: pointer;
+      transition: all 0.15s; background: white;
+    }
+    .sched-opt input:checked + .sched-box {
+      border-color: var(--crimson); background: var(--crimson-soft);
+      box-shadow: 0 0 0 3px rgba(255,0,0,0.08);
+    }
+    .sched-box:hover { border-color: var(--crimson); }
+    .sched-icon { font-size: 22px; margin-bottom: 5px; }
+    .sched-name { font-size: 13px; font-weight: 700; color: var(--text); }
+    .sched-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    .day-chip input[type="checkbox"] { display: none; }
+    .day-chip span {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 42px; height: 36px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 12px; font-weight: 700; cursor: pointer;
+      transition: all 0.15s; background: white; color: var(--text-2);
+    }
+    .day-chip input:checked + span { background: var(--crimson); color: white; border-color: var(--crimson); }
+    .day-chip span:hover { border-color: var(--crimson); color: var(--crimson); }
+    .day-chip input:checked + span:hover { color: white; }
+
+    /* ── Attendance ── */
+    .att-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); }
+    .att-row:last-child { border-bottom:none; }
+    .att-name { flex:1; font-size:14px; }
+    .att-toggle { display:flex; gap:6px; }
+    .att-btn { padding:5px 12px; border-radius:6px; border:1.5px solid var(--border); background:white; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.15s; }
+    .att-btn.present { background:var(--green); color:white; border-color:var(--green); }
+    .att-btn.absent  { background:var(--crimson); color:white; border-color:var(--crimson); }
+    .att-btn.late    { background:#FF9999; color:#990000; border-color:#FF9999; }
+
+    /* Class detail popup */
+    .detail-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:14px; }
+    .detail-row:last-child { border-bottom:none; }
+    .detail-label { color:var(--muted); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+  </style>
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<div class="main" style="flex-direction:column">
+  <div class="topbar">
+    <div class="page-title">Schedule</div>
+    <div class="topbar-right">
+      <button class="btn btn-outline btn-sm" onclick="openModal('classroomModal')">🏛 Classrooms</button>
+      <button class="btn btn-primary" onclick="openAddModal()">➕ Add Class</button>
+    </div>
+  </div>
+
+  <div class="sched-page">
+
+    <!-- ── Left: day filter ── -->
+    <div class="day-sidebar">
+      <div class="day-sidebar-title">Schedule Type</div>
+
+      <button class="day-btn active" data-type="odd" onclick="setDayFilter('odd',this)">
+        <span class="day-icon">📅</span> Odd Days
+      </button>
+      <button class="day-btn" data-type="even" onclick="setDayFilter('even',this)">
+        <span class="day-icon">📆</span> Even Days
+      </button>
+      <button class="day-btn" data-type="custom" onclick="setDayFilter('custom',this)">
+        <span class="day-icon">✏️</span> Custom
+      </button>
+
+      <!-- Custom day picker -->
+      <div class="custom-days" id="customDayPicker">
+        <label class="cday-check"><input type="checkbox" value="1" onchange="renderTimetable()"><span>Monday</span></label>
+        <label class="cday-check"><input type="checkbox" value="2" onchange="renderTimetable()"><span>Tuesday</span></label>
+        <label class="cday-check"><input type="checkbox" value="3" onchange="renderTimetable()"><span>Wednesday</span></label>
+        <label class="cday-check"><input type="checkbox" value="4" onchange="renderTimetable()"><span>Thursday</span></label>
+        <label class="cday-check"><input type="checkbox" value="5" onchange="renderTimetable()"><span>Friday</span></label>
+        <label class="cday-check"><input type="checkbox" value="6" onchange="renderTimetable()"><span>Saturday</span></label>
+        <label class="cday-check"><input type="checkbox" value="0" onchange="renderTimetable()"><span>Sunday</span></label>
+      </div>
+
+      <div class="day-sidebar-sep"></div>
+      <div class="day-sidebar-title">Quick Actions</div>
+      <button class="day-btn" onclick="openAddModal()"><span class="day-icon">➕</span> Add Class</button>
+      <button class="day-btn" onclick="openModal('classroomModal')"><span class="day-icon">🏛</span> Classrooms</button>
+    </div>
+
+    <!-- ── Right: timetable ── -->
+    <div class="tt-area">
+      <div class="tt-toolbar">
+        <div class="tt-title" id="ttTitle">Odd Days Schedule</div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <span class="text-muted" id="classCountLabel"></span>
+        </div>
+      </div>
+      <div class="tt-wrap" id="ttWrap">
+        <!-- rendered by JS -->
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ ADD / EDIT CLASS MODAL ══ -->
+<div class="modal-overlay" id="classModal">
+  <div class="modal" style="width:540px">
+    <div class="modal-header">
+      <div class="modal-title" id="classModalTitle">Add Class</div>
+      <button class="modal-close" onclick="closeModal('classModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editClassId">
+
+      <div class="form-group">
+        <label>Class Name *</label>
+        <input type="text" id="cName" placeholder="e.g. Intermediate English — Group A">
+      </div>
+
+      <div class="form-group">
+        <label>Schedule Type *</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px">
+          <label class="sched-opt">
+            <input type="radio" name="schedType" value="odd" onchange="onModalSchedType()" checked>
+            <div class="sched-box">
+              <div class="sched-icon">📅</div>
+              <div class="sched-name">Odd Days</div>
+              <div class="sched-desc">1st, 3rd, 5th…</div>
+            </div>
+          </label>
+          <label class="sched-opt">
+            <input type="radio" name="schedType" value="even" onchange="onModalSchedType()">
+            <div class="sched-box">
+              <div class="sched-icon">📆</div>
+              <div class="sched-name">Even Days</div>
+              <div class="sched-desc">2nd, 4th, 6th…</div>
+            </div>
+          </label>
+          <label class="sched-opt">
+            <input type="radio" name="schedType" value="custom" onchange="onModalSchedType()">
+            <div class="sched-box">
+              <div class="sched-icon">✏️</div>
+              <div class="sched-name">Custom</div>
+              <div class="sched-desc">Pick days</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group" id="modalCustomDays" style="display:none">
+        <label>Days of the Week *</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+          <label class="day-chip"><input type="checkbox" name="cDay" value="1"><span>Mon</span></label>
+          <label class="day-chip"><input type="checkbox" name="cDay" value="2"><span>Tue</span></label>
+          <label class="day-chip"><input type="checkbox" name="cDay" value="3"><span>Wed</span></label>
+          <label class="day-chip"><input type="checkbox" name="cDay" value="4"><span>Thu</span></label>
+          <label class="day-chip"><input type="checkbox" name="cDay" value="5"><span>Fri</span></label>
+          <label class="day-chip"><input type="checkbox" name="cDay" value="6"><span>Sat</span></label>
+          <label class="day-chip"><input type="checkbox" name="cDay" value="0"><span>Sun</span></label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Start Date *</label>
+        <input type="date" id="cDate">
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Repeats on this schedule until deleted.</div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Time *</label>
+          <input type="time" id="cTime">
+        </div>
+        <div class="form-group">
+          <label>Duration</label>
+          <select id="cDuration">
+            <option value="60">60 min</option>
+            <option value="90">90 min</option>
+            <option value="120">120 min</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Teacher</label>
+          <select id="cTeacher"><option value="">— Select —</option></select>
+        </div>
+        <div class="form-group">
+          <label>Classroom</label>
+          <select id="cRoom"><option value="">— Select room —</option></select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="cNotes" placeholder="Any notes…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('classModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveClass()">Save Class</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CLASS DETAIL MODAL ══ -->
+<div class="modal-overlay" id="classDetailModal">
+  <div class="modal" style="width:420px">
+    <div class="modal-header">
+      <div class="modal-title" id="cdTitle">Class</div>
+      <button class="modal-close" onclick="closeModal('classDetailModal')">✕</button>
+    </div>
+    <div class="modal-body" id="cdBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="cdDeleteBtn">🗑 Delete</button>
+      <button class="btn btn-ghost" id="cdAttBtn">✅ Attendance</button>
+      <button class="btn btn-primary" id="cdEditBtn">✏️ Edit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CLASSROOMS MODAL ══ -->
+<div class="modal-overlay" id="classroomModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🏛 Classrooms</div>
+      <button class="modal-close" onclick="closeModal('classroomModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)">
+        <div class="form-group" style="margin:0">
+          <label>Room Name *</label>
+          <input type="text" id="roomName" placeholder="e.g. Room 1">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>Capacity</label>
+          <input type="number" id="roomCapacity" placeholder="e.g. 12" min="1">
+        </div>
+        <button class="btn btn-primary" style="height:40px" onclick="addClassroom()">Add</button>
+      </div>
+      <div id="classroomList"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('classroomModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ATTENDANCE MODAL ══ -->
+<div class="modal-overlay" id="attendanceModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✅ Attendance</div>
+      <button class="modal-close" onclick="closeModal('attendanceModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="attendanceInfo" style="margin-bottom:16px;padding:12px;background:var(--crimson-soft);border-radius:8px;font-size:13px;font-weight:600;color:#CC0000"></div>
+      <div id="attendanceList"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('attendanceModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAttendance()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="shared.js"></script>
+<script>
+  requireAuth('schedule');
+  renderSidebar('schedule');
+
+  const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const PALETTE   = ['#FF0000','#1D4ED8','#1E6B45','#7C3AED','#A05C00','#0891B2','#BE185D','#059669'];
+
+  let currentFilter  = 'odd';       // 'odd' | 'even' | 'custom'
+  let attendanceKey  = null;        // classId::YYYY-MM-DD
+  let currentClassId = null;
+
+  // Time slots: 8:00 → 19:00 in 30-min steps
+  const TIME_START = 8 * 60;   // minutes from midnight
+  const TIME_END   = 19 * 60;
+  const SLOT_W     = 100;       // px per 30-min slot
+
+  function minToStr(m) {
+    const h = Math.floor(m/60), s = m%60;
+    return `${String(h).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+  function strToMin(t) {
+    const [h,s] = t.split(':').map(Number);
+    return h*60 + (s||0);
+  }
+
+  function classColor(id) {
+    let h = 0;
+    for (let c of (id||'?')) h = (h<<5)-h+c.charCodeAt(0);
+    return PALETTE[Math.abs(h) % PALETTE.length];
+  }
+
+  /* ══════════════════════════════════
+     DAY FILTER
+  ══════════════════════════════════ */
+  function setDayFilter(type, btn) {
+    currentFilter = type;
+    document.querySelectorAll('.day-btn[data-type]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const picker = document.getElementById('customDayPicker');
+    picker.classList.toggle('show', type === 'custom');
+
+    const titles = { odd:'Odd Days Schedule', even:'Even Days Schedule', custom:'Custom Schedule' };
+    document.getElementById('ttTitle').textContent = titles[type];
+
+    renderTimetable();
+  }
+
+  function getFilteredDays() {
+    if (currentFilter === 'odd')  return 'odd';
+    if (currentFilter === 'even') return 'even';
+    // custom: return array of checked DOW values
+    return [...document.querySelectorAll('#customDayPicker input:checked')].map(c => Number(c.value));
+  }
+
+  /* ══════════════════════════════════
+     RENDER TIMETABLE
+     Rows = classrooms, Cols = time slots
+     Blocks = classes matching current filter
+  ══════════════════════════════════ */
+  function renderTimetable() {
+    const rooms   = getDB('classrooms');
+    const classes = getDB('classes');
+    const filter  = getFilteredDays();
+
+    // Filter classes by schedule type match
+    const visible = classes.filter(cls => {
+      if (filter === 'odd')  return cls.schedType === 'odd';
+      if (filter === 'even') return cls.schedType === 'even';
+      // custom: class must have at least one matching day
+      if (Array.isArray(filter)) {
+        return cls.schedType === 'custom'
+          && (cls.customDays||[]).some(d => filter.includes(d));
+      }
+      return false;
+    });
+
+    document.getElementById('classCountLabel').textContent =
+      `${visible.length} class${visible.length !== 1 ? 'es' : ''}`;
+
+    const wrap = document.getElementById('ttWrap');
+    if (!rooms.length) {
+      wrap.innerHTML = `<div style="padding:48px;text-align:center;color:var(--muted)">
+        <div style="font-size:36px;margin-bottom:12px">🏛</div>
+        <p>No classrooms yet. <button class="btn btn-primary btn-sm" onclick="openModal('classroomModal')">Add Classrooms</button></p>
+      </div>`;
+      return;
+    }
+
+    // Build time slot columns 8:00-19:00 every 30 min
+    const slots = [];
+    for (let m = TIME_START; m < TIME_END; m += 30) slots.push(m);
+    const totalW = slots.length * SLOT_W;
+
+    // Header
+    let html = `<div class="tt-header">
+      <div class="tt-corner">Classroom</div>
+      <div class="tt-timecols" style="width:${totalW}px;flex:none">
+        ${slots.map(m => `<div class="tt-timecol" style="width:${SLOT_W}px;flex:none">${minToStr(m)}</div>`).join('')}
+      </div>
+    </div>`;
+
+    // Rows per classroom
+    rooms.forEach(room => {
+      const roomClasses = visible.filter(c => c.room === room.name);
+
+      // Build block positions
+      const blocks = roomClasses.map(cls => {
+        const startMin = strToMin(cls.time || '09:00');
+        const dur      = Number(cls.duration || 60);
+        const endMin   = startMin + dur;
+        const left     = ((startMin - TIME_START) / 30) * SLOT_W;
+        const width    = (dur / 30) * SLOT_W - 4;
+        const col      = classColor(cls.id);
+        return { cls, left, width, col, startMin, endMin };
+      });
+
+      html += `<div class="tt-row">
+        <div class="tt-room-label">
+          <div class="tt-room-name">${room.name}</div>
+          ${room.capacity ? `<div class="tt-room-cap">Cap. ${room.capacity}</div>` : ''}
+        </div>
+        <div class="tt-cells" style="width:${totalW}px;flex:none;position:relative">
+          ${slots.map(m => `<div class="tt-cell" style="width:${SLOT_W}px;flex:none;left:${((m-TIME_START)/30)*SLOT_W}px;position:absolute;top:0;bottom:0;" onclick="cellClick('${room.name}','${minToStr(m)}')"></div>`).join('')}
+          ${blocks.map(b => `
+            <div class="class-block"
+              style="left:${b.left+2}px;width:${b.width}px;top:6px;bottom:6px;background:${b.col}22;border-left-color:${b.col};color:${b.col}"
+              onclick="event.stopPropagation();showDetail('${b.cls.id}')">
+              <div class="cb-name">${b.cls.name}</div>
+              ${b.cls.teacher ? `<div class="cb-teacher">👤 ${b.cls.teacher}</div>` : ''}
+              <div class="cb-time">${b.cls.time} · ${b.cls.duration||60}min</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+    });
+
+    // Unassigned room row
+    const unassigned = visible.filter(c => !c.room || !rooms.find(r => r.name === c.room));
+    if (unassigned.length) {
+      const blocks = unassigned.map(cls => {
+        const startMin = strToMin(cls.time || '09:00');
+        const dur = Number(cls.duration || 60);
+        const left  = ((startMin - TIME_START) / 30) * SLOT_W;
+        const width = (dur / 30) * SLOT_W - 4;
+        const col   = classColor(cls.id);
+        return { cls, left, width, col };
+      });
+      html += `<div class="tt-row">
+        <div class="tt-room-label">
+          <div class="tt-room-name" style="color:var(--muted)">No Room</div>
+        </div>
+        <div class="tt-cells" style="width:${totalW}px;flex:none;position:relative">
+          ${slots.map(m => `<div class="tt-cell" style="width:${SLOT_W}px;flex:none;left:${((m-TIME_START)/30)*SLOT_W}px;position:absolute;top:0;bottom:0;"></div>`).join('')}
+          ${blocks.map(b => `
+            <div class="class-block"
+              style="left:${b.left+2}px;width:${b.width}px;top:6px;bottom:6px;background:${b.col}22;border-left-color:${b.col};color:${b.col}"
+              onclick="event.stopPropagation();showDetail('${b.cls.id}')">
+              <div class="cb-name">${b.cls.name}</div>
+              <div class="cb-time">${b.cls.time} · ${b.cls.duration||60}min</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+    }
+
+    wrap.innerHTML = html;
+  }
+
+  /* ── Cell click: open add modal with room + time pre-filled ── */
+  function cellClick(roomName, time) {
+    clearClassForm();
+    populateTeacherSelect();
+    populateRoomSelect();
+    document.getElementById('cTime').value = time;
+    document.getElementById('cRoom').value = roomName;
+    document.getElementById('cDate').value = new Date().toISOString().split('T')[0];
+    // Set schedule type to match current filter
+    const radio = document.querySelector(`input[name="schedType"][value="${currentFilter === 'custom' ? 'custom' : currentFilter}"]`);
+    if (radio) radio.checked = true;
+    onModalSchedType();
+    document.getElementById('classModalTitle').textContent = 'Add Class';
+    openModal('classModal');
+  }
+
+  /* ══════════════════════════════════
+     CLASS DETAIL
+  ══════════════════════════════════ */
+  function showDetail(id) {
+    const cls = getDB('classes').find(c => c.id === id);
+    if (!cls) return;
+    currentClassId = id;
+
+    const SCHED = { odd:'Odd days', even:'Even days', custom:'Custom' };
+    const daysStr = cls.schedType === 'custom' && cls.customDays?.length
+      ? cls.customDays.map(d => DAY_NAMES[d]).join(', ') : '';
+
+    document.getElementById('cdTitle').textContent = cls.name;
+    document.getElementById('cdBody').innerHTML = `
+      <div class="detail-row"><span class="detail-label">Schedule</span><span>${SCHED[cls.schedType]||'—'}${daysStr?' · '+daysStr:''}</span></div>
+      <div class="detail-row"><span class="detail-label">Time</span><span>${cls.time||'—'} · ${cls.duration||60} min</span></div>
+      <div class="detail-row"><span class="detail-label">Teacher</span><span>${cls.teacher||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Room</span><span>${cls.room||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Since</span><span>${formatDate(cls.startDate)}</span></div>
+      ${cls.notes ? `<div class="detail-row"><span class="detail-label">Notes</span><span>${cls.notes}</span></div>` : ''}
+    `;
+
+    const canDelete = ['CEO','Manager','Admin'].includes(getRole());
+    document.getElementById('cdDeleteBtn').style.display = canDelete ? '' : 'none';
+    document.getElementById('cdDeleteBtn').onclick = () => deleteClass(id);
+    document.getElementById('cdEditBtn').onclick   = () => { closeModal('classDetailModal'); editClass(id); };
+    document.getElementById('cdAttBtn').onclick    = () => { closeModal('classDetailModal'); openAttendanceForToday(id); };
+    openModal('classDetailModal');
+  }
+
+  function openAttendanceForToday(id) {
+    const today = new Date().toISOString().split('T')[0];
+    const cls   = getDB('classes').find(c => c.id === id);
+    openAttendance(id, today, cls?.name || '', cls?.time || '');
+  }
+
+  /* ══════════════════════════════════
+     SAVE / EDIT / DELETE
+  ══════════════════════════════════ */
+  function openAddModal() {
+    clearClassForm();
+    populateTeacherSelect();
+    populateRoomSelect();
+    document.getElementById('cDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('classModalTitle').textContent = 'Add Class';
+    openModal('classModal');
+  }
+
+  function onModalSchedType() {
+    const type = document.querySelector('input[name="schedType"]:checked')?.value;
+    document.getElementById('modalCustomDays').style.display = type === 'custom' ? '' : 'none';
+  }
+
+  function getModalSchedType()  { return document.querySelector('input[name="schedType"]:checked')?.value || 'odd'; }
+  function getModalCustomDays() { return [...document.querySelectorAll('input[name="cDay"]:checked')].map(c => Number(c.value)); }
+
+  function saveClass() {
+    const name  = document.getElementById('cName').value.trim();
+    const start = document.getElementById('cDate').value;
+    const time  = document.getElementById('cTime').value;
+    if (!name || !start || !time) { showToast('Name, start date and time are required.', 'error'); return; }
+
+    const type = getModalSchedType();
+    const days = getModalCustomDays();
+    if (type === 'custom' && !days.length) { showToast('Select at least one day.', 'error'); return; }
+
+    const editId = document.getElementById('editClassId').value;
+    const data = {
+      name, time, startDate: start,
+      duration:   document.getElementById('cDuration').value,
+      teacher:    document.getElementById('cTeacher').value,
+      room:       document.getElementById('cRoom').value,
+      notes:      document.getElementById('cNotes').value.trim(),
+      schedType:  type,
+      customDays: type === 'custom' ? days : [],
+    };
+
+    const classes = getDB('classes');
+    if (editId) {
+      const idx = classes.findIndex(c => c.id === editId);
+      if (idx !== -1) classes[idx] = { ...classes[idx], ...data };
+      setDB('classes', classes);
+      logActivity(`Updated class: ${name}`, '');
+      showToast('Class updated!');
+    } else {
+      data.id = genId();
+      classes.push(data);
+      setDB('classes', classes);
+      logActivity(`Added class "${name}"`, 'green');
+      showToast('Class added!');
+    }
+
+    closeModal('classModal');
+    clearClassForm();
+    renderTimetable();
+  }
+
+  function clearClassForm() {
+    ['cName','cDate','cTime','cRoom','cNotes','editClassId'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    document.getElementById('cDuration').value = '60';
+    document.querySelectorAll('input[name="schedType"]')[0].checked = true;
+    document.querySelectorAll('input[name="cDay"]').forEach(c => c.checked = false);
+    document.getElementById('modalCustomDays').style.display = 'none';
+  }
+
+  function editClass(id) {
+    const cls = getDB('classes').find(c => c.id === id);
+    if (!cls) return;
+    clearClassForm();
+    populateTeacherSelect();
+    populateRoomSelect();
+    document.getElementById('editClassId').value = id;
+    document.getElementById('cName').value       = cls.name;
+    document.getElementById('cDate').value       = cls.startDate || '';
+    document.getElementById('cTime').value       = cls.time;
+    document.getElementById('cDuration').value   = cls.duration || '60';
+    document.getElementById('cTeacher').value    = cls.teacher || '';
+    document.getElementById('cRoom').value       = cls.room || '';
+    document.getElementById('cNotes').value      = cls.notes || '';
+    const radio = document.querySelector(`input[name="schedType"][value="${cls.schedType||'odd'}"]`);
+    if (radio) radio.checked = true;
+    document.getElementById('modalCustomDays').style.display = cls.schedType === 'custom' ? '' : 'none';
+    document.querySelectorAll('input[name="cDay"]').forEach(cb => {
+      cb.checked = (cls.customDays||[]).includes(Number(cb.value));
+    });
+    document.getElementById('classModalTitle').textContent = 'Edit Class';
+    openModal('classModal');
+  }
+
+  function deleteClass(id) {
+    const cls = getDB('classes').find(c => c.id === id);
+    if (!confirm(`Delete "${cls?.name}"?`)) return;
+    setDB('classes', getDB('classes').filter(c => c.id !== id));
+    logActivity(`Deleted class: ${cls?.name}`, 'red');
+    closeModal('classDetailModal');
+    renderTimetable();
+    showToast('Class deleted.', 'error');
+  }
+
+  /* ══════════════════════════════════
+     ATTENDANCE
+  ══════════════════════════════════ */
+  function openAttendance(classId, date, className, time) {
+    attendanceKey = classId + '::' + date;
+    const students = getDB('students').filter(s => s.status === 'Active' || s.status === 'Trial');
+    const existing = getDB('att_' + attendanceKey);
+
+    document.getElementById('attendanceInfo').textContent = `${className} · ${formatDate(date)} at ${time}`;
+
+    document.getElementById('attendanceList').innerHTML = students.length
+      ? students.map(s => {
+          const name = s.firstName + ' ' + s.lastName;
+          const prev = existing.find(a => a.studentId === s.id);
+          const status = prev?.status || '';
+          return `<div class="att-row">
+            <div class="avatar" style="background:${avatarColor(name)};width:30px;height:30px;font-size:11px">${initials(name)}</div>
+            <div class="att-name">${name}</div>
+            <div class="att-toggle">
+              <button class="att-btn${status==='present'?' present':''}" data-sid="${s.id}" data-status="present" onclick="toggleAtt(this)">✓</button>
+              <button class="att-btn${status==='late'?' late':''}"     data-sid="${s.id}" data-status="late"    onclick="toggleAtt(this)">⏱</button>
+              <button class="att-btn${status==='absent'?' absent':''}" data-sid="${s.id}" data-status="absent"  onclick="toggleAtt(this)">✕</button>
+            </div>
+          </div>`;
+        }).join('')
+      : '<p class="text-muted">No active students.</p>';
+
+    openModal('attendanceModal');
+  }
+
+  function toggleAtt(btn) {
+    btn.closest('.att-toggle').querySelectorAll('.att-btn').forEach(b => b.classList.remove('present','late','absent'));
+    btn.classList.add(btn.dataset.status);
+  }
+
+  function saveAttendance() {
+    const records = [];
+    document.querySelectorAll('.att-toggle').forEach(row => {
+      const active = row.querySelector('.att-btn.present,.att-btn.late,.att-btn.absent');
+      if (active) records.push({ studentId: active.dataset.sid, status: active.dataset.status });
+    });
+    setDB('att_' + attendanceKey, records);
+    closeModal('attendanceModal');
+    showToast('Attendance saved!');
+  }
+
+  /* ══════════════════════════════════
+     CLASSROOMS
+  ══════════════════════════════════ */
+  function renderClassrooms() {
+    const rooms = getDB('classrooms');
+    const el    = document.getElementById('classroomList');
+    el.innerHTML = rooms.length
+      ? rooms.map(r => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+            <div>
+              <div style="font-weight:600">🏛 ${r.name}</div>
+              <div style="font-size:12px;color:var(--muted)">${r.capacity ? `Capacity: ${r.capacity}` : 'No capacity set'}</div>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="deleteClassroom('${r.id}')">Delete</button>
+          </div>
+        `).join('')
+      : '<div class="empty-state"><div class="empty-icon">🏛</div><p>No classrooms yet.</p></div>';
+  }
+
+  function addClassroom() {
+    const name     = document.getElementById('roomName').value.trim();
+    const capacity = document.getElementById('roomCapacity').value.trim();
+    if (!name) { showToast('Room name is required.', 'error'); return; }
+    const rooms = getDB('classrooms');
+    if (rooms.find(r => r.name.toLowerCase() === name.toLowerCase())) {
+      showToast('A classroom with that name already exists.', 'error'); return;
+    }
+    rooms.push({ id: genId(), name, capacity: capacity ? Number(capacity) : null });
+    setDB('classrooms', rooms);
+    document.getElementById('roomName').value = '';
+    document.getElementById('roomCapacity').value = '';
+    renderClassrooms();
+    renderTimetable();
+    showToast(`"${name}" added!`);
+  }
+
+  function deleteClassroom(id) {
+    const rooms = getDB('classrooms');
+    const r = rooms.find(r => r.id === id);
+    if (!confirm(`Delete "${r?.name}"?`)) return;
+    setDB('classrooms', rooms.filter(r => r.id !== id));
+    renderClassrooms();
+    renderTimetable();
+    showToast('Classroom deleted.', 'error');
+  }
+
+  function populateRoomSelect() {
+    const sel   = document.getElementById('cRoom');
+    const rooms = getDB('classrooms');
+    sel.innerHTML = '<option value="">— Select room —</option>' +
+      rooms.map(r => `<option value="${r.name}">${r.name}${r.capacity ? ` (${r.capacity})` : ''}</option>`).join('');
+  }
+
+  function populateTeacherSelect() {
+    const sel = document.getElementById('cTeacher');
+    const teachers = getDB('teachers');
+    sel.innerHTML = '<option value="">— Select —</option>' +
+      teachers.map(t => `<option value="${t.firstName} ${t.lastName}">${t.firstName} ${t.lastName}</option>`).join('');
+  }
+
+  // Seed classrooms if empty
+  if (!getDB('classrooms').length) {
+    setDB('classrooms', [
+      { id: genId(), name: 'Room 1', capacity: 12 },
+      { id: genId(), name: 'Room 2', capacity: 8 },
+    ]);
+  }
+
+  renderClassrooms();
+  renderTimetable();
+</script>
+</body>
+</html>

@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — TommyLC CRM</title>
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    /* ── Welcome banner ── */
+    .welcome-banner {
+      background: linear-gradient(135deg, #990000 0%, #CC0000 100%);
+      border-radius: var(--radius);
+      padding: 24px 32px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+    .welcome-banner::after {
+      content: '🏫';
+      position: absolute; right: 28px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 72px; opacity: 0.08;
+    }
+    .welcome-banner h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px; color: white; margin-bottom: 3px;
+    }
+    .welcome-banner p { color: rgba(255,255,255,0.6); font-size: 13px; }
+    .date-chip {
+      background: rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.92);
+      padding: 6px 14px; border-radius: 100px;
+      font-size: 13px; font-weight: 500; white-space: nowrap;
+    }
+
+    /* ── Stat boxes ── */
+    .stat-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .stat-box {
+      background: white;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 20px 24px;
+      flex: 1;
+      min-width: 140px;
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+      transition: box-shadow 0.16s, transform 0.16s;
+    }
+    .stat-box:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+    .stat-box::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--crimson);
+    }
+    .stat-box.green::before  { background: var(--green); }
+    .stat-box.blue::before   { background: var(--blue); }
+    .stat-box.amber::before  { background: var(--amber); }
+    .stat-box.purple::before { background: #7C3AED; }
+
+    .stat-box-icon {
+      position: absolute; top: 16px; right: 16px;
+      font-size: 26px; opacity: 0.11;
+    }
+    .stat-box-label {
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 6px;
+    }
+    .stat-box-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px; color: var(--text); line-height: 1;
+    }
+    .stat-box-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Timetable ── */
+    .timetable-header {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 16px;
+    }
+    .timetable-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px; font-weight: 900; color: var(--text);
+    }
+    .timetable-controls { display: flex; align-items: center; gap: 10px; }
+    .week-nav-btn {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 1.5px solid var(--border); background: white;
+      cursor: pointer; font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; color: var(--text);
+    }
+    .week-nav-btn:hover { border-color: var(--crimson); color: var(--crimson); }
+    .week-range { font-size: 13px; font-weight: 600; color: var(--text-2); min-width: 180px; text-align: center; }
+
+    .timetable-wrap {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .tt-grid {
+      display: grid;
+      grid-template-columns: 56px repeat(7, 1fr);
+      overflow-x: auto;
+    }
+
+    /* Day headers */
+    .tt-day-header {
+      background: var(--crimson);
+      color: white;
+      text-align: center;
+      padding: 10px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      border-right: 1px solid rgba(255,255,255,0.15);
+    }
+    .tt-day-header:last-child { border-right: none; }
+    .tt-time-header {
+      background: var(--crimson);
+      border-right: 1px solid rgba(255,255,255,0.15);
+    }
+    .tt-day-header.today {
+      background: #CC0000;
+      font-size: 12px;
+    }
+    .tt-day-num {
+      font-size: 20px;
+      font-weight: 900;
+      font-family: 'Playfair Display', serif;
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* Time rows */
+    .tt-time-cell {
+      height: 56px;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-start;
+      padding: 5px 6px 0;
+      font-size: 10px; font-weight: 600;
+      color: var(--muted); text-align: right;
+      justify-content: flex-end;
+    }
+    .tt-cell {
+      height: 56px;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .tt-cell:hover { background: #FFF0F0; }
+    .tt-cell.today-col { background: #FFFAFA; }
+    .tt-cell:last-child { border-right: none; }
+    .tt-time-cell:last-child { border-bottom: none; }
+
+    /* Class blocks inside cells */
+    .tt-block {
+      position: absolute;
+      left: 2px; right: 2px;
+      border-radius: 5px;
+      padding: 3px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1.3;
+      overflow: hidden;
+      cursor: pointer;
+      z-index: 2;
+      transition: opacity 0.15s, box-shadow 0.15s;
+      border-left: 3px solid rgba(0,0,0,0.2);
+    }
+    .tt-block:hover { opacity: 0.85; box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
+    .tt-block-room {
+      font-weight: 400; opacity: 0.8; font-size: 9px;
+    }
+
+    /* Classroom pill */
+    .room-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #FFF0F0;
+      border: 1px solid #FFD0D0;
+      border-radius: 100px;
+      padding: 4px 10px;
+      font-size: 12px; font-weight: 600;
+      color: var(--crimson);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .room-tag:hover { background: var(--crimson); color: white; border-color: var(--crimson); }
+
+    /* Classrooms list in modal */
+    .room-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .room-item:last-child { border-bottom: none; }
+    .room-name { font-weight: 600; font-size: 14px; }
+    .room-capacity { font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<div class="main">
+  <div class="topbar">
+    <div class="page-title">Dashboard</div>
+    <div class="topbar-right">
+      <span class="text-muted" id="currentDate"></span>
+      <button class="btn btn-outline btn-sm" onclick="openModal('classroomModal')">🏛 Classrooms</button>
+    </div>
+  </div>
+
+  <div class="page-content">
+
+    <!-- Welcome -->
+    <div class="welcome-banner">
+      <div>
+        <h2 id="welcomeMsg">Good morning 👋</h2>
+        <p>Here's what's happening at Tommy Learning Center today.</p>
+      </div>
+      <div class="date-chip" id="dateBadge"></div>
+    </div>
+
+    <!-- Role-filtered stat boxes -->
+    <div class="stat-row" id="statRow"></div>
+
+    <!-- Timetable -->
+    <div class="timetable-header">
+      <div class="timetable-title">Weekly Timetable</div>
+      <div class="timetable-controls">
+        <button class="week-nav-btn" onclick="changeWeek(-1)">‹</button>
+        <div class="week-range" id="weekRange"></div>
+        <button class="week-nav-btn" onclick="changeWeek(1)">›</button>
+        <button class="btn btn-ghost btn-sm" onclick="goToday()">Today</button>
+        <a href="schedule.html" class="btn btn-outline btn-sm">Full Schedule</a>
+      </div>
+    </div>
+
+    <div class="timetable-wrap">
+      <div class="tt-grid" id="ttGrid"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Classroom Modal -->
+<div class="modal-overlay" id="classroomModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🏛 Classrooms</div>
+      <button class="modal-close" onclick="closeModal('classroomModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Add form -->
+      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)">
+        <div class="form-group" style="margin:0">
+          <label>Room Name *</label>
+          <input type="text" id="roomName" placeholder="e.g. Room 1, Lab A">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>Capacity</label>
+          <input type="number" id="roomCapacity" placeholder="e.g. 12" min="1">
+        </div>
+        <button class="btn btn-primary" style="height:40px" onclick="addClassroom()">Add</button>
+      </div>
+      <!-- List -->
+      <div id="classroomList">
+        <div class="empty-state"><div class="empty-icon">🏛</div><p>No classrooms yet.</p></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('classroomModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Class detail popup (click on timetable block) -->
+<div class="modal-overlay" id="classDetailModal">
+  <div class="modal" style="width:420px">
+    <div class="modal-header">
+      <div class="modal-title" id="cdTitle">Class Detail</div>
+      <button class="modal-close" onclick="closeModal('classDetailModal')">✕</button>
+    </div>
+    <div class="modal-body" id="cdBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('classDetailModal')">Close</button>
+      <a href="schedule.html" class="btn btn-primary">Open Schedule</a>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="shared.js"></script>
+<script>
+  requireAuth('dashboard');
+  renderSidebar('dashboard');
+  checkAccessDeniedMessage();
+
+  const session = getSession();
+  const role    = getRole();
+  const now     = new Date();
+  let weekOffset = 0;
+
+  /* ── Date header ── */
+  document.getElementById('currentDate').textContent =
+    now.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('dateBadge').textContent =
+    now.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+
+  /* ── Welcome greeting ── */
+  const firstName = session ? session.name.split(' ')[0] : 'there';
+  const hour = now.getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('welcomeMsg').textContent = `${greeting}, ${firstName} 👋`;
+
+  /* ══════════════════════════════════
+     ROLE-FILTERED STAT BOXES
+  ══════════════════════════════════ */
+  const STAT_DEFS = [
+    {
+      id: 'statActive', label: 'Active Students', icon: '👤',
+      color: '',
+      roles: ['CEO','Manager'],
+      calc: () => getDB('students').filter(s => s.status === 'Active').length,
+      sub: 'currently enrolled'
+    },
+    {
+      id: 'statDebtors', label: 'Debtors', icon: '⚠️',
+      color: 'red',
+      roles: ['CEO','Manager'],
+      calc: () => {
+        const inv = getDB('invoices');
+        const ids = new Set(inv.filter(i => i.status === 'Pending' || i.status === 'Overdue').map(i => i.studentId));
+        return ids.size;
+      },
+      sub: 'unpaid invoices'
+    },
+    {
+      id: 'statPaid', label: 'Paid', icon: '✅',
+      color: 'green',
+      roles: ['CEO','Manager'],
+      calc: () => getDB('invoices').filter(i => i.status === 'Paid').length,
+      sub: 'invoices settled'
+    },
+    {
+      id: 'statLead', label: 'Leads', icon: '🎯',
+      color: 'purple',
+      roles: ['Manager','Head Admin','Admin'],
+      calc: () => getDB('students').filter(s => s.status === 'Lead').length,
+      sub: 'potential students'
+    },
+    {
+      id: 'statTrial', label: 'Trial', icon: '🔬',
+      color: 'amber',
+      roles: ['Manager','Head Admin','Admin'],
+      calc: () => getDB('students').filter(s => s.status === 'Trial').length,
+      sub: 'on trial period'
+    },
+  ];
+
+  function renderStats() {
+    const row = document.getElementById('statRow');
+    row.innerHTML = STAT_DEFS
+      .filter(s => s.roles.includes(role))
+      .map(s => `
+        <div class="stat-box ${s.color}">
+          <span class="stat-box-icon">${s.icon}</span>
+          <div class="stat-box-label">${s.label}</div>
+          <div class="stat-box-value" id="${s.id}">—</div>
+          <div class="stat-box-sub">${s.sub}</div>
+        </div>
+      `).join('');
+
+    STAT_DEFS.filter(s => s.roles.includes(role)).forEach(s => {
+      const el = document.getElementById(s.id);
+      if (el) el.textContent = s.calc();
+    });
+  }
+
+  /* ══════════════════════════════════
+     TIMETABLE
+  ══════════════════════════════════ */
+  const HOURS = Array.from({ length: 13 }, (_, i) => i + 7); // 7am–7pm
+  const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  function getWeekDates(offset) {
+    const d = new Date(now);
+    const day = d.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    d.setDate(d.getDate() + diff + offset * 7);
+    return Array.from({ length: 7 }, (_, i) => {
+      const x = new Date(d);
+      x.setDate(d.getDate() + i);
+      return x;
+    });
+  }
+
+  function toISO(d) { return d.toISOString().split('T')[0]; }
+
+  function goToday() { weekOffset = 0; renderTimetable(); }
+  function changeWeek(d) { weekOffset += d; renderTimetable(); }
+
+  // Fixed palette for class blocks
+  const BLOCK_COLORS = [
+    { bg:'#FFE8E8', border:'#FF0000', text:'#990000' },
+    { bg:'#E8F4FF', border:'#1D4ED8', text:'#1D4ED8' },
+    { bg:'#E8F9F0', border:'#1E6B45', text:'#1E6B45' },
+    { bg:'#F3E8FF', border:'#7C3AED', text:'#7C3AED' },
+    { bg:'#FFF8E8', border:'#A05C00', text:'#A05C00' },
+  ];
+
+  function renderTimetable() {
+    const dates   = getWeekDates(weekOffset);
+    const todayStr = toISO(now);
+    const classes  = getDB('classes');
+
+    // Week label
+    const s = dates[0].toLocaleDateString('en-US', { month:'short', day:'numeric' });
+    const e = dates[6].toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+    document.getElementById('weekRange').textContent = `${s} – ${e}`;
+
+    // Color map: assign consistent color per class name
+    const nameColorMap = {};
+    let colorIdx = 0;
+    classes.forEach(c => {
+      if (!nameColorMap[c.name]) {
+        nameColorMap[c.name] = BLOCK_COLORS[colorIdx % BLOCK_COLORS.length];
+        colorIdx++;
+      }
+    });
+
+    let html = '';
+
+    // Header row
+    html += `<div class="tt-time-header"></div>`;
+    dates.forEach((d, i) => {
+      const isToday = toISO(d) === todayStr;
+      html += `<div class="tt-day-header${isToday ? ' today' : ''}">
+        ${DAY_NAMES[i]}<span class="tt-day-num">${d.getDate()}</span>
+      </div>`;
+    });
+
+    // Time rows
+    HOURS.forEach(h => {
+      const label = h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h-12}pm`;
+      html += `<div class="tt-time-cell">${label}</div>`;
+      dates.forEach(d => {
+        const iso = toISO(d);
+        const isToday = iso === todayStr;
+        const dayClasses = classes.filter(c => c.date === iso);
+
+        html += `<div class="tt-cell${isToday ? ' today-col' : ''}" onclick="ttCellClick('${iso}','${h}')">`;
+        dayClasses.forEach(c => {
+          if (!c.time) return;
+          const [ch, cm] = c.time.split(':').map(Number);
+          if (ch !== h) return;
+          const dur = Number(c.duration || 60);
+          const ht = Math.round((dur / 60) * 56) - 6;
+          const col = nameColorMap[c.name] || BLOCK_COLORS[0];
+          const top = Math.round((cm / 60) * 56);
+          html += `<div class="tt-block"
+            style="background:${col.bg};border-left-color:${col.border};color:${col.text};top:${top+2}px;height:${ht}px"
+            onclick="event.stopPropagation();showClassDetail('${c.id}')">
+            <div style="font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name}</div>
+            <div class="tt-block-room">${c.room || ''}</div>
+          </div>`;
+        });
+        html += `</div>`;
+      });
+    });
+
+    document.getElementById('ttGrid').innerHTML = html;
+  }
+
+  function ttCellClick(date, hour) {
+    // Navigate to schedule page with prefilled date/time via sessionStorage
+    sessionStorage.setItem('lc_new_class', JSON.stringify({ date, time: String(hour).padStart(2,'0') + ':00' }));
+    window.location.href = 'schedule.html';
+  }
+
+  function showClassDetail(id) {
+    const c = getDB('classes').find(c => c.id === id);
+    if (!c) return;
+    document.getElementById('cdTitle').textContent = c.name;
+    document.getElementById('cdBody').innerHTML = `
+      <div class="grid-2">
+        <div class="form-group"><label>Date</label><div style="font-weight:600">${formatDate(c.date)}</div></div>
+        <div class="form-group"><label>Time</label><div style="font-weight:600">${c.time || '—'}</div></div>
+        <div class="form-group"><label>Duration</label><div style="font-weight:600">${c.duration || 60} min</div></div>
+        <div class="form-group"><label>Teacher</label><div style="font-weight:600">${c.teacher || '—'}</div></div>
+        <div class="form-group"><label>Room</label><div style="font-weight:600">${c.room || '—'}</div></div>
+      </div>
+      ${c.notes ? `<div class="form-group"><label>Notes</label><div style="background:var(--crimson-soft);padding:12px;border-radius:8px;font-size:14px">${c.notes}</div></div>` : ''}
+    `;
+    openModal('classDetailModal');
+  }
+
+  /* ══════════════════════════════════
+     CLASSROOMS
+  ══════════════════════════════════ */
+  function renderClassrooms() {
+    const rooms = getDB('classrooms');
+    const el = document.getElementById('classroomList');
+    if (!rooms.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">🏛</div><p>No classrooms yet. Add one above.</p></div>';
+      return;
+    }
+    el.innerHTML = rooms.map(r => `
+      <div class="room-item">
+        <div>
+          <div class="room-name">🏛 ${r.name}</div>
+          <div class="room-capacity">${r.capacity ? `Capacity: ${r.capacity} students` : 'No capacity set'}</div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="deleteClassroom('${r.id}')">Delete</button>
+      </div>
+    `).join('');
+  }
+
+  function addClassroom() {
+    const name     = document.getElementById('roomName').value.trim();
+    const capacity = document.getElementById('roomCapacity').value.trim();
+    if (!name) { showToast('Room name is required.', 'error'); return; }
+
+    const rooms = getDB('classrooms');
+    if (rooms.find(r => r.name.toLowerCase() === name.toLowerCase())) {
+      showToast('A classroom with that name already exists.', 'error'); return;
+    }
+
+    rooms.push({ id: genId(), name, capacity: capacity ? Number(capacity) : null });
+    setDB('classrooms', rooms);
+    document.getElementById('roomName').value = '';
+    document.getElementById('roomCapacity').value = '';
+    renderClassrooms();
+    logActivity(`Added classroom: ${name}`, 'green');
+    showToast(`Classroom "${name}" added!`);
+  }
+
+  function deleteClassroom(id) {
+    const rooms = getDB('classrooms');
+    const r = rooms.find(r => r.id === id);
+    if (!confirm(`Delete "${r?.name}"?`)) return;
+    setDB('classrooms', rooms.filter(r => r.id !== id));
+    if (r) logActivity(`Removed classroom: ${r.name}`, 'red');
+    renderClassrooms();
+    showToast('Classroom deleted.', 'error');
+  }
+
+  // Seed classrooms if empty
+  if (!getDB('classrooms').length) {
+    setDB('classrooms', [
+      { id: genId(), name: 'Room 1', capacity: 12 },
+      { id: genId(), name: 'Room 2', capacity: 8 },
+    ]);
+  }
+
+  /* ── Init ── */
+  renderStats();
+  renderTimetable();
+  renderClassrooms();
+</script>
+</body>
+</html>
