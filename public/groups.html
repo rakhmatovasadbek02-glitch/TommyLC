@@ -590,9 +590,18 @@
   }
 
   function populateRoomSelect() {
-    const sel = document.getElementById('gRoom');
-    sel.innerHTML = '<option value="">— Select room —</option>' +
-      getDB('classrooms').map(r => `<option value="${r.name}">${r.name}${r.capacity?` (${r.capacity})`:''}</option>`).join('');
+    const sel   = document.getElementById('gRoom');
+    const rooms = getDB('classrooms');
+    if (!rooms.length) {
+      sel.innerHTML = '<option value="">No classrooms yet — add them first</option>';
+      sel.disabled  = true;
+      sel.style.color = 'var(--muted)';
+    } else {
+      sel.disabled  = false;
+      sel.style.color = '';
+      sel.innerHTML = '<option value="">— Select room —</option>' +
+        rooms.map(r => `<option value="${r.name}">${r.name}${r.capacity ? ` (cap. ${r.capacity})` : ''}</option>`).join('');
+    }
   }
 
   function populateTeacherFilter() {
