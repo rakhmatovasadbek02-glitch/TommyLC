@@ -73,7 +73,14 @@
 
       <div class="form-row">
         <div class="form-group"><label>Group Code *</label><input type="text" id="gCode" placeholder="e.g. INT-A1, BEG-01"></div>
-        <div class="form-group"><label>Level *</label><input type="text" id="gLevel" placeholder="e.g. Intermediate, B2"></div>
+        <div class="form-group"><label>Level *</label><select id="gLevel"><option value="">— Select level —</option>
+            <option>RoundUp</option>
+            <option>Beginner</option>
+            <option>Elementary</option>
+            <option>Pre-Intermediate</option>
+            <option>Intermediate</option>
+            <option>CEFR</option>
+            <option>IELTS</option></select></div>
       </div>
 
       <div class="form-row">
@@ -289,7 +296,7 @@
 
   async function saveGroup() {
     const code   =document.getElementById('gCode').value.trim();
-    const level  =document.getElementById('gLevel').value.trim();
+    const level  =document.getElementById('gLevel').value;
     const teacher=document.getElementById('gTeacher').value;
     const room   =document.getElementById('gRoom').value;
     const time   =document.getElementById('gTime').value;

@@ -142,7 +142,14 @@
       <div class="form-row">
         <div class="form-group">
           <label>Current Level</label>
-          <input type="text" id="lLevel" placeholder="Beginner, A2, Intermediate…">
+          <select id="lLevel"><option value="">— Select level —</option>
+            <option>RoundUp</option>
+            <option>Beginner</option>
+            <option>Elementary</option>
+            <option>Pre-Intermediate</option>
+            <option>Intermediate</option>
+            <option>CEFR</option>
+            <option>IELTS</option></select>
         </div>
         <div class="form-group">
           <label>Test Result</label>
@@ -316,7 +323,7 @@
       firstName: first, lastName: last,
       phoneStudent: phones[0]||null, phoneFather: phones[1]||null,
       phoneMother:  phones[2]||null, phoneOther:  phones[3]||null,
-      currentLevel: document.getElementById('lLevel').value.trim(),
+      currentLevel: document.getElementById('lLevel').value,
       testResult:   document.getElementById('lTest').value.trim(),
       notes:        document.getElementById('lNotes').value.trim(),
     };
