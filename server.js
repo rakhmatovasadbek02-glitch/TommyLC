@@ -291,12 +291,12 @@ app.delete('/api/teachers/:id', async (req, res) => {
 ══════════════════════════════════════ */
 app.get('/api/classrooms', async (req, res) => {
   const { rows } = await pool.query('SELECT * FROM classrooms ORDER BY name');
-  res.json(rows.map(r => ({ id: r.id, name: r.name, capacity: r.capacity })));
+  res.json(rows.map(r => ({ id: r.id, name: r.name })));
 });
 
 app.post('/api/classrooms', async (req, res) => {
   const { id, name, capacity } = req.body;
-  await pool.query('INSERT INTO classrooms(id,name,capacity) VALUES($1,$2,$3)', [id, name, capacity||null]);
+  await pool.query('INSERT INTO classrooms(id,name) VALUES($1,$2)', [id, name]);
   res.json({ ok: true });
 });
 
@@ -307,7 +307,7 @@ app.put('/api/classrooms/:id', async (req, res) => {
   if (old.rows[0] && old.rows[0].name !== name) {
     await pool.query('UPDATE groups SET room=$1 WHERE room=$2', [name, old.rows[0].name]);
   }
-  await pool.query('UPDATE classrooms SET name=$1,capacity=$2 WHERE id=$3', [name, capacity||null, req.params.id]);
+  await pool.query('UPDATE classrooms SET name=$1 WHERE id=$2', [name, req.params.id]);
   res.json({ ok: true });
 });
 

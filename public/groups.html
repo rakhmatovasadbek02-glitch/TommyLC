@@ -336,7 +336,7 @@
     tSel.innerHTML='<option value="">— Select teacher —</option>'+teachers.map(t=>`<option value="${t.firstName} ${t.lastName}">${t.firstName} ${t.lastName}</option>`).join('');
     const rSel=document.getElementById('gRoom');
     if(!classrooms.length){rSel.innerHTML='<option value="">No classrooms yet — add first</option>';rSel.disabled=true;}
-    else{rSel.disabled=false;rSel.innerHTML='<option value="">— Select room —</option>'+classrooms.map(r=>`<option value="${r.name}">${r.name}${r.capacity?` (${r.capacity})`:''}</option>`).join('');}
+    else{rSel.disabled=false;rSel.innerHTML='<option value="">— Select room —</option>'+classrooms.map(r=>`<option value="${r.name}">${r.name}</option>`).join('');}
   }
 
   function clearForm(){
