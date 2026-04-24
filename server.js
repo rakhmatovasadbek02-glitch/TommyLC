@@ -83,18 +83,38 @@ async function initDB() {
     ALTER TABLE groups ADD COLUMN IF NOT EXISTS lang         TEXT DEFAULT 'UZ';
     ALTER TABLE groups ADD COLUMN IF NOT EXISTS current_unit TEXT DEFAULT '1A';
 
-    CREATE TABLE IF NOT EXISTS invoices (
-      id          TEXT PRIMARY KEY,
-      number      TEXT,
-      student_id  TEXT,
-      description TEXT,
-      items       JSONB DEFAULT '[]',
-      total       NUMERIC DEFAULT 0,
-      due_date    DATE,
-      status      TEXT DEFAULT 'Pending',
-      notes       TEXT,
-      created_at  TIMESTAMPTZ DEFAULT NOW()
+    CREATE TABLE IF NOT EXISTS pricing (
+      level       TEXT PRIMARY KEY,
+      price       NUMERIC NOT NULL DEFAULT 0,
+      updated_at  TIMESTAMPTZ DEFAULT NOW()
     );
+
+    -- Seed default pricing if empty
+    INSERT INTO pricing (level, price) VALUES
+      ('RoundUp', 0),('Beginner', 0),('Elementary', 0),
+      ('Pre-Intermediate', 0),('Intermediate', 0),('CEFR', 0),('IELTS', 0)
+    ON CONFLICT DO NOTHING;
+
+    CREATE TABLE IF NOT EXISTS invoices (
+      id           TEXT PRIMARY KEY,
+      number       TEXT,
+      student_id   TEXT,
+      group_id     TEXT,
+      level        TEXT,
+      month        TEXT,
+      description  TEXT,
+      total        NUMERIC DEFAULT 0,
+      due_date     DATE,
+      status       TEXT DEFAULT 'Pending',
+      payment_type TEXT DEFAULT 'Cash',
+      notes        TEXT,
+      created_at   TIMESTAMPTZ DEFAULT NOW()
+    );
+    ALTER TABLE invoices ADD COLUMN IF NOT EXISTS group_id     TEXT;
+    ALTER TABLE invoices ADD COLUMN IF NOT EXISTS level        TEXT;
+    ALTER TABLE invoices ADD COLUMN IF NOT EXISTS month        TEXT;
+    ALTER TABLE invoices ADD COLUMN IF NOT EXISTS payment_type TEXT DEFAULT 'Cash';
+    ALTER TABLE invoices DROP COLUMN IF EXISTS items;
 
     CREATE TABLE IF NOT EXISTS attendance (
       id          SERIAL PRIMARY KEY,
@@ -385,38 +405,84 @@ app.delete('/api/groups/:id', async (req, res) => {
 });
 
 /* ══════════════════════════════════════
+   PRICING
+══════════════════════════════════════ */
+app.get('/api/pricing', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM pricing ORDER BY level');
+    res.json(rows.map(r => ({ level: r.level, price: Number(r.price) })));
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/pricing/:level', async (req, res) => {
+  try {
+    const { price } = req.body;
+    await pool.query(
+      'INSERT INTO pricing(level,price) VALUES($1,$2) ON CONFLICT(level) DO UPDATE SET price=$2, updated_at=NOW()',
+      [req.params.level, price]
+    );
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+/* ══════════════════════════════════════
    INVOICES
 ══════════════════════════════════════ */
 app.get('/api/invoices', async (req, res) => {
-  const { rows } = await pool.query('SELECT * FROM invoices ORDER BY created_at DESC');
-  res.json(rows.map(i => ({
-    id: i.id, number: i.number, studentId: i.student_id,
-    desc: i.description, items: i.items, total: i.total,
-    dueDate: i.due_date, status: i.status, notes: i.notes, createdAt: i.created_at
-  })));
+  try {
+    const { rows } = await pool.query('SELECT * FROM invoices ORDER BY created_at DESC');
+    res.json(rows.map(i => ({
+      id: i.id, number: i.number,
+      studentId: i.student_id, groupId: i.group_id,
+      level: i.level, month: i.month,
+      desc: i.description, total: Number(i.total),
+      dueDate: i.due_date, status: i.status,
+      paymentType: i.payment_type,
+      notes: i.notes, createdAt: i.created_at
+    })));
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/invoices', async (req, res) => {
-  const { id, number, studentId, desc, items, total, dueDate, status, notes } = req.body;
-  await pool.query(
-    'INSERT INTO invoices(id,number,student_id,description,items,total,due_date,status,notes) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)',
-    [id, number, studentId, desc, JSON.stringify(items||[]), total||0, dueDate||null, status||'Pending', notes||null]
-  );
-  res.json({ ok: true });
+  try {
+    const { id, number, studentId, groupId, level, month, desc, total, dueDate, status, paymentType, notes } = req.body;
+    await pool.query(
+      `INSERT INTO invoices(id,number,student_id,group_id,level,month,description,total,due_date,status,payment_type,notes)
+       VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+      [id, number, studentId, groupId||null, level||null, month||null, desc||null,
+       total||0, dueDate||null, status||'Pending', paymentType||'Cash', notes||null]
+    );
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.put('/api/invoices/:id', async (req, res) => {
-  const { studentId, desc, items, total, dueDate, status, notes } = req.body;
-  await pool.query(
-    'UPDATE invoices SET student_id=$1,description=$2,items=$3,total=$4,due_date=$5,status=$6,notes=$7 WHERE id=$8',
-    [studentId, desc, JSON.stringify(items||[]), total||0, dueDate||null, status||'Pending', notes||null, req.params.id]
-  );
-  res.json({ ok: true });
+  try {
+    const { studentId, groupId, level, month, desc, total, dueDate, status, paymentType, notes } = req.body;
+    await pool.query(
+      `UPDATE invoices SET student_id=$1,group_id=$2,level=$3,month=$4,description=$5,
+       total=$6,due_date=$7,status=$8,payment_type=$9,notes=$10 WHERE id=$11`,
+      [studentId, groupId||null, level||null, month||null, desc||null,
+       total||0, dueDate||null, status||'Pending', paymentType||'Cash', notes||null, req.params.id]
+    );
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Quick status update
+app.patch('/api/invoices/:id/status', async (req, res) => {
+  try {
+    const { status, paymentType } = req.body;
+    await pool.query('UPDATE invoices SET status=$1,payment_type=$2 WHERE id=$3', [status, paymentType||'Cash', req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.delete('/api/invoices/:id', async (req, res) => {
-  await pool.query('DELETE FROM invoices WHERE id=$1', [req.params.id]);
-  res.json({ ok: true });
+  try {
+    await pool.query('DELETE FROM invoices WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 /* ══════════════════════════════════════

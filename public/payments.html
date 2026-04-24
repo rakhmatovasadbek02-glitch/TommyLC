@@ -5,16 +5,41 @@
   <title>Payments — TommyLC CRM</title>
   <link rel="stylesheet" href="shared.css">
   <style>
-    .summary-cards{display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap}
-    .sum-card{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;flex:1;min-width:140px;box-shadow:var(--shadow)}
-    .sum-card-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
-    .sum-card-val{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--text)}
-    .sum-card.green .sum-card-val{color:var(--green)}
-    .sum-card.red   .sum-card-val{color:var(--crimson)}
-    .sum-card.amber .sum-card-val{color:var(--amber)}
-    .inv-row{display:flex;align-items:center;gap:14px;padding:13px 20px;border-bottom:1px solid var(--border);font-size:13px;cursor:pointer;transition:background 0.1s}
-    .inv-row:hover{background:var(--crimson-soft)}
-    .inv-row:last-child{border-bottom:none}
+    /* Summary cards */
+    .summary-row { display:flex; gap:16px; margin-bottom:24px; flex-wrap:wrap; }
+    .sum-card { background:white; border:1px solid var(--border); border-radius:var(--radius); padding:18px 22px; flex:1; min-width:130px; box-shadow:var(--shadow); border-top:3px solid var(--border); }
+    .sum-card.green  { border-top-color:var(--green); }
+    .sum-card.red    { border-top-color:var(--crimson); }
+    .sum-card.amber  { border-top-color:var(--amber); }
+    .sum-card-label  { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+    .sum-card-val    { font-family:'Playfair Display',serif; font-size:26px; font-weight:900; color:var(--text); }
+    .sum-card.green .sum-card-val  { color:var(--green); }
+    .sum-card.red   .sum-card-val  { color:var(--crimson); }
+    .sum-card.amber .sum-card-val  { color:var(--amber); }
+
+    /* Pricing table */
+    .pricing-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-bottom:24px; }
+    .price-card { background:white; border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; box-shadow:var(--shadow); }
+    .price-level { font-size:13px; font-weight:700; color:var(--text); margin-bottom:8px; }
+    .price-input-wrap { display:flex; align-items:center; gap:6px; }
+    .price-currency { font-size:14px; font-weight:700; color:var(--muted); }
+    .price-input { flex:1; padding:7px 10px; border:1.5px solid var(--border); border-radius:7px; font-size:15px; font-weight:700; font-family:'DM Sans',sans-serif; outline:none; width:100%; }
+    .price-input:focus { border-color:var(--crimson); }
+
+    /* Invoice list */
+    .inv-row { display:flex; align-items:center; gap:14px; padding:13px 20px; border-bottom:1px solid var(--border); font-size:13px; transition:background 0.1s; flex-wrap:wrap; }
+    .inv-row:hover { background:var(--crimson-soft); }
+    .inv-row:last-child { border-bottom:none; }
+
+    /* Payment type badge */
+    .badge-cash  { background:#E8F5E9; color:#2E7D32; }
+    .badge-click { background:#E3F2FD; color:#1565C0; }
+
+    /* Tabs */
+    .tab-row { display:flex; gap:0; margin-bottom:20px; background:white; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+    .tab-btn { flex:1; padding:11px; text-align:center; font-size:13px; font-weight:600; cursor:pointer; border:none; background:none; color:var(--muted); border-bottom:3px solid transparent; transition:all 0.14s; font-family:'DM Sans',sans-serif; }
+    .tab-btn:hover { background:var(--crimson-soft); color:var(--crimson); }
+    .tab-btn.active { color:var(--crimson); border-bottom-color:var(--crimson); background:var(--crimson-soft); }
   </style>
 </head>
 <body>
@@ -22,50 +47,125 @@
 <div class="main">
   <div class="topbar">
     <div class="page-title">Payments</div>
-    <div class="topbar-right"><button class="btn btn-primary" onclick="openAdd()">➕ New Invoice</button></div>
+    <div class="topbar-right">
+      <button class="btn btn-outline btn-sm" onclick="togglePricing()">💰 Manage Pricing</button>
+      <button class="btn btn-primary" onclick="openAdd()">➕ New Invoice</button>
+    </div>
   </div>
   <div class="page-content">
-    <div class="summary-cards" id="summaryCards"></div>
-    <div class="toolbar">
-      <div class="search-bar"><span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" placeholder="Search invoices…" oninput="renderInvoices()">
+
+    <!-- Pricing panel (collapsible) -->
+    <div id="pricingPanel" style="display:none;margin-bottom:24px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:900">💰 Pricing per Level <span style="font-size:13px;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400">(12 lessons / month)</span></div>
+        <button class="btn btn-primary btn-sm" onclick="savePricing()">Save Prices</button>
       </div>
-      <select id="filterStatus" onchange="renderInvoices()" style="width:auto;padding:9px 14px">
-        <option value="">All</option><option>Paid</option><option>Pending</option><option>Overdue</option>
+      <div class="pricing-grid" id="pricingGrid"></div>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary-row" id="summaryRow"></div>
+
+    <!-- Filter tabs -->
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="setTab('all',this)">All</button>
+      <button class="tab-btn" onclick="setTab('Pending',this)">⏳ Pending</button>
+      <button class="tab-btn" onclick="setTab('Paid',this)">✅ Paid</button>
+      <button class="tab-btn" onclick="setTab('Overdue',this)">⚠️ Overdue</button>
+    </div>
+
+    <div class="toolbar" style="margin-bottom:16px">
+      <div class="search-bar"><span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search student, group, level…" oninput="renderInvoices()">
+      </div>
+      <select id="filterLevel" onchange="renderInvoices()" style="width:auto;padding:9px 14px">
+        <option value="">All Levels</option>
+        <option>RoundUp</option><option>Beginner</option><option>Elementary</option>
+        <option>Pre-Intermediate</option><option>Intermediate</option><option>CEFR</option><option>IELTS</option>
       </select>
       <span class="text-muted" id="invoiceCount" style="margin-left:auto"></span>
     </div>
+
     <div class="card">
       <div id="invoiceList"></div>
     </div>
   </div>
 </div>
 
-<!-- Invoice modal -->
+<!-- ══ NEW INVOICE MODAL ══ -->
 <div class="modal-overlay" id="invoiceModal">
-  <div class="modal" style="width:560px">
+  <div class="modal" style="width:520px">
     <div class="modal-header">
       <div class="modal-title" id="invModalTitle">New Invoice</div>
       <button class="modal-close" onclick="closeModal('invoiceModal')">✕</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="editInvId">
+
       <div class="form-row">
-        <div class="form-group"><label>Student *</label><select id="invStudent"><option value="">— Select —</option></select></div>
-        <div class="form-group"><label>Status</label>
-          <select id="invStatus"><option>Pending</option><option>Paid</option><option>Overdue</option></select>
+        <div class="form-group">
+          <label>Student *</label>
+          <select id="invStudent" onchange="onStudentChange()"><option value="">— Select —</option></select>
+        </div>
+        <div class="form-group">
+          <label>Group</label>
+          <select id="invGroup" onchange="onGroupChange()"><option value="">— Select —</option></select>
         </div>
       </div>
-      <div class="form-group"><label>Description *</label><input type="text" id="invDesc" placeholder="Monthly tuition — May 2026"></div>
-      <div class="form-group"><label>Amount ($) *</label><input type="number" id="invAmount" placeholder="150" step="0.01" min="0"></div>
+
       <div class="form-row">
-        <div class="form-group"><label>Due Date</label><input type="date" id="invDue"></div>
+        <div class="form-group">
+          <label>Level</label>
+          <select id="invLevel" onchange="onLevelChange()">
+            <option value="">— Select —</option>
+            <option>RoundUp</option><option>Beginner</option><option>Elementary</option>
+            <option>Pre-Intermediate</option><option>Intermediate</option><option>CEFR</option><option>IELTS</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Month *</label>
+          <input type="month" id="invMonth">
+        </div>
       </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Amount (UZS) *</label>
+          <input type="number" id="invTotal" placeholder="0" min="0" step="1000">
+        </div>
+        <div class="form-group">
+          <label>Payment Type *</label>
+          <div style="display:flex;gap:10px;margin-top:4px">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;transition:all 0.14s" id="typeCash">
+              <input type="radio" name="payType" value="Cash" checked onchange="onPayType()">
+              <span style="font-size:18px">💵</span>
+              <span style="font-weight:700;font-size:14px">Cash</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;transition:all 0.14s" id="typeClick">
+              <input type="radio" name="payType" value="Click" onchange="onPayType()">
+              <span style="font-size:18px">📱</span>
+              <span style="font-weight:700;font-size:14px">Click</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Status</label>
+          <select id="invStatus"><option>Pending</option><option>Paid</option><option>Overdue</option></select>
+        </div>
+        <div class="form-group">
+          <label>Due Date</label>
+          <input type="date" id="invDue">
+        </div>
+      </div>
+
       <div class="form-group"><label>Notes</label><textarea id="invNotes" placeholder="Any notes…"></textarea></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('invoiceModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveInvoice()">Save</button>
+      <button class="btn btn-primary" onclick="saveInvoice()">Save Invoice</button>
     </div>
   </div>
 </div>
@@ -75,106 +175,277 @@
 <script>
   requireAuth('payments');
   renderSidebar('payments');
-  let invoices=[], students=[];
+
+  const LEVELS = ['RoundUp','Beginner','Elementary','Pre-Intermediate','Intermediate','CEFR','IELTS'];
+  const LEVEL_COLORS = {
+    'RoundUp':'#FB8C00','Beginner':'#43A047','Elementary':'#E53935',
+    'Pre-Intermediate':'#1E88E5','Intermediate':'#F9A825','CEFR':'#8E24AA','IELTS':'#00897B'
+  };
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  let invoices=[], students=[], groups=[], pricing={};
+  let currentTab = 'all';
+  let pricingOpen = false;
 
   async function load() {
-    [invoices, students] = await Promise.all([apiGet('/api/invoices'), apiGet('/api/students')]);
-    renderSummary(); renderInvoices();
+    [invoices, students, groups] = await Promise.all([
+      apiGet('/api/invoices'), apiGet('/api/students'), apiGet('/api/groups')
+    ]);
+    const pricingArr = await apiGet('/api/pricing').catch(()=>[]);
+    pricingArr.forEach(p => pricing[p.level] = p.price);
+    renderSummary();
+    renderInvoices();
+    renderPricing();
   }
 
-  function renderSummary() {
-    const paid     = invoices.filter(i=>i.status==='Paid').reduce((s,i)=>s+Number(i.total||0),0);
-    const pending  = invoices.filter(i=>i.status==='Pending').reduce((s,i)=>s+Number(i.total||0),0);
-    const overdue  = invoices.filter(i=>i.status==='Overdue').reduce((s,i)=>s+Number(i.total||0),0);
-    document.getElementById('summaryCards').innerHTML = `
-      <div class="sum-card green"><div class="sum-card-label">Paid</div><div class="sum-card-val">$${paid.toFixed(0)}</div></div>
-      <div class="sum-card"><div class="sum-card-label">Pending</div><div class="sum-card-val">$${pending.toFixed(0)}</div></div>
-      <div class="sum-card red"><div class="sum-card-label">Overdue</div><div class="sum-card-val">$${overdue.toFixed(0)}</div></div>
-      <div class="sum-card"><div class="sum-card-label">Total Invoices</div><div class="sum-card-val">${invoices.length}</div></div>`;
+  /* ── Pricing panel ── */
+  function togglePricing() {
+    pricingOpen = !pricingOpen;
+    document.getElementById('pricingPanel').style.display = pricingOpen ? '' : 'none';
   }
 
-  function renderInvoices() {
-    const q  = document.getElementById('searchInput').value.toLowerCase();
-    const fs = document.getElementById('filterStatus').value;
-    const filtered = invoices.filter(i => {
-      const stu = students.find(s=>s.id===i.studentId);
-      const name = stu ? stu.firstName+' '+stu.lastName : '';
-      return (!q || name.toLowerCase().includes(q) || (i.desc||'').toLowerCase().includes(q))
-          && (!fs || i.status === fs);
-    });
-    document.getElementById('invoiceCount').textContent = `${filtered.length} invoice${filtered.length!==1?'s':''}`;
-    const STATUS_COL = { Paid:'badge-green', Pending:'badge-gold', Overdue:'badge-red' };
-    const el = document.getElementById('invoiceList');
-    if (!filtered.length) { el.innerHTML='<div class="empty-state"><div class="empty-icon">💳</div><p>No invoices found.</p></div>'; return; }
-    el.innerHTML = filtered.map(i => {
-      const stu  = students.find(s=>s.id===i.studentId);
-      const name = stu ? stu.firstName+' '+stu.lastName : 'Unknown';
-      return `<div class="inv-row" onclick="editInvoice('${i.id}')">
-        <div class="avatar" style="background:${avatarColor(name)};width:36px;height:36px;font-size:13px;flex-shrink:0">${initials(name)}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:600">${name}</div>
-          <div style="font-size:12px;color:var(--muted)">${i.desc||'—'}</div>
+  function renderPricing() {
+    document.getElementById('pricingGrid').innerHTML = LEVELS.map(level => {
+      const col = LEVEL_COLORS[level] || '#666';
+      return `<div class="price-card" style="border-top:3px solid ${col}">
+        <div class="price-level">${level}</div>
+        <div class="price-input-wrap">
+          <span class="price-currency">UZS</span>
+          <input type="number" class="price-input" id="price_${level.replace(/[^a-z]/gi,'_')}"
+            value="${pricing[level]||0}" min="0" step="1000" placeholder="0">
         </div>
-        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:900">$${Number(i.total||0).toFixed(0)}</div>
-        <span class="badge ${STATUS_COL[i.status]||'badge-grey'}">${i.status}</span>
-        ${i.dueDate?`<div style="font-size:11px;color:var(--muted)">${formatDate(i.dueDate)}</div>`:''}
-        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteInvoice('${i.id}')">🗑</button>
       </div>`;
     }).join('');
   }
 
-  async function openAdd() {
-    clearForm(); populateStudentSelect();
-    document.getElementById('invModalTitle').textContent='New Invoice';
+  async function savePricing() {
+    try {
+      await Promise.all(LEVELS.map(level => {
+        const key = level.replace(/[^a-z]/gi,'_');
+        const val = Number(document.getElementById('price_'+key)?.value || 0);
+        pricing[level] = val;
+        return apiPut('/api/pricing/'+encodeURIComponent(level), { price: val });
+      }));
+      showToast('Prices saved!');
+    } catch(e) { showToast('Error: '+e.message,'error'); }
+  }
+
+  /* ── Summary ── */
+  function renderSummary() {
+    const paid    = invoices.filter(i=>i.status==='Paid').reduce((s,i)=>s+Number(i.total||0),0);
+    const pending = invoices.filter(i=>i.status==='Pending').reduce((s,i)=>s+Number(i.total||0),0);
+    const overdue = invoices.filter(i=>i.status==='Overdue').reduce((s,i)=>s+Number(i.total||0),0);
+    const fmt = n => n.toLocaleString('uz-UZ') + ' UZS';
+    document.getElementById('summaryRow').innerHTML = `
+      <div class="sum-card green"><div class="sum-card-label">Paid</div><div class="sum-card-val">${fmt(paid)}</div></div>
+      <div class="sum-card amber"><div class="sum-card-label">Pending</div><div class="sum-card-val">${fmt(pending)}</div></div>
+      <div class="sum-card red"><div class="sum-card-label">Overdue</div><div class="sum-card-val">${fmt(overdue)}</div></div>
+      <div class="sum-card"><div class="sum-card-label">Total Invoices</div><div class="sum-card-val">${invoices.length}</div></div>
+      <div class="sum-card"><div class="sum-card-label">Cash</div><div class="sum-card-val">${invoices.filter(i=>i.paymentType==='Cash'&&i.status==='Paid').length}</div></div>
+      <div class="sum-card"><div class="sum-card-label">Click</div><div class="sum-card-val">${invoices.filter(i=>i.paymentType==='Click'&&i.status==='Paid').length}</div></div>`;
+  }
+
+  /* ── Invoice list ── */
+  function setTab(tab, btn) {
+    currentTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderInvoices();
+  }
+
+  function renderInvoices() {
+    const q  = document.getElementById('searchInput').value.toLowerCase();
+    const fl = document.getElementById('filterLevel').value;
+
+    let filtered = invoices.filter(i => {
+      const stu  = students.find(s=>s.id===i.studentId);
+      const name = stu ? (stu.firstName+' '+stu.lastName).toLowerCase() : '';
+      const grp  = groups.find(g=>g.id===i.groupId);
+      return (currentTab==='all' || i.status===currentTab)
+          && (!fl || i.level===fl)
+          && (!q || name.includes(q) || (i.level||'').toLowerCase().includes(q) || (grp?.name||'').toLowerCase().includes(q));
+    });
+
+    document.getElementById('invoiceCount').textContent = `${filtered.length} invoice${filtered.length!==1?'s':''}`;
+
+    const el = document.getElementById('invoiceList');
+    if (!filtered.length) { el.innerHTML='<div class="empty-state"><div class="empty-icon">💳</div><p>No invoices found.</p></div>'; return; }
+
+    const STATUS_BADGE = { Paid:'badge-green', Pending:'badge-gold', Overdue:'badge-red' };
+
+    el.innerHTML = filtered.map(i => {
+      const stu  = students.find(s=>s.id===i.studentId);
+      const name = stu ? stu.firstName+' '+stu.lastName : 'Unknown';
+      const grp  = groups.find(g=>g.id===i.groupId);
+      const col  = LEVEL_COLORS[i.level] || '#666';
+      const monthLabel = i.month ? (() => { const [y,m]=i.month.split('-'); return MONTHS[Number(m)-1]+' '+y; })() : '—';
+      const fmt  = n => Number(n||0).toLocaleString('uz-UZ') + ' UZS';
+
+      return `<div class="inv-row">
+        <div class="avatar" style="background:${avatarColor(name)};width:38px;height:38px;font-size:13px;flex-shrink:0">${initials(name)}</div>
+        <div style="flex:1;min-width:120px">
+          <div style="font-weight:700">${name}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap">
+            ${grp ? `<span>👥 ${grp.name}</span>` : ''}
+            ${i.level ? `<span style="color:${col};font-weight:600">${i.level}</span>` : ''}
+            <span>📅 ${monthLabel}</span>
+          </div>
+        </div>
+        <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:900;white-space:nowrap">${fmt(i.total)}</div>
+        <span class="badge ${i.paymentType==='Click'?'badge-click':'badge-cash'}">${i.paymentType==='Click'?'📱':'💵'} ${i.paymentType}</span>
+        <span class="badge ${STATUS_BADGE[i.status]||'badge-grey'}">${i.status}</span>
+        <div style="display:flex;gap:6px">
+          ${i.status!=='Paid'?`
+            <button class="btn btn-ghost btn-sm" onclick="quickPay('${i.id}','Cash')" title="Mark paid (Cash)">💵✓</button>
+            <button class="btn btn-ghost btn-sm" onclick="quickPay('${i.id}','Click')" title="Mark paid (Click)">📱✓</button>
+          `:''}
+          <button class="btn btn-ghost btn-sm" onclick="editInvoice('${i.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteInvoice('${i.id}')">🗑</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  /* ── Add / Edit ── */
+  function openAdd() {
+    clearForm();
+    populateStudentSelect();
+    populateGroupSelect();
+    // Default month = current month
+    const now = new Date();
+    document.getElementById('invMonth').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    // Default due = end of current month
+    const due = new Date(now.getFullYear(), now.getMonth()+1, 0);
+    document.getElementById('invDue').value = due.toISOString().split('T')[0];
+    document.getElementById('invModalTitle').textContent = 'New Invoice';
     openModal('invoiceModal');
   }
 
+  function onStudentChange() {
+    const sid = document.getElementById('invStudent').value;
+    if (!sid) return;
+    // Auto-fill group if student is in one
+    const grp = groups.find(g=>(g.studentIds||[]).includes(sid));
+    if (grp) {
+      document.getElementById('invGroup').value = grp.id;
+      document.getElementById('invLevel').value = grp.level || '';
+      onLevelChange();
+    }
+  }
+
+  function onGroupChange() {
+    const gid = document.getElementById('invGroup').value;
+    const grp = groups.find(g=>g.id===gid);
+    if (grp?.level) { document.getElementById('invLevel').value = grp.level; onLevelChange(); }
+  }
+
+  function onLevelChange() {
+    const level = document.getElementById('invLevel').value;
+    if (level && pricing[level] !== undefined) {
+      document.getElementById('invTotal').value = pricing[level];
+    }
+  }
+
+  function onPayType() {
+    const val = document.querySelector('input[name="payType"]:checked')?.value;
+    document.getElementById('typeCash').style.borderColor  = val==='Cash'  ? 'var(--crimson)' : 'var(--border)';
+    document.getElementById('typeCash').style.background   = val==='Cash'  ? 'var(--crimson-soft)' : '';
+    document.getElementById('typeClick').style.borderColor = val==='Click' ? 'var(--crimson)' : 'var(--border)';
+    document.getElementById('typeClick').style.background  = val==='Click' ? 'var(--crimson-soft)' : '';
+  }
+
   function editInvoice(id) {
-    const i=invoices.find(i=>i.id===id); if(!i) return;
-    clearForm(); populateStudentSelect();
-    document.getElementById('editInvId').value=id;
-    document.getElementById('invStudent').value=i.studentId||'';
-    document.getElementById('invStatus').value=i.status||'Pending';
-    document.getElementById('invDesc').value=i.desc||'';
-    document.getElementById('invAmount').value=i.total||'';
-    document.getElementById('invDue').value=i.dueDate?i.dueDate.split('T')[0]:'';
-    document.getElementById('invNotes').value=i.notes||'';
-    document.getElementById('invModalTitle').textContent='Edit Invoice';
+    const i = invoices.find(i=>i.id===id); if(!i) return;
+    clearForm();
+    populateStudentSelect();
+    populateGroupSelect();
+    document.getElementById('editInvId').value   = id;
+    document.getElementById('invStudent').value  = i.studentId||'';
+    document.getElementById('invGroup').value    = i.groupId||'';
+    document.getElementById('invLevel').value    = i.level||'';
+    document.getElementById('invMonth').value    = i.month||'';
+    document.getElementById('invTotal').value    = i.total||'';
+    document.getElementById('invStatus').value   = i.status||'Pending';
+    document.getElementById('invDue').value      = i.dueDate?i.dueDate.split('T')[0]:'';
+    document.getElementById('invNotes').value    = i.notes||'';
+    const radio = document.querySelector(`input[name="payType"][value="${i.paymentType||'Cash'}"]`);
+    if (radio) { radio.checked = true; onPayType(); }
+    document.getElementById('invModalTitle').textContent = 'Edit Invoice';
     openModal('invoiceModal');
   }
 
   async function saveInvoice() {
-    const studentId=document.getElementById('invStudent').value;
-    const desc=document.getElementById('invDesc').value.trim();
-    const amount=document.getElementById('invAmount').value;
-    if(!studentId||!desc||!amount){showToast('Student, description and amount required.','error');return;}
-    const id=document.getElementById('editInvId').value;
-    const data={studentId,desc,total:Number(amount),
-      status:document.getElementById('invStatus').value,
-      dueDate:document.getElementById('invDue').value||null,
-      notes:document.getElementById('invNotes').value.trim(),items:[]};
+    const studentId = document.getElementById('invStudent').value;
+    const month     = document.getElementById('invMonth').value;
+    const total     = document.getElementById('invTotal').value;
+    if (!studentId || !month || !total) { showToast('Student, month and amount are required.','error'); return; }
+
+    const id = document.getElementById('editInvId').value;
+    const data = {
+      studentId,
+      groupId:     document.getElementById('invGroup').value||null,
+      level:       document.getElementById('invLevel').value||null,
+      month,
+      total:       Number(total),
+      status:      document.getElementById('invStatus').value,
+      paymentType: document.querySelector('input[name="payType"]:checked')?.value||'Cash',
+      dueDate:     document.getElementById('invDue').value||null,
+      notes:       document.getElementById('invNotes').value.trim(),
+      desc:        `${document.getElementById('invLevel').value||''} — ${month}`,
+    };
+
     try {
-      if(id){await apiPut('/api/invoices/'+id,data);logActivity(`Updated invoice`,'');}
-      else{data.id=genId();data.number='INV-'+Date.now().toString().slice(-6);await apiPost('/api/invoices',data);logActivity(`Created invoice for ${students.find(s=>s.id===studentId)?.firstName||''}`,'green');}
-      closeModal('invoiceModal'); await load(); showToast(id?'Invoice updated!':'Invoice created!');
-    } catch(e){showToast('Error saving.','error');}
+      if (id) {
+        await apiPut('/api/invoices/'+id, data);
+        logActivity('Updated invoice','');
+      } else {
+        data.id = genId();
+        data.number = 'INV-'+Date.now().toString().slice(-6);
+        await apiPost('/api/invoices', data);
+        logActivity('Created invoice','green');
+      }
+      closeModal('invoiceModal');
+      await load();
+      showToast(id?'Invoice updated!':'Invoice created!');
+    } catch(e) { showToast('Error: '+e.message,'error'); }
+  }
+
+  async function quickPay(id, paymentType) {
+    try {
+      await apiPatch('/api/invoices/'+id+'/status', { status:'Paid', paymentType });
+      logActivity(`Invoice paid via ${paymentType}`,'green');
+      await load();
+      showToast(`Marked as paid (${paymentType})!`);
+    } catch(e) { showToast('Error: '+e.message,'error'); }
   }
 
   async function deleteInvoice(id) {
-    if(!confirm('Delete this invoice?'))return;
+    if (!confirm('Delete this invoice?')) return;
     await apiDelete('/api/invoices/'+id);
     await load(); showToast('Deleted.','error');
   }
 
-  function populateStudentSelect() {
-    const sel=document.getElementById('invStudent');
-    sel.innerHTML='<option value="">— Select student —</option>'+
-      students.filter(s=>s.status==='Active'||s.status==='Trial').map(s=>`<option value="${s.id}">${s.firstName} ${s.lastName}</option>`).join('');
+  function clearForm() {
+    ['editInvId','invStudent','invGroup','invLevel','invMonth','invTotal','invDue','invNotes'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+    document.getElementById('invStatus').value='Pending';
+    const cash=document.querySelector('input[name="payType"][value="Cash"]');
+    if(cash){cash.checked=true;onPayType();}
   }
 
-  function clearForm(){
-    ['editInvId','invStudent','invDesc','invAmount','invDue','invNotes'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('invStatus').value='Pending';
+  function populateStudentSelect() {
+    const sel = document.getElementById('invStudent');
+    sel.innerHTML = '<option value="">— Select student —</option>' +
+      students.filter(s=>s.status==='Active'||s.status==='Trial').map(s =>
+        `<option value="${s.id}">${s.firstName} ${s.lastName}</option>`
+      ).join('');
+  }
+
+  function populateGroupSelect() {
+    const sel = document.getElementById('invGroup');
+    sel.innerHTML = '<option value="">— Select group —</option>' +
+      groups.map(g => `<option value="${g.id}">${g.name}${g.level?' · '+g.level:''}</option>`).join('');
   }
 
   load();
