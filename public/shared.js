@@ -55,7 +55,7 @@ function initials(name) {
 // ══════════════════════════════════════════
 
 const ROLE_PERMISSIONS = {
-  'CEO':        ['dashboard','students','groups','payments','teachers','classrooms','settings'],
+  'CEO':        '*',  // all features
   'Manager':    ['dashboard','students','groups','payments','teachers','classrooms','settings'],
   'Head Admin': ['dashboard','students','groups','teachers','classrooms'],
   'Admin':      ['dashboard','students','groups','classrooms'],
@@ -78,12 +78,18 @@ function setSession(data) {
   localStorage.setItem('lc_session', s);
 }
 function getRole() { const s = getSession(); return s ? s.role : null; }
-function can(feature) { const role = getRole(); return !!(role && (ROLE_PERMISSIONS[role]||[]).includes(feature)); }
+function can(feature) {
+  const role = getRole();
+  if (!role) return false;
+  if (role === 'CEO') return true;  // CEO sees everything
+  const perms = ROLE_PERMISSIONS[role];
+  return Array.isArray(perms) && perms.includes(feature);
+}
 
 function requireAuth(requiredFeature) {
   const session = getSession();
   if (!session) { window.location.replace('login.html'); return; }
-  if (requiredFeature && !can(requiredFeature)) {
+  if (requiredFeature && session.role !== 'CEO' && !can(requiredFeature)) {
     sessionStorage.setItem('lc_access_denied', requiredFeature);
     window.location.replace('index.html');
   }
