@@ -427,22 +427,11 @@
       return set;
     }
 
-    // Globally: which slots are occupied by ANY room
-    const globalOccupied = new Set();
-    visibleClasses.forEach(cls => {
-      const start = timeToMin(cls.time);
-      const end   = start + Number(cls.duration || 60);
-      slots.forEach(s => { if (s >= start && s < end) globalOccupied.add(s); });
-    });
+    /* Column widths: ALL same size — no more wide/narrow distinction */
+    const COL_W  = 60;   // px per 30-min slot — same whether busy or empty
+    const ROOM_W = 130;
 
-    /* Column widths: occupied = 110px, empty = 40px */
-    const COL_BUSY  = 110;
-    const COL_EMPTY = 55;
-    const ROOM_W    = 130;
-
-    function colW(slotMin) {
-      return globalOccupied.has(slotMin) ? COL_BUSY : COL_EMPTY;
-    }
+    function colW() { return COL_W; }
 
     /* ── Header ── */
     let html = `<div style="display:flex;position:sticky;top:0;z-index:5;">
@@ -452,14 +441,13 @@
         Classroom
       </div>
       ${slots.map(s => {
-        const w = colW(s);
-        const label = minToTime(s);
+        const label  = minToTime(s);
         const isHour = s % 60 === 0;
-        return `<div style="width:${w}px;flex-shrink:0;background:var(--crimson);
+        return `<div style="width:${COL_W}px;flex-shrink:0;background:var(--crimson);
           padding:10px 4px;text-align:center;
           border-right:1px solid rgba(255,255,255,0.12);overflow:hidden;">
           <div style="font-size:${isHour?12:10}px;font-weight:${isHour?700:400};
-            color:${isHour?'#fff':'rgba(255,255,255,0.6)'};
+            color:${isHour?'#fff':'rgba(255,255,255,0.55)'};
             white-space:nowrap;overflow:hidden;text-overflow:clip;">${label}</div>
         </div>`;
       }).join('')}
@@ -474,52 +462,44 @@
           border-right:1px solid var(--border);background:var(--crimson-soft);
           display:flex;flex-direction:column;justify-content:center;">
           <div style="font-weight:700;font-size:14px;color:var(--crimson)">${room.name}</div>
-          ${room.capacity?`<div style="font-size:11px;color:var(--muted);margin-top:2px">Cap. ${room.capacity}</div>`:''}
         </div>
         ${slots.map((s, si) => {
-          const w = colW(s);
-          // Find a class that STARTS at this exact slot
           const startingHere = roomClasses.filter(cls => timeToMin(cls.time) === s);
-          // Is this slot covered by a class that started earlier? (skip rendering — handled by width span)
           const coveredByEarlier = roomClasses.some(cls => {
             const cStart = timeToMin(cls.time);
-            const cEnd   = cStart + Number(cls.duration || 60);
+            const cEnd   = cStart + Number(cls.duration || 90);
             return s > cStart && s < cEnd;
           });
 
           if (coveredByEarlier) {
-            // Render a zero-width spacer so flex layout stays correct
-            return `<div style="width:${w}px;flex-shrink:0;border-right:1px solid var(--border);min-height:72px;background:transparent;pointer-events:none;"></div>`;
+            return `<div style="width:${COL_W}px;flex-shrink:0;border-right:1px solid var(--border);min-height:90px;pointer-events:none;"></div>`;
           }
 
-          return `<div style="width:${w}px;flex-shrink:0;border-right:1px solid var(--border);
-            padding:4px;min-height:72px;cursor:pointer;transition:background 0.1s;position:relative;"
-            onmouseover="this.style.background='#FFF0F0'" onmouseout="this.style.background=''">
+          return `<div style="width:${COL_W}px;flex-shrink:0;border-right:1px solid var(--border);
+            min-height:90px;position:relative;">
             ${startingHere.map(cls => {
-              const c   = classColor(cls.id);
-              const dur = Number(cls.duration || 90);
+              const c      = classColor(cls.id);
+              const dur    = Number(cls.duration || 90);
               const cStart = timeToMin(cls.time);
               const cEnd   = cStart + dur;
-              let blockW = 0;
-              slots.forEach(s => { if (s >= cStart && s < cEnd) blockW += colW(s); });
-              const endT = minToTime(cStart + dur);
+              // Width = number of slots this class covers × COL_W, minus a little padding
+              const spanSlots = slots.filter(s2 => s2 >= cStart && s2 < cEnd).length;
+              const blockW    = spanSlots * COL_W - 6;
+              const endT      = minToTime(cEnd);
+              const enrolled  = (cls.studentIds || []).length;
+
               return `<div onclick="window.location.href='group.html?id=${cls.id}'"
                 style="position:absolute;top:4px;left:3px;
-                  width:${Math.max(blockW - 8, 30)}px;bottom:4px;min-height:40px;
+                  width:${blockW}px;bottom:4px;
                   background:${c}18;border-left:3px solid ${c};border-radius:6px;
-                  padding:4px 6px;cursor:pointer;overflow:hidden;z-index:2;box-sizing:border-box;"
-                onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-                <div style="font-weight:700;font-size:11px;color:${c};
-                  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3">
-                  ${cls.name}
-                </div>
-                <div style="font-size:10px;color:${c};opacity:0.75;white-space:nowrap;margin-top:1px">
-                  ${cls.time}–${endT}
-                </div>
-                ${cls.currentUnit ? `<div style="font-size:9px;font-weight:700;color:white;
-                  background:${c};display:inline-block;padding:1px 5px;border-radius:3px;margin-top:2px">
-                  ${cls.currentUnit}
-                </div>` : ''}
+                  padding:5px 7px;cursor:pointer;overflow:hidden;z-index:2;box-sizing:border-box;"
+                onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
+                <div style="font-weight:800;font-size:12px;color:${c};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3">${cls.name}</div>
+                ${cls.level   ? `<div style="font-size:10px;color:${c};opacity:0.85;white-space:nowrap">${cls.level}</div>` : ''}
+                ${cls.teacher ? `<div style="font-size:10px;color:${c};opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 ${cls.teacher}</div>` : ''}
+                <div style="font-size:10px;color:${c};opacity:0.7;white-space:nowrap">🕐 ${cls.time}–${endT}</div>
+                ${cls.currentUnit ? `<div style="display:inline-block;font-size:9px;font-weight:700;color:white;background:${c};padding:1px 5px;border-radius:3px;margin-top:2px">${cls.currentUnit}</div>` : ''}
+                ${enrolled ? `<div style="font-size:10px;color:${c};opacity:0.7;margin-top:1px">👥 ${enrolled}</div>` : ''}
               </div>`;
             }).join('')}
           </div>`;
