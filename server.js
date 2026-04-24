@@ -120,6 +120,8 @@ async function initDB() {
       notes         TEXT,
       created_at    TIMESTAMPTZ DEFAULT NOW()
     );
+
+    CREATE TABLE IF NOT EXISTS activity (
       id          SERIAL PRIMARY KEY,
       text        TEXT NOT NULL,
       color       TEXT,
