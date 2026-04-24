@@ -48,6 +48,12 @@ async function initDB() {
       status      TEXT DEFAULT 'Active',
       created_at  TIMESTAMPTZ DEFAULT NOW()
     );
+    ALTER TABLE teachers ADD COLUMN IF NOT EXISTS password TEXT;
+    ALTER TABLE teachers DROP COLUMN IF EXISTS email;
+    ALTER TABLE teachers DROP COLUMN IF EXISTS rate;
+    ALTER TABLE teachers DROP COLUMN IF EXISTS specs;
+    ALTER TABLE teachers DROP COLUMN IF EXISTS levels;
+    ALTER TABLE teachers DROP COLUMN IF EXISTS bio;
 
     CREATE TABLE IF NOT EXISTS classrooms (
       id          TEXT PRIMARY KEY,
@@ -220,12 +226,13 @@ app.delete('/api/students/:id', async (req, res) => {
    TEACHERS
 ══════════════════════════════════════ */
 app.get('/api/teachers', async (req, res) => {
-  const { rows } = await pool.query('SELECT * FROM teachers ORDER BY created_at DESC');
-  res.json(rows.map(t => ({
-    id: t.id, firstName: t.first_name, lastName: t.last_name,
-    phone: t.phone, email: t.email, status: t.status,
-    rate: t.rate, specs: t.specs, levels: t.levels, bio: t.bio, createdAt: t.created_at
-  })));
+  try {
+    const { rows } = await pool.query('SELECT id,first_name,last_name,phone,status,created_at FROM teachers ORDER BY created_at DESC');
+    res.json(rows.map(t => ({
+      id: t.id, firstName: t.first_name, lastName: t.last_name,
+      phone: t.phone, status: t.status, createdAt: t.created_at
+    })));
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/teachers', async (req, res) => {
@@ -404,6 +411,12 @@ app.post('/api/activity', async (req, res) => {
 /* ── Catch-all → serve index ── */
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+// Global unhandled route errors
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: err.message || 'Server error' });
 });
 
 const PORT = process.env.PORT || 3000;

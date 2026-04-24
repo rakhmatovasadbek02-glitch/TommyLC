@@ -8,22 +8,22 @@ const API = '';  // same origin — Railway serves both
 /* ── Generic fetch helpers ── */
 async function apiGet(path) {
   const r = await fetch(API + path);
-  if (!r.ok) throw new Error(await r.text());
+  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || r.statusText); }
   return r.json();
 }
 async function apiPost(path, data) {
   const r = await fetch(API + path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
-  if (!r.ok) throw new Error(await r.text());
+  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || r.statusText); }
   return r.json();
 }
 async function apiPut(path, data) {
   const r = await fetch(API + path, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
-  if (!r.ok) throw new Error(await r.text());
+  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || r.statusText); }
   return r.json();
 }
 async function apiDelete(path) {
   const r = await fetch(API + path, { method:'DELETE' });
-  if (!r.ok) throw new Error(await r.text());
+  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || r.statusText); }
   return r.json();
 }
 

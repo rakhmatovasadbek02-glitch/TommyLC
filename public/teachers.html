@@ -144,7 +144,7 @@
       if(id){await apiPut('/api/teachers/'+id,data);logActivity(`Updated teacher: ${first} ${last}`,'');}
       else{data.id=genId();await apiPost('/api/teachers',data);logActivity(`Added teacher: ${first} ${last}`,'green');}
       closeModal('teacherModal'); await load(); showToast(id?'Teacher updated!':'Teacher added!');
-    } catch(e){showToast('Error saving.','error');}
+    } catch(e){showToast('Error: '+e.message,'error');console.error(e);}
   }
 
   async function deleteTeacher(id) {
