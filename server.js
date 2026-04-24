@@ -44,12 +44,8 @@ async function initDB() {
       first_name  TEXT NOT NULL,
       last_name   TEXT NOT NULL,
       phone       TEXT,
-      email       TEXT,
+      password    TEXT,
       status      TEXT DEFAULT 'Active',
-      rate        NUMERIC,
-      specs       TEXT,
-      levels      TEXT,
-      bio         TEXT,
       created_at  TIMESTAMPTZ DEFAULT NOW()
     );
 
@@ -233,20 +229,27 @@ app.get('/api/teachers', async (req, res) => {
 });
 
 app.post('/api/teachers', async (req, res) => {
-  const { id, firstName, lastName, phone, email, status, rate, specs, levels, bio } = req.body;
+  const { id, firstName, lastName, phone, password, status } = req.body;
   await pool.query(
-    'INSERT INTO teachers(id,first_name,last_name,phone,email,status,rate,specs,levels,bio) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',
-    [id, firstName, lastName, phone||null, email||null, status||'Active', rate||null, specs||null, levels||null, bio||null]
+    'INSERT INTO teachers(id,first_name,last_name,phone,password,status) VALUES($1,$2,$3,$4,$5,$6)',
+    [id, firstName, lastName, phone||null, password||null, status||'Active']
   );
   res.json({ ok: true });
 });
 
 app.put('/api/teachers/:id', async (req, res) => {
-  const { firstName, lastName, phone, email, status, rate, specs, levels, bio } = req.body;
-  await pool.query(
-    'UPDATE teachers SET first_name=$1,last_name=$2,phone=$3,email=$4,status=$5,rate=$6,specs=$7,levels=$8,bio=$9 WHERE id=$10',
-    [firstName, lastName, phone||null, email||null, status||'Active', rate||null, specs||null, levels||null, bio||null, req.params.id]
-  );
+  const { firstName, lastName, phone, password, status } = req.body;
+  if (password) {
+    await pool.query(
+      'UPDATE teachers SET first_name=$1,last_name=$2,phone=$3,password=$4,status=$5 WHERE id=$6',
+      [firstName, lastName, phone||null, password, status||'Active', req.params.id]
+    );
+  } else {
+    await pool.query(
+      'UPDATE teachers SET first_name=$1,last_name=$2,phone=$3,status=$4 WHERE id=$5',
+      [firstName, lastName, phone||null, status||'Active', req.params.id]
+    );
+  }
   res.json({ ok: true });
 });
 
