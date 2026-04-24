@@ -68,16 +68,18 @@ async function initDB() {
       teacher      TEXT,
       room         TEXT,
       level        TEXT,
+      lang         TEXT DEFAULT 'UZ',
       max_students INTEGER,
       sched_type   TEXT DEFAULT 'odd',
       custom_days  JSONB DEFAULT '[]',
       time         TEXT,
-      duration     INTEGER DEFAULT 60,
+      duration     INTEGER DEFAULT 90,
       start_date   DATE,
       notes        TEXT,
       student_ids  JSONB DEFAULT '[]',
       created_at   TIMESTAMPTZ DEFAULT NOW()
     );
+    ALTER TABLE groups ADD COLUMN IF NOT EXISTS lang TEXT DEFAULT 'UZ';
 
     CREATE TABLE IF NOT EXISTS invoices (
       id          TEXT PRIMARY KEY,
@@ -299,32 +301,38 @@ app.delete('/api/classrooms/:id', async (req, res) => {
    GROUPS
 ══════════════════════════════════════ */
 app.get('/api/groups', async (req, res) => {
-  const { rows } = await pool.query('SELECT * FROM groups ORDER BY created_at DESC');
-  res.json(rows.map(g => ({
-    id: g.id, name: g.name, teacher: g.teacher, room: g.room,
-    level: g.level, maxStudents: g.max_students,
-    schedType: g.sched_type, customDays: g.custom_days,
-    time: g.time, duration: g.duration, startDate: g.start_date,
-    notes: g.notes, studentIds: g.student_ids, createdAt: g.created_at
-  })));
+  try {
+    const { rows } = await pool.query('SELECT * FROM groups ORDER BY created_at DESC');
+    res.json(rows.map(g => ({
+      id: g.id, name: g.name, teacher: g.teacher, room: g.room,
+      level: g.level, lang: g.lang, maxStudents: g.max_students,
+      schedType: g.sched_type, customDays: g.custom_days,
+      time: g.time, duration: g.duration, startDate: g.start_date,
+      notes: g.notes, studentIds: g.student_ids, createdAt: g.created_at
+    })));
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/groups', async (req, res) => {
-  const { id, name, teacher, room, level, maxStudents, schedType, customDays, time, duration, startDate, notes, studentIds } = req.body;
-  await pool.query(
-    'INSERT INTO groups(id,name,teacher,room,level,max_students,sched_type,custom_days,time,duration,start_date,notes,student_ids) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)',
-    [id, name, teacher||null, room||null, level||null, maxStudents||null, schedType||'odd', JSON.stringify(customDays||[]), time||null, duration||60, startDate||null, notes||null, JSON.stringify(studentIds||[])]
-  );
-  res.json({ ok: true });
+  try {
+    const { id, name, teacher, room, level, lang, maxStudents, schedType, customDays, time, duration, startDate, notes, studentIds } = req.body;
+    await pool.query(
+      'INSERT INTO groups(id,name,teacher,room,level,lang,max_students,sched_type,custom_days,time,duration,start_date,notes,student_ids) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)',
+      [id, name, teacher||null, room||null, level||null, lang||'UZ', maxStudents||null, schedType||'odd', JSON.stringify(customDays||[]), time||null, duration||90, startDate||null, notes||null, JSON.stringify(studentIds||[])]
+    );
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.put('/api/groups/:id', async (req, res) => {
-  const { name, teacher, room, level, maxStudents, schedType, customDays, time, duration, startDate, notes, studentIds } = req.body;
-  await pool.query(
-    'UPDATE groups SET name=$1,teacher=$2,room=$3,level=$4,max_students=$5,sched_type=$6,custom_days=$7,time=$8,duration=$9,start_date=$10,notes=$11,student_ids=$12 WHERE id=$13',
-    [name, teacher||null, room||null, level||null, maxStudents||null, schedType||'odd', JSON.stringify(customDays||[]), time||null, duration||60, startDate||null, notes||null, JSON.stringify(studentIds||[]), req.params.id]
-  );
-  res.json({ ok: true });
+  try {
+    const { name, teacher, room, level, lang, maxStudents, schedType, customDays, time, duration, startDate, notes, studentIds } = req.body;
+    await pool.query(
+      'UPDATE groups SET name=$1,teacher=$2,room=$3,level=$4,lang=$5,max_students=$6,sched_type=$7,custom_days=$8,time=$9,duration=$10,start_date=$11,notes=$12,student_ids=$13 WHERE id=$14',
+      [name, teacher||null, room||null, level||null, lang||'UZ', maxStudents||null, schedType||'odd', JSON.stringify(customDays||[]), time||null, duration||90, startDate||null, notes||null, JSON.stringify(studentIds||[]), req.params.id]
+    );
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.delete('/api/groups/:id', async (req, res) => {
