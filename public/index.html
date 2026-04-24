@@ -305,13 +305,24 @@
      Filter  = odd / even / custom (single day)
      Auto-detect today's type on load
   ══════════════════════════════════ */
-  const PALETTE = ['#E53935','#1E88E5','#43A047','#8E24AA','#F4511E','#00897B','#3949AB','#D81B60'];
+  const LEVEL_COLORS = {
+    'RoundUp':          '#FB8C00',
+    'Beginner':         '#43A047',
+    'Elementary':       '#E53935',
+    'Pre-Intermediate': '#1E88E5',
+    'Intermediate':     '#F9A825',
+    'CEFR':             '#8E24AA',
+    'IELTS':            '#00897B',
+  };
+  const LEVEL_TEXT_DARK = ['Intermediate'];
+  const LEVEL_DEFAULT = '#546E7A';
   let dayFilter = 'odd';
 
-  function classColor(id) {
-    let h = 0;
-    for (let c of (id||'?')) h = (h<<5)-h+c.charCodeAt(0);
-    return PALETTE[Math.abs(h) % PALETTE.length];
+  function classColor(cls) {
+    return LEVEL_COLORS[cls.level] || LEVEL_DEFAULT;
+  }
+  function classTextColor(cls) {
+    return LEVEL_TEXT_DARK.includes(cls.level) ? '#1a1a1a' : 'white';
   }
 
   /* Auto-detect: day of week → odd or even
@@ -479,7 +490,8 @@
             min-height:90px;position:relative;">
             ${startingHere.length === 0 ? '' : ''}
             ${startingHere.map(cls => {
-              const c      = classColor(cls.id);
+              const c      = classColor(cls);
+              const textCol = classTextColor(cls);
               const dur    = Number(cls.duration || 90);
               const cStart = timeToMin(cls.time);
               const cEnd   = cStart + dur;
@@ -499,28 +511,28 @@
 
                 <!-- Top left: group code + level -->
                 <div style="grid-column:1;grid-row:1;overflow:hidden">
-                  <span style="font-weight:800;font-size:11px;color:white;white-space:nowrap">${cls.name}</span>
-                  ${cls.level ? `<span style="font-size:10px;color:white;opacity:0.85;margin-left:4px;white-space:nowrap">${cls.level}</span>` : ''}
+                  <span style="font-weight:800;font-size:11px;color:${textCol};white-space:nowrap">${cls.name}</span>
+                  ${cls.level ? `<span style="font-size:10px;color:${textCol};opacity:0.85;margin-left:4px;white-space:nowrap">${cls.level}</span>` : ''}
                 </div>
 
                 <!-- Top right: current unit -->
                 <div style="grid-column:2;grid-row:1;text-align:right;flex-shrink:0">
-                  ${cls.currentUnit ? `<span style="font-size:9px;font-weight:700;color:${c};background:white;padding:1px 5px;border-radius:3px;white-space:nowrap">${cls.currentUnit}</span>` : ''}
+                  ${cls.currentUnit ? `<span style="font-size:9px;font-weight:700;color:${c};background:${textCol};padding:1px 5px;border-radius:3px;white-space:nowrap">${cls.currentUnit}</span>` : ''}
                 </div>
 
                 <!-- Middle left: teacher -->
                 <div style="grid-column:1/3;grid-row:2;display:flex;align-items:center;overflow:hidden">
-                  ${cls.teacher ? `<span style="font-size:10px;color:white;opacity:0.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 ${cls.teacher}</span>` : ''}
+                  ${cls.teacher ? `<span style="font-size:10px;color:${textCol};opacity:0.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 ${cls.teacher}</span>` : ''}
                 </div>
 
                 <!-- Bottom left: time -->
                 <div style="grid-column:1;grid-row:3">
-                  <span style="font-size:9px;color:white;opacity:0.85;white-space:nowrap">🕐 ${cls.time}–${endT}</span>
+                  <span style="font-size:9px;color:${textCol};opacity:0.85;white-space:nowrap">🕐 ${cls.time}–${endT}</span>
                 </div>
 
                 <!-- Bottom right: students -->
                 <div style="grid-column:2;grid-row:3;text-align:right">
-                  ${enrolled ? `<span style="font-size:9px;color:white;opacity:0.85;white-space:nowrap">👥 ${enrolled}</span>` : ''}
+                  ${enrolled ? `<span style="font-size:9px;color:${textCol};opacity:0.85;white-space:nowrap">👥 ${enrolled}</span>` : ''}
                 </div>
 
               </div>`;
