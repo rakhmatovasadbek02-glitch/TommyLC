@@ -200,7 +200,7 @@
     <div class="modal-body" id="cdBody"></div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('classDetailModal')">Close</button>
-      <a href="groups.html" class="btn btn-primary">Open Groups</a>
+      <button class="btn btn-primary" id="cdGoBtn" onclick="window.location.href='groups.html'">👥 Open Group →</button>
     </div>
   </div>
 </div>
@@ -295,6 +295,7 @@
       const el = document.getElementById(s.id);
       if (el) el.textContent = s.calc();
     });
+  }
 
   /* ══════════════════════════════════
      TIMETABLE — Classrooms × Time slots
@@ -530,19 +531,35 @@
   function goToGroups() { window.location.href = 'groups.html'; }
 
   function showClassDetail(id) {
-    const c = window._groups    || [].find(c => c.id === id);
+    const c = (window._groups || []).find(c => c.id === id);
     if (!c) return;
     const SCHED = { odd:'Odd days', even:'Even days', custom:'Custom' };
+    const LANG  = { UZ:'🇺🇿 Uzbek', RU:'🇷🇺 Russian' };
+    const enrolled = (c.studentIds || []).length;
+
+    // Calculate end time
+    const endTime = (() => {
+      if (!c.time) return '';
+      const [h,m] = c.time.split(':').map(Number);
+      const e = h*60+(m||0)+(c.duration||90);
+      return `${String(Math.floor(e/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`;
+    })();
+
     document.getElementById('cdTitle').textContent = c.name;
     document.getElementById('cdBody').innerHTML = `
       <div class="grid-2">
-        <div class="form-group"><label>Groups</label><div style="font-weight:600">${SCHED[c.schedType]||'—'}</div></div>
-        <div class="form-group"><label>Time</label><div style="font-weight:600">${c.time||'—'} · ${c.duration||60}min</div></div>
+        <div class="form-group"><label>Schedule</label><div style="font-weight:600">${SCHED[c.schedType]||'—'}</div></div>
+        <div class="form-group"><label>Time</label><div style="font-weight:600">${c.time||'—'}${endTime?' – '+endTime:''}</div></div>
         <div class="form-group"><label>Teacher</label><div style="font-weight:600">${c.teacher||'—'}</div></div>
         <div class="form-group"><label>Room</label><div style="font-weight:600">${c.room||'—'}</div></div>
+        <div class="form-group"><label>Level</label><div style="font-weight:600">${c.level||'—'}</div></div>
+        <div class="form-group"><label>Language</label><div style="font-weight:600">${LANG[c.lang]||'—'}</div></div>
+        <div class="form-group"><label>Students</label><div style="font-weight:600">${enrolled}</div></div>
+        <div class="form-group"><label>Since</label><div style="font-weight:600">${formatDate(c.startDate)}</div></div>
       </div>
-      ${c.notes?`<div class="form-group"><label>Notes</label><div style="background:var(--crimson-soft);padding:12px;border-radius:8px;font-size:14px">${c.notes}</div></div>`:''}
     `;
+    // Update footer button to go directly to groups page
+    document.getElementById('cdGoBtn').onclick = () => window.location.href = 'groups.html';
     openModal('classDetailModal');
   }
 
