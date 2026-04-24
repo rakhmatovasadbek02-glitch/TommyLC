@@ -163,20 +163,31 @@
 
 <!-- Levels Management Modal -->
 <div class="modal-overlay" id="levelsModal">
-  <div class="modal" style="width:440px">
+  <div class="modal" style="width:480px">
     <div class="modal-header">
-      <div class="modal-title">📚 Levels</div>
+      <div class="modal-title">📚 Levels & Pricing</div>
       <button class="modal-close" onclick="closeModal('levelsModal')">✕</button>
     </div>
     <div class="modal-body">
-      <div style="display:flex;gap:10px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)">
-        <input type="text" id="newLevelInput" placeholder="e.g. Advanced" style="flex:1">
-        <button class="btn btn-primary" onclick="addLevel()">Add</button>
+      <!-- Add new level -->
+      <div style="display:grid;grid-template-columns:1fr 140px auto;gap:10px;align-items:end;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)">
+        <div class="form-group" style="margin:0">
+          <label>Level Name</label>
+          <input type="text" id="newLevelInput" placeholder="e.g. Advanced">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>Price (UZS)</label>
+          <input type="number" id="newLevelPrice" placeholder="0" min="0" step="1000"
+            style="-moz-appearance:textfield;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;width:100%;outline:none;font-family:'DM Sans',sans-serif">
+        </div>
+        <button class="btn btn-primary" onclick="addLevel()" style="height:40px">Add</button>
       </div>
+      <!-- Level list -->
       <div id="levelsList"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('levelsModal')">Close</button>
+      <button class="btn btn-primary" onclick="saveAllPrices()">💾 Save Prices</button>
     </div>
   </div>
 </div>
@@ -406,6 +417,18 @@
 
   // ── All levels (built-in + custom) ──
   const BUILT_IN_LEVELS = ['RoundUp','Beginner','Elementary','Pre-Intermediate','Intermediate','CEFR','IELTS'];
+  const LEVEL_COLORS = {
+    'RoundUp':'#FB8C00','Beginner':'#43A047','Elementary':'#E53935',
+    'Pre-Intermediate':'#1E88E5','Intermediate':'#F9A825','CEFR':'#8E24AA','IELTS':'#00897B'
+  };
+  let levelPrices = {};
+
+  async function loadPricing() {
+    try {
+      const arr = await apiGet('/api/pricing');
+      arr.forEach(p => levelPrices[p.level] = p.price);
+    } catch(e) {}
+  }
 
   function getAllLevels() {
     return [...BUILT_IN_LEVELS, ...customLevels.filter(l => !BUILT_IN_LEVELS.includes(l))];
@@ -418,7 +441,8 @@
       getAllLevels().map(l => `<option value="${l}" ${l===cur?'selected':''}>${l}</option>`).join('');
   }
 
-  function openLevelsModal() {
+  async function openLevelsModal() {
+    await loadPricing();
     renderLevelsList();
     openModal('levelsModal');
   }
@@ -427,21 +451,53 @@
     const all = getAllLevels();
     document.getElementById('levelsList').innerHTML = all.map(l => {
       const isBuiltIn = BUILT_IN_LEVELS.includes(l);
-      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
-        <div style="font-weight:600;font-size:14px">${l} ${isBuiltIn?'<span style="font-size:10px;color:var(--muted);font-weight:400">(built-in)</span>':''}</div>
-        ${!isBuiltIn?`<button class="btn btn-danger btn-sm" onclick="deleteLevel('${l}')">🗑</button>`:''}
+      const col   = LEVEL_COLORS[l] || '#546E7A';
+      const price = levelPrices[l] || 0;
+      const key   = l.replace(/[^a-z0-9]/gi,'_');
+      return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)">
+        <div style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0"></div>
+        <div style="flex:1;font-weight:600;font-size:14px">${l}
+          ${isBuiltIn ? '<span style="font-size:10px;color:var(--muted);font-weight:400;margin-left:4px">built-in</span>' : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:12px;font-weight:700;color:var(--muted)">UZS</span>
+          <input type="number" id="lp_${key}" value="${price}" min="0" step="1000"
+            style="-moz-appearance:textfield;width:130px;padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;outline:none;text-align:right"
+            onfocus="this.style.borderColor='var(--crimson)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        ${!isBuiltIn ? `<button class="btn btn-danger btn-sm" onclick="deleteLevel('${l}')">🗑</button>` : '<div style="width:52px"></div>'}
       </div>`;
     }).join('');
   }
 
+  async function saveAllPrices() {
+    try {
+      const all = getAllLevels();
+      await Promise.all(all.map(l => {
+        const key = l.replace(/[^a-z0-9]/gi,'_');
+        const val = Number(document.getElementById('lp_'+key)?.value || 0);
+        levelPrices[l] = val;
+        return apiPut('/api/pricing/'+encodeURIComponent(l), { price: val });
+      }));
+      showToast('Prices saved!');
+    } catch(e) { showToast('Error: '+e.message,'error'); }
+  }
+
   async function addLevel() {
-    const val = document.getElementById('newLevelInput').value.trim();
-    if (!val) return;
+    const val   = document.getElementById('newLevelInput').value.trim();
+    const price = Number(document.getElementById('newLevelPrice').value) || 0;
+    if (!val) { showToast('Enter a level name.','error'); return; }
     if (getAllLevels().includes(val)) { showToast('Level already exists.','error'); return; }
     await apiPost('/api/levels', { level: val });
+    if (price > 0) {
+      await apiPut('/api/pricing/'+encodeURIComponent(val), { price });
+      levelPrices[val] = price;
+    }
     customLevels.push(val);
-    document.getElementById('newLevelInput').value = '';
+    document.getElementById('newLevelInput').value  = '';
+    document.getElementById('newLevelPrice').value  = '';
     renderLevelsList();
+    populateLevelSelect();
     showToast(`Level "${val}" added!`);
   }
 
@@ -449,7 +505,9 @@
     if (!confirm(`Delete level "${level}"?`)) return;
     await apiDelete('/api/levels/'+encodeURIComponent(level));
     customLevels = customLevels.filter(l => l !== level);
+    delete levelPrices[level];
     renderLevelsList();
+    populateLevelSelect();
     showToast('Level deleted.','error');
   }
 
