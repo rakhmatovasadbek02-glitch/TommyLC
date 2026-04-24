@@ -21,6 +21,11 @@ async function apiPut(path, data) {
   if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || r.statusText); }
   return r.json();
 }
+async function apiPatch(path, data) {
+  const r = await fetch(API + path, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
+  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || r.statusText); }
+  return r.json();
+}
 async function apiDelete(path) {
   const r = await fetch(API + path, { method:'DELETE' });
   if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || r.statusText); }

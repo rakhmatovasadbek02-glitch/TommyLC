@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Group — TommyLC CRM</title>
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    .group-header-card {
+      background: white; border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px 28px;
+      box-shadow: var(--shadow); margin-bottom: 24px;
+      border-top: 4px solid var(--crimson);
+      display: flex; align-items: flex-start; gap: 24px; flex-wrap: wrap;
+    }
+    .gh-info { flex: 1; min-width: 0; }
+    .gh-name { font-family:'Playfair Display',serif; font-size:26px; font-weight:900; color:var(--text); }
+    .gh-meta { display:flex; gap:16px; flex-wrap:wrap; margin-top:8px; font-size:13px; color:var(--muted); }
+    .gh-meta span { display:flex; align-items:center; gap:5px; }
+
+    /* Unit tracker */
+    .unit-card {
+      background: white; border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px 24px;
+      box-shadow: var(--shadow); margin-bottom: 24px;
+      display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    }
+    .unit-label { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .unit-select {
+      padding: 10px 16px; border: 2px solid var(--crimson);
+      border-radius: 10px; font-size: 16px; font-weight: 700;
+      color: var(--crimson); background: var(--crimson-soft);
+      cursor: pointer; outline: none; font-family: 'DM Sans', sans-serif;
+    }
+    .unit-badge {
+      background: var(--crimson); color: white;
+      border-radius: 10px; padding: 10px 20px;
+      font-family: 'Playfair Display', serif;
+      font-size: 22px; font-weight: 900;
+    }
+
+    /* Attendance section */
+    .att-section { background: white; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .att-section-header {
+      padding: 18px 24px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    }
+    .att-section-title { font-family:'Playfair Display',serif; font-size:18px; font-weight:900; color:var(--text); }
+    .att-date-nav { display:flex; align-items:center; gap:10px; }
+    .att-date-btn {
+      width:32px; height:32px; border-radius:50%; border:1.5px solid var(--border);
+      background:white; cursor:pointer; font-size:16px;
+      display:flex; align-items:center; justify-content:center; transition:all 0.14s;
+    }
+    .att-date-btn:hover { border-color:var(--crimson); color:var(--crimson); }
+    .att-date-label { font-weight:700; font-size:14px; color:var(--text); min-width:140px; text-align:center; }
+
+    .att-row { display:flex; align-items:center; gap:14px; padding:13px 24px; border-bottom:1px solid var(--border); }
+    .att-row:last-child { border-bottom:none; }
+    .att-name { flex:1; font-size:14px; font-weight:500; }
+    .att-btns { display:flex; gap:8px; }
+    .att-btn {
+      width:40px; height:40px; border-radius:10px;
+      border:2px solid var(--border); background:white;
+      font-size:18px; cursor:pointer; transition:all 0.15s;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .att-btn:hover { transform:scale(1.1); }
+    .att-btn.present { background:#E8F5E9; border-color:#2E7D32; }
+    .att-btn.absent  { background:#FFEBEE; border-color:#C62828; }
+
+    /* Summary bar */
+    .att-summary {
+      padding: 12px 24px; background: var(--surface);
+      border-top: 1px solid var(--border); border-radius: 0 0 var(--radius) var(--radius);
+      display: flex; gap: 20px; font-size: 13px;
+    }
+    .att-sum-item { display:flex; align-items:center; gap:6px; font-weight:600; }
+  </style>
+</head>
+<body>
+<nav class="sidebar"></nav>
+<div class="main">
+  <div class="topbar">
+    <div class="page-title" id="pageTitle">Group</div>
+    <div class="topbar-right">
+      <a href="groups.html" class="btn btn-outline btn-sm">← All Groups</a>
+    </div>
+  </div>
+  <div class="page-content">
+
+    <!-- Group header -->
+    <div class="group-header-card" id="groupHeader">
+      <div style="text-align:center;padding:40px;color:var(--muted);width:100%">Loading…</div>
+    </div>
+
+    <!-- Unit tracker -->
+    <div class="unit-card" id="unitCard" style="display:none">
+      <div>
+        <div class="unit-label">Current Unit</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Where the class is up to</div>
+      </div>
+      <div class="unit-badge" id="unitBadge">1A</div>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <label class="unit-label" for="unitSelect">Update to:</label>
+        <select class="unit-select" id="unitSelect" onchange="updateUnit()">
+          <!-- populated by JS -->
+        </select>
+      </div>
+    </div>
+
+    <!-- Attendance -->
+    <div class="att-section" id="attSection" style="display:none">
+      <div class="att-section-header">
+        <div class="att-section-title">✅ Attendance</div>
+        <div class="att-date-nav">
+          <button class="att-date-btn" onclick="changeDate(-1)">‹</button>
+          <div class="att-date-label" id="attDateLabel"></div>
+          <button class="att-date-btn" onclick="changeDate(1)">›</button>
+          <button class="btn btn-outline btn-sm" onclick="goToday()">Today</button>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveAttendance()">Save Attendance</button>
+      </div>
+      <div id="attList"></div>
+      <div class="att-summary" id="attSummary"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="shared.js"></script>
+<script>
+  requireAuth('groups');
+  renderSidebar('groups');
+
+  // Get group ID from URL: group.html?id=xxx
+  const params  = new URLSearchParams(window.location.search);
+  const groupId = params.get('id');
+  if (!groupId) window.location.replace('groups.html');
+
+  // Generate all units: 1A-12C
+  const UNITS = [];
+  for (let u = 1; u <= 12; u++) ['A','B','C'].forEach(s => UNITS.push(`${u}${s}`));
+
+  let group    = null;
+  let students = [];
+  let attDate  = new Date().toISOString().split('T')[0];
+
+  // Populate unit select
+  const sel = document.getElementById('unitSelect');
+  UNITS.forEach(u => {
+    const opt = document.createElement('option');
+    opt.value = opt.textContent = u;
+    sel.appendChild(opt);
+  });
+
+  async function load() {
+    const [groups, studs] = await Promise.all([apiGet('/api/groups'), apiGet('/api/students')]);
+    group    = groups.find(g => g.id === groupId);
+    students = studs;
+    if (!group) { window.location.replace('groups.html'); return; }
+
+    renderHeader();
+    renderUnitTracker();
+    await renderAttendance();
+  }
+
+  function renderHeader() {
+    document.getElementById('pageTitle').textContent = group.name;
+    const SCHED = { odd:'Odd days (Mon·Wed·Fri)', even:'Even days (Tue·Thu·Sat)', custom:'Custom' };
+    const LANG  = { UZ:'🇺🇿 Uzbek', RU:'🇷🇺 Russian' };
+    const endTime = (() => {
+      if (!group.time) return '';
+      const [h,m] = group.time.split(':').map(Number);
+      const e = h*60+(m||0)+90;
+      return `${String(Math.floor(e/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`;
+    })();
+    const enrolled = (group.studentIds||[]).length;
+
+    document.getElementById('groupHeader').innerHTML = `
+      <div style="flex-shrink:0">
+        <div style="width:64px;height:64px;border-radius:16px;background:var(--crimson);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:white">
+          ${group.name.slice(0,2).toUpperCase()}
+        </div>
+      </div>
+      <div class="gh-info">
+        <div class="gh-name">${group.name}</div>
+        <div class="gh-meta">
+          ${group.teacher ? `<span>👤 ${group.teacher}</span>` : ''}
+          ${group.room    ? `<span>📍 ${group.room}</span>`    : ''}
+          ${group.time    ? `<span>🕐 ${group.time}–${endTime}</span>` : ''}
+          ${group.level   ? `<span>📚 ${group.level}</span>`  : ''}
+          ${group.lang    ? `<span>${LANG[group.lang]||''}</span>` : ''}
+          <span>📅 ${SCHED[group.schedType]||'—'}</span>
+          <span>👥 ${enrolled} student${enrolled!==1?'s':''}</span>
+        </div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Current Unit</div>
+        <div style="background:var(--crimson);color:white;border-radius:10px;padding:10px 20px;font-family:'Playfair Display',serif;font-size:28px;font-weight:900">
+          ${group.currentUnit||'1A'}
+        </div>
+      </div>`;
+  }
+
+  function renderUnitTracker() {
+    const cu = group.currentUnit || '1A';
+    document.getElementById('unitBadge').textContent = cu;
+    document.getElementById('unitSelect').value = cu;
+    document.getElementById('unitCard').style.display = '';
+  }
+
+  async function updateUnit() {
+    const unit = document.getElementById('unitSelect').value;
+    try {
+      await apiPatch('/api/groups/'+groupId+'/unit', { unit });
+      group.currentUnit = unit;
+      document.getElementById('unitBadge').textContent = unit;
+      // Update header badge too
+      renderHeader();
+      logActivity(`Updated unit for ${group.name}: ${unit}`, '');
+      showToast(`Unit updated to ${unit}!`);
+    } catch(e) { showToast('Error: '+e.message, 'error'); }
+  }
+
+  async function renderAttendance() {
+    document.getElementById('attSection').style.display = '';
+    document.getElementById('attDateLabel').textContent =
+      new Date(attDate+'T00:00:00').toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'});
+
+    const enrolled = (group.studentIds||[]).map(id => students.find(s=>s.id===id)).filter(Boolean);
+    const existing = await apiGet(`/api/attendance/${groupId}/${attDate}`).catch(()=>[]);
+
+    if (!enrolled.length) {
+      document.getElementById('attList').innerHTML = `
+        <div style="padding:32px;text-align:center;color:var(--muted)">
+          <div style="font-size:32px;margin-bottom:8px">👥</div>
+          <p>No students enrolled in this group yet.</p>
+        </div>`;
+      document.getElementById('attSummary').innerHTML = '';
+      return;
+    }
+
+    document.getElementById('attList').innerHTML = enrolled.map(s => {
+      const name   = s.firstName+' '+s.lastName;
+      const prev   = existing.find(a=>a.studentId===s.id);
+      const status = prev?.status || '';
+      // Check if trial student
+      return `<div class="att-row">
+        <div class="avatar" style="background:${avatarColor(name)};width:36px;height:36px;font-size:13px;flex-shrink:0">${initials(name)}</div>
+        <div class="att-name">${name}</div>
+        <div class="att-btns">
+          <button class="att-btn${status==='present'?' present':''}" data-sid="${s.id}" data-status="present" onclick="toggleAtt(this)" title="Present">✓</button>
+          <button class="att-btn${status==='absent'?' absent':''}"  data-sid="${s.id}" data-status="absent"  onclick="toggleAtt(this)" title="Absent">✗</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    updateSummary(existing, enrolled.length);
+  }
+
+  function updateSummary(records, total) {
+    const present = records.filter(r=>r.status==='present').length;
+    const absent  = records.filter(r=>r.status==='absent').length;
+    const unmarked = total - present - absent;
+    document.getElementById('attSummary').innerHTML = `
+      <span class="att-sum-item" style="color:#2E7D32">✓ ${present} present</span>
+      <span class="att-sum-item" style="color:var(--crimson)">✗ ${absent} absent</span>
+      ${unmarked > 0 ? `<span class="att-sum-item" style="color:var(--muted)">— ${unmarked} unmarked</span>` : ''}
+    `;
+  }
+
+  function toggleAtt(btn) {
+    const row = btn.closest('.att-btns');
+    const wasActive = btn.classList.contains(btn.dataset.status);
+    row.querySelectorAll('.att-btn').forEach(b => b.classList.remove('present','absent'));
+    if (!wasActive) btn.classList.add(btn.dataset.status);
+    // Update summary live
+    const rows = document.querySelectorAll('.att-btns');
+    const present = [...rows].filter(r => r.querySelector('.att-btn.present')).length;
+    const absent  = [...rows].filter(r => r.querySelector('.att-btn.absent')).length;
+    const total   = (group.studentIds||[]).length;
+    updateSummary(
+      [...Array(present).fill({status:'present'}), ...Array(absent).fill({status:'absent'})],
+      total
+    );
+  }
+
+  async function saveAttendance() {
+    const records = [];
+    document.querySelectorAll('.att-btns').forEach(row => {
+      const active = row.querySelector('.att-btn.present,.att-btn.absent');
+      if (active) records.push({ studentId: active.dataset.sid, status: active.dataset.status });
+    });
+    try {
+      await apiPost(`/api/attendance/${groupId}/${attDate}`, { records });
+      logActivity(`Attendance saved for ${group.name}`, '');
+      showToast('Attendance saved!');
+    } catch(e) { showToast('Error: '+e.message, 'error'); }
+  }
+
+  function changeDate(delta) {
+    const d = new Date(attDate+'T00:00:00');
+    d.setDate(d.getDate() + delta);
+    attDate = d.toISOString().split('T')[0];
+    renderAttendance();
+  }
+  function goToday() {
+    attDate = new Date().toISOString().split('T')[0];
+    renderAttendance();
+  }
+
+  load();
+</script>
+</body>
+</html>

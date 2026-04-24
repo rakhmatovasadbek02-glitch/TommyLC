@@ -34,7 +34,7 @@
 </div>
 
 <div class="modal-overlay" id="editModal">
-  <div class="modal" style="width:400px">
+  <div class="modal" style="width:360px">
     <div class="modal-header">
       <div class="modal-title">Edit Classroom</div>
       <button class="modal-close" onclick="closeModal('editModal')">✕</button>
@@ -42,7 +42,6 @@
     <div class="modal-body">
       <input type="hidden" id="editRoomId">
       <div class="form-group"><label>Room Name *</label><input type="text" id="editRoomName" placeholder="Room 1"></div>
-      <div class="form-group"><label>Capacity</label><input type="number" id="editRoomCap" placeholder="12" min="1"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('editModal')">Cancel</button>
@@ -66,10 +65,10 @@
   function renderRooms() {
     const grid = document.getElementById('roomsGrid');
     document.getElementById('roomCount').textContent = `${rooms.length} classroom${rooms.length!==1?'s':''}`;
+
     let html = `<div class="add-card">
       <div class="add-card-title">🏛 Add Classroom</div>
-      <div class="form-group" style="margin:0"><label>Room Name *</label><input type="text" id="newRoomName" placeholder="Room 3"></div>
-      <div class="form-group" style="margin:0"><label>Capacity</label><input type="number" id="newRoomCap" placeholder="15" min="1"></div>
+      <div class="form-group" style="margin:0"><label>Room Name *</label><input type="text" id="newRoomName" placeholder="Room 1"></div>
       <button class="btn btn-primary" onclick="addRoom()" style="margin-top:4px">Add Classroom</button>
     </div>`;
 
@@ -78,12 +77,11 @@
       return `<div class="room-card">
         <div class="room-card-top"><span class="room-icon">🏛</span><div class="room-card-name">${r.name}</div></div>
         <div class="room-card-body">
-          <div class="room-stat"><span class="room-stat-label">Capacity</span><span class="room-stat-val">${r.capacity?r.capacity+' students':'—'}</span></div>
-          <div class="room-stat"><span class="room-stat-label">Groups</span><span class="room-stat-val">${here.length}</span></div>
-          ${here.length?`<div class="room-stat" style="flex-direction:column;align-items:flex-start;gap:6px">
-            <span class="room-stat-label">Assigned groups</span>
+          <div class="room-stat"><span class="room-stat-label">Groups assigned</span><span class="room-stat-val">${here.length}</span></div>
+          ${here.length ? `<div class="room-stat" style="flex-direction:column;align-items:flex-start;gap:6px">
+            <span class="room-stat-label">Groups</span>
             <div style="display:flex;flex-wrap:wrap;gap:4px">${here.map(g=>`<span class="badge badge-red">${g.name}</span>`).join('')}</div>
-          </div>`:''}
+          </div>` : ''}
         </div>
         <div class="room-card-footer">
           <button class="btn btn-ghost btn-sm" onclick="openEdit('${r.id}')">✏️ Edit</button>
@@ -91,42 +89,39 @@
         </div>
       </div>`;
     }).join('');
+
     grid.innerHTML = html;
   }
 
   async function addRoom() {
     const name = document.getElementById('newRoomName').value.trim();
-    const cap  = document.getElementById('newRoomCap').value.trim();
     if (!name) { showToast('Room name required.','error'); return; }
     if (rooms.find(r=>r.name.toLowerCase()===name.toLowerCase())) { showToast('Already exists.','error'); return; }
-    await apiPost('/api/classrooms', { id:genId(), name, capacity:cap?Number(cap):null });
+    await apiPost('/api/classrooms', { id:genId(), name, capacity:null });
     logActivity(`Added classroom: ${name}`,'green');
-    document.getElementById('newRoomName').value='';
-    document.getElementById('newRoomCap').value='';
+    document.getElementById('newRoomName').value = '';
     await load(); showToast(`"${name}" added!`);
   }
 
   function openEdit(id) {
-    const r=rooms.find(r=>r.id===id); if(!r) return;
-    document.getElementById('editRoomId').value=id;
-    document.getElementById('editRoomName').value=r.name;
-    document.getElementById('editRoomCap').value=r.capacity||'';
+    const r = rooms.find(r=>r.id===id); if(!r) return;
+    document.getElementById('editRoomId').value   = id;
+    document.getElementById('editRoomName').value = r.name;
     openModal('editModal');
   }
 
   async function saveEdit() {
-    const id=document.getElementById('editRoomId').value;
-    const name=document.getElementById('editRoomName').value.trim();
-    const cap=document.getElementById('editRoomCap').value.trim();
-    if(!name){showToast('Name required.','error');return;}
-    await apiPut('/api/classrooms/'+id,{name,capacity:cap?Number(cap):null});
+    const id   = document.getElementById('editRoomId').value;
+    const name = document.getElementById('editRoomName').value.trim();
+    if (!name) { showToast('Name required.','error'); return; }
+    await apiPut('/api/classrooms/'+id, { name, capacity:null });
     logActivity(`Updated classroom: ${name}`,'');
     closeModal('editModal'); await load(); showToast('Classroom updated!');
   }
 
   async function deleteRoom(id) {
-    const r=rooms.find(r=>r.id===id);
-    if(!confirm(`Delete "${r?.name}"?`))return;
+    const r = rooms.find(r=>r.id===id);
+    if (!confirm(`Delete "${r?.name}"?`)) return;
     await apiDelete('/api/classrooms/'+id);
     logActivity(`Deleted classroom: ${r?.name}`,'red');
     await load(); showToast('Deleted.','error');

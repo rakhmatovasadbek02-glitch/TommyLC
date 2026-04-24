@@ -244,7 +244,7 @@
           :`<div style="padding:8px 0;color:var(--muted);font-size:13px;font-style:italic">No students yet.</div>`}
         </div>
         <div class="group-card-footer">
-          <button class="btn btn-ghost btn-sm" onclick="openAtt('${g.id}','${today}','${g.name.replace(/'/g,"\'")}','${g.time||''}')">✅ Attendance</button>
+          <a href="group.html?id=${g.id}" class="btn btn-ghost btn-sm">📋 Open Group</a>
           ${canManage?`<button class="btn btn-ghost btn-sm" onclick="editGroup('${g.id}')">✏️ Edit</button>
           <button class="btn btn-danger btn-sm" onclick="deleteGroup('${g.id}')">🗑</button>`:''}
         </div>

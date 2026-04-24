@@ -77,9 +77,11 @@ async function initDB() {
       start_date   DATE,
       notes        TEXT,
       student_ids  JSONB DEFAULT '[]',
+      current_unit TEXT DEFAULT '1A',
       created_at   TIMESTAMPTZ DEFAULT NOW()
     );
-    ALTER TABLE groups ADD COLUMN IF NOT EXISTS lang TEXT DEFAULT 'UZ';
+    ALTER TABLE groups ADD COLUMN IF NOT EXISTS lang         TEXT DEFAULT 'UZ';
+    ALTER TABLE groups ADD COLUMN IF NOT EXISTS current_unit TEXT DEFAULT '1A';
 
     CREATE TABLE IF NOT EXISTS invoices (
       id          TEXT PRIMARY KEY,
@@ -325,8 +327,19 @@ app.get('/api/groups', async (req, res) => {
       level: g.level, lang: g.lang, maxStudents: g.max_students,
       schedType: g.sched_type, customDays: g.custom_days,
       time: g.time, duration: g.duration, startDate: g.start_date,
-      notes: g.notes, studentIds: g.student_ids, createdAt: g.created_at
+      notes: g.notes, studentIds: g.student_ids,
+      currentUnit: g.current_unit || '1A',
+      createdAt: g.created_at
     })));
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Update just the current unit
+app.patch('/api/groups/:id/unit', async (req, res) => {
+  try {
+    const { unit } = req.body;
+    await pool.query('UPDATE groups SET current_unit=$1 WHERE id=$2', [unit, req.params.id]);
+    res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -343,10 +356,10 @@ app.post('/api/groups', async (req, res) => {
 
 app.put('/api/groups/:id', async (req, res) => {
   try {
-    const { name, teacher, room, level, lang, maxStudents, schedType, customDays, time, duration, startDate, notes, studentIds } = req.body;
+    const { name, teacher, room, level, lang, maxStudents, schedType, customDays, time, duration, startDate, notes, studentIds, currentUnit } = req.body;
     await pool.query(
-      'UPDATE groups SET name=$1,teacher=$2,room=$3,level=$4,lang=$5,max_students=$6,sched_type=$7,custom_days=$8,time=$9,duration=$10,start_date=$11,notes=$12,student_ids=$13 WHERE id=$14',
-      [name, teacher||null, room||null, level||null, lang||'UZ', maxStudents||null, schedType||'odd', JSON.stringify(customDays||[]), time||null, duration||90, startDate||null, notes||null, JSON.stringify(studentIds||[]), req.params.id]
+      'UPDATE groups SET name=$1,teacher=$2,room=$3,level=$4,lang=$5,max_students=$6,sched_type=$7,custom_days=$8,time=$9,duration=$10,start_date=$11,notes=$12,student_ids=$13,current_unit=$14 WHERE id=$15',
+      [name, teacher||null, room||null, level||null, lang||'UZ', maxStudents||null, schedType||'odd', JSON.stringify(customDays||[]), time||null, duration||90, startDate||null, notes||null, JSON.stringify(studentIds||[]), currentUnit||'1A', req.params.id]
     );
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
