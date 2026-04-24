@@ -305,7 +305,7 @@
      Filter  = odd / even / custom (single day)
      Auto-detect today's type on load
   ══════════════════════════════════ */
-  const PALETTE = ['#FF0000','#1D4ED8','#1E6B45','#7C3AED','#A05C00','#0891B2','#BE185D'];
+  const PALETTE = ['#E53935','#1E88E5','#43A047','#8E24AA','#F4511E','#00897B','#3949AB','#D81B60'];
   let dayFilter = 'odd';
 
   function classColor(id) {
@@ -472,11 +472,11 @@
           });
 
           if (coveredByEarlier) {
-            return `<div style="width:${COL_W}px;flex-shrink:0;min-height:90px;pointer-events:none;background:white;"></div>`;
+            return `<div style="width:${COL_W}px;flex-shrink:0;border-right:1px solid var(--border);min-height:90px;pointer-events:none;"></div>`;
           }
 
           return `<div style="width:${COL_W}px;flex-shrink:0;border-right:1px solid var(--border);
-            min-height:90px;position:relative;background:white;">
+            min-height:90px;position:relative;">
             ${startingHere.length === 0 ? '' : ''}
             ${startingHere.map(cls => {
               const c      = classColor(cls.id);
@@ -492,35 +492,35 @@
               return `<div onclick="window.location.href='group.html?id=${cls.id}'"
                 style="position:absolute;top:2px;left:2px;
                   width:${blockW}px;bottom:2px;
-                  background:${c}15;border:1.5px solid ${c}40;border-left:3px solid ${c};border-radius:6px;
+                  background:${c};border-radius:6px;
                   padding:5px 8px;cursor:pointer;overflow:hidden;z-index:3;box-sizing:border-box;
                   display:grid;grid-template-columns:1fr auto;grid-template-rows:auto 1fr auto;gap:1px 4px;"
                 onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
 
                 <!-- Top left: group code + level -->
                 <div style="grid-column:1;grid-row:1;overflow:hidden">
-                  <span style="font-weight:800;font-size:11px;color:${c};white-space:nowrap">${cls.name}</span>
-                  ${cls.level ? `<span style="font-size:10px;color:${c};opacity:0.8;margin-left:4px;white-space:nowrap">${cls.level}</span>` : ''}
+                  <span style="font-weight:800;font-size:11px;color:white;white-space:nowrap">${cls.name}</span>
+                  ${cls.level ? `<span style="font-size:10px;color:white;opacity:0.85;margin-left:4px;white-space:nowrap">${cls.level}</span>` : ''}
                 </div>
 
                 <!-- Top right: current unit -->
                 <div style="grid-column:2;grid-row:1;text-align:right;flex-shrink:0">
-                  ${cls.currentUnit ? `<span style="font-size:9px;font-weight:700;color:white;background:${c};padding:1px 5px;border-radius:3px;white-space:nowrap">${cls.currentUnit}</span>` : ''}
+                  ${cls.currentUnit ? `<span style="font-size:9px;font-weight:700;color:${c};background:white;padding:1px 5px;border-radius:3px;white-space:nowrap">${cls.currentUnit}</span>` : ''}
                 </div>
 
                 <!-- Middle left: teacher -->
                 <div style="grid-column:1/3;grid-row:2;display:flex;align-items:center;overflow:hidden">
-                  ${cls.teacher ? `<span style="font-size:10px;color:${c};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 ${cls.teacher}</span>` : ''}
+                  ${cls.teacher ? `<span style="font-size:10px;color:white;opacity:0.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 ${cls.teacher}</span>` : ''}
                 </div>
 
                 <!-- Bottom left: time -->
                 <div style="grid-column:1;grid-row:3">
-                  <span style="font-size:9px;color:${c};opacity:0.7;white-space:nowrap">🕐 ${cls.time}–${endT}</span>
+                  <span style="font-size:9px;color:white;opacity:0.85;white-space:nowrap">🕐 ${cls.time}–${endT}</span>
                 </div>
 
                 <!-- Bottom right: students -->
                 <div style="grid-column:2;grid-row:3;text-align:right">
-                  ${enrolled ? `<span style="font-size:9px;color:${c};opacity:0.7;white-space:nowrap">👥 ${enrolled}</span>` : ''}
+                  ${enrolled ? `<span style="font-size:9px;color:white;opacity:0.85;white-space:nowrap">👥 ${enrolled}</span>` : ''}
                 </div>
 
               </div>`;
