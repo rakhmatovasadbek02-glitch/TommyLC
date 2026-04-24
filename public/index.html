@@ -492,14 +492,19 @@
                 style="position:absolute;top:4px;left:3px;
                   width:${blockW}px;bottom:4px;
                   background:${c}18;border-left:3px solid ${c};border-radius:6px;
-                  padding:5px 7px;cursor:pointer;overflow:hidden;z-index:2;box-sizing:border-box;"
+                  padding:4px 7px;cursor:pointer;overflow:hidden;z-index:2;box-sizing:border-box;
+                  display:flex;flex-direction:column;justify-content:center;gap:2px;"
                 onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
-                <div style="font-weight:800;font-size:12px;color:${c};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3">${cls.name}</div>
-                ${cls.level   ? `<div style="font-size:10px;color:${c};opacity:0.85;white-space:nowrap">${cls.level}</div>` : ''}
-                ${cls.teacher ? `<div style="font-size:10px;color:${c};opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 ${cls.teacher}</div>` : ''}
-                <div style="font-size:10px;color:${c};opacity:0.7;white-space:nowrap">🕐 ${cls.time}–${endT}</div>
-                ${cls.currentUnit ? `<div style="display:inline-block;font-size:9px;font-weight:700;color:white;background:${c};padding:1px 5px;border-radius:3px;margin-top:2px">${cls.currentUnit}</div>` : ''}
-                ${enrolled ? `<div style="font-size:10px;color:${c};opacity:0.7;margin-top:1px">👥 ${enrolled}</div>` : ''}
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow:hidden">
+                  <span style="font-weight:800;font-size:11px;color:${c};white-space:nowrap;flex-shrink:0">${cls.name}</span>
+                  ${cls.level ? `<span style="font-size:10px;color:${c};opacity:0.8;white-space:nowrap;flex-shrink:0">· ${cls.level}</span>` : ''}
+                  ${cls.currentUnit ? `<span style="font-size:9px;font-weight:700;color:white;background:${c};padding:1px 5px;border-radius:3px;flex-shrink:0">${cls.currentUnit}</span>` : ''}
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;overflow:hidden">
+                  ${cls.teacher ? `<span style="font-size:10px;color:${c};opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 ${cls.teacher}</span>` : ''}
+                  <span style="font-size:10px;color:${c};opacity:0.7;white-space:nowrap;flex-shrink:0">🕐 ${cls.time}–${endT}</span>
+                  ${enrolled ? `<span style="font-size:10px;color:${c};opacity:0.7;white-space:nowrap;flex-shrink:0">👥 ${enrolled}</span>` : ''}
+                </div>
               </div>`;
             }).join('')}
           </div>`;
