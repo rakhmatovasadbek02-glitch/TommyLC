@@ -266,19 +266,33 @@ app.post('/api/teachers', async (req, res) => {
 });
 
 app.put('/api/teachers/:id', async (req, res) => {
-  const { firstName, lastName, phone, password, status } = req.body;
-  if (password) {
-    await pool.query(
-      'UPDATE teachers SET first_name=$1,last_name=$2,phone=$3,password=$4,status=$5 WHERE id=$6',
-      [firstName, lastName, phone||null, password, status||'Active', req.params.id]
-    );
-  } else {
-    await pool.query(
-      'UPDATE teachers SET first_name=$1,last_name=$2,phone=$3,status=$4 WHERE id=$5',
-      [firstName, lastName, phone||null, status||'Active', req.params.id]
-    );
-  }
-  res.json({ ok: true });
+  try {
+    const { firstName, lastName, phone, password, status } = req.body;
+    const newName = `${firstName} ${lastName}`;
+
+    // Get old name for cascade
+    const old = await pool.query('SELECT first_name, last_name FROM teachers WHERE id=$1', [req.params.id]);
+    const oldName = old.rows[0] ? `${old.rows[0].first_name} ${old.rows[0].last_name}` : null;
+
+    if (password) {
+      await pool.query(
+        'UPDATE teachers SET first_name=$1,last_name=$2,phone=$3,password=$4,status=$5 WHERE id=$6',
+        [firstName, lastName, phone||null, password, status||'Active', req.params.id]
+      );
+    } else {
+      await pool.query(
+        'UPDATE teachers SET first_name=$1,last_name=$2,phone=$3,status=$4 WHERE id=$5',
+        [firstName, lastName, phone||null, status||'Active', req.params.id]
+      );
+    }
+
+    // Cascade: update all groups referencing the old teacher name
+    if (oldName && oldName !== newName) {
+      await pool.query('UPDATE groups SET teacher=$1 WHERE teacher=$2', [newName, oldName]);
+    }
+
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.delete('/api/teachers/:id', async (req, res) => {
