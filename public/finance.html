@@ -5,7 +5,6 @@
   <title>Finance — TommyLC CRM</title>
   <link rel="stylesheet" href="shared.css">
   <style>
-    /* Summary cards */
     .summary-row { display:flex; gap:16px; margin-bottom:24px; flex-wrap:wrap; }
     .sum-card { background:white; border:1px solid var(--border); border-radius:var(--radius); padding:18px 22px; flex:1; min-width:130px; box-shadow:var(--shadow); border-top:3px solid var(--border); }
     .sum-card.green  { border-top-color:var(--green); }
@@ -13,35 +12,22 @@
     .sum-card.amber  { border-top-color:var(--amber); }
     .sum-card-label  { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
     .sum-card-val    { font-family:'Playfair Display',serif; font-size:26px; font-weight:900; color:var(--text); }
-    .sum-card.green .sum-card-val  { color:var(--green); }
-    .sum-card.red   .sum-card-val  { color:var(--crimson); }
-    .sum-card.amber .sum-card-val  { color:var(--amber); }
+    .sum-card.green .sum-card-val { color:var(--green); }
+    .sum-card.red   .sum-card-val { color:var(--crimson); }
+    .sum-card.amber .sum-card-val { color:var(--amber); }
 
-    /* Pricing table */
-    .pricing-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-bottom:24px; }
-    .price-card { background:white; border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; box-shadow:var(--shadow); }
-    .price-level { font-size:13px; font-weight:700; color:var(--text); margin-bottom:8px; }
-    .price-input-wrap { display:flex; align-items:center; gap:6px; }
-    .price-currency { font-size:14px; font-weight:700; color:var(--muted); }
-    .price-input { flex:1; padding:7px 10px; border:1.5px solid var(--border); border-radius:7px; font-size:15px; font-weight:700; font-family:'DM Sans',sans-serif; outline:none; width:100%; }
-    .price-input:focus { border-color:var(--crimson); }
-
-    /* Invoice list */
     .inv-row { display:flex; align-items:center; gap:14px; padding:13px 20px; border-bottom:1px solid var(--border); font-size:13px; transition:background 0.1s; flex-wrap:wrap; }
     .inv-row:hover { background:var(--crimson-soft); }
     .inv-row:last-child { border-bottom:none; }
 
-    /* Payment type badge */
     .badge-cash  { background:#E8F5E9; color:#2E7D32; }
     .badge-click { background:#E3F2FD; color:#1565C0; }
 
-    /* Tabs */
     .tab-row { display:flex; gap:0; margin-bottom:20px; background:white; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
     .tab-btn { flex:1; padding:11px; text-align:center; font-size:13px; font-weight:600; cursor:pointer; border:none; background:none; color:var(--muted); border-bottom:3px solid transparent; transition:all 0.14s; font-family:'DM Sans',sans-serif; }
     .tab-btn:hover { background:var(--crimson-soft); color:var(--crimson); }
     .tab-btn.active { color:var(--crimson); border-bottom-color:var(--crimson); background:var(--crimson-soft); }
-  
-    /* Remove number input arrows */
+
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
     input[type=number] { -moz-appearance:textfield; }
@@ -53,21 +39,13 @@
   <div class="topbar">
     <div class="page-title">Finance</div>
     <div class="topbar-right">
-      <button class="btn btn-outline btn-sm" style='display:none'></button>
       <button class="btn btn-primary" onclick="openAdd()">➕ New Payment</button>
     </div>
   </div>
   <div class="page-content">
 
-    <button class="btn btn-primary btn-sm" onclick="savePricing()">Save Prices</button>
-      </div>
-      <div class="pricing-grid" id="pricingGrid"></div>
-    </div>
-
-    <!-- Summary -->
     <div class="summary-row" id="summaryRow"></div>
 
-    <!-- Filter tabs -->
     <div class="tab-row">
       <button class="tab-btn active" onclick="setTab('all',this)">All</button>
       <button class="tab-btn" onclick="setTab('Pending',this)">⏳ Pending</button>
@@ -93,7 +71,7 @@
   </div>
 </div>
 
-<!-- ══ NEW INVOICE MODAL ══ -->
+<!-- PAYMENT MODAL -->
 <div class="modal-overlay" id="invoiceModal">
   <div class="modal" style="width:520px">
     <div class="modal-header">
@@ -117,7 +95,7 @@
       <div class="form-row">
         <div class="form-group">
           <label>Level</label>
-          <select id="invLevel" onchange="onLevelChange()">
+          <select id="invLevel">
             <option value="">— Select —</option>
             <option>RoundUp</option><option>Beginner</option><option>Elementary</option>
             <option>Pre-Intermediate</option><option>Intermediate</option><option>CEFR</option><option>IELTS</option>
@@ -137,7 +115,7 @@
         <div class="form-group">
           <label>Payment Type *</label>
           <div style="display:flex;gap:10px;margin-top:4px">
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;transition:all 0.14s" id="typeCash">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;border:1.5px solid var(--crimson);background:var(--crimson-soft);border-radius:8px;padding:10px 12px;transition:all 0.14s" id="typeCash">
               <input type="radio" name="payType" value="Cash" checked onchange="onPayType()">
               <span style="font-size:18px">💵</span>
               <span style="font-weight:700;font-size:14px">Cash</span>
@@ -166,7 +144,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('invoiceModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveInvoice()">Save Invoice</button>
+      <button class="btn btn-primary" onclick="saveInvoice()">Save Payment</button>
     </div>
   </div>
 </div>
@@ -177,7 +155,6 @@
   requireAuth('payments');
   renderSidebar('payments');
 
-  const LEVELS = ['RoundUp','Beginner','Elementary','Pre-Intermediate','Intermediate','CEFR','IELTS'];
   const LEVEL_COLORS = {
     'RoundUp':'#FB8C00','Beginner':'#43A047','Elementary':'#E53935',
     'Pre-Intermediate':'#1E88E5','Intermediate':'#F9A825','CEFR':'#8E24AA','IELTS':'#00897B'
@@ -188,48 +165,17 @@
   let currentTab = 'all';
 
   async function load() {
-    [invoices, students, groups] = await Promise.all([
-      apiGet('/api/invoices'), apiGet('/api/students'), apiGet('/api/groups')
-    ]);
-
+    try {
+      [invoices, students, groups] = await Promise.all([
+        apiGet('/api/invoices'), apiGet('/api/students'), apiGet('/api/groups')
+      ]);
+    } catch(e) {
+      invoices=[]; students=[]; groups=[];
+    }
     renderSummary();
     renderInvoices();
-    renderPricing();
   }
 
-  /* ── Pricing panel ── */
-  function togglePricing() {
-    pricingOpen = !pricingOpen;
-    document.getElementById('pricingPanel').style.display = pricingOpen ? '' : 'none';
-  }
-
-  function renderPricing() {
-    document.getElementById('pricingGrid').innerHTML = LEVELS.map(level => {
-      const col = LEVEL_COLORS[level] || '#666';
-      return `<div class="price-card" style="border-top:3px solid ${col}">
-        <div class="price-level">${level}</div>
-        <div class="price-input-wrap">
-          <span class="price-currency">UZS</span>
-          <input type="number" class="price-input" id="price_${level.replace(/[^a-z]/gi,'_')}"
-            value="${pricing[level]||0}" min="0" step="1000" placeholder="0">
-        </div>
-      </div>`;
-    }).join('');
-  }
-
-  async function savePricing() {
-    try {
-      await Promise.all(LEVELS.map(level => {
-        const key = level.replace(/[^a-z]/gi,'_');
-        const val = Number(document.getElementById('price_'+key)?.value || 0);
-        pricing[level] = val;
-        return apiPut('/api/pricing/'+encodeURIComponent(level), { price: val });
-      }));
-      showToast('Prices saved!');
-    } catch(e) { showToast('Error: '+e.message,'error'); }
-  }
-
-  /* ── Summary ── */
   function renderSummary() {
     const paid    = invoices.filter(i=>i.status==='Paid').reduce((s,i)=>s+Number(i.total||0),0);
     const pending = invoices.filter(i=>i.status==='Pending').reduce((s,i)=>s+Number(i.total||0),0);
@@ -239,12 +185,11 @@
       <div class="sum-card green"><div class="sum-card-label">Paid</div><div class="sum-card-val">${fmt(paid)}</div></div>
       <div class="sum-card amber"><div class="sum-card-label">Pending</div><div class="sum-card-val">${fmt(pending)}</div></div>
       <div class="sum-card red"><div class="sum-card-label">Overdue</div><div class="sum-card-val">${fmt(overdue)}</div></div>
-      <div class="sum-card"><div class="sum-card-label">Total Invoices</div><div class="sum-card-val">${invoices.length}</div></div>
-      <div class="sum-card"><div class="sum-card-label">Cash</div><div class="sum-card-val">${invoices.filter(i=>i.paymentType==='Cash'&&i.status==='Paid').length}</div></div>
-      <div class="sum-card"><div class="sum-card-label">Click</div><div class="sum-card-val">${invoices.filter(i=>i.paymentType==='Click'&&i.status==='Paid').length}</div></div>`;
+      <div class="sum-card"><div class="sum-card-label">Total</div><div class="sum-card-val">${invoices.length}</div></div>
+      <div class="sum-card"><div class="sum-card-label">💵 Cash</div><div class="sum-card-val">${invoices.filter(i=>i.paymentType==='Cash'&&i.status==='Paid').length}</div></div>
+      <div class="sum-card"><div class="sum-card-label">📱 Click</div><div class="sum-card-val">${invoices.filter(i=>i.paymentType==='Click'&&i.status==='Paid').length}</div></div>`;
   }
 
-  /* ── Invoice list ── */
   function setTab(tab, btn) {
     currentTab = tab;
     document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
@@ -256,7 +201,7 @@
     const q  = document.getElementById('searchInput').value.toLowerCase();
     const fl = document.getElementById('filterLevel').value;
 
-    let filtered = invoices.filter(i => {
+    const filtered = invoices.filter(i => {
       const stu  = students.find(s=>s.id===i.studentId);
       const name = stu ? (stu.firstName+' '+stu.lastName).toLowerCase() : '';
       const grp  = groups.find(g=>g.id===i.groupId);
@@ -265,12 +210,15 @@
           && (!q || name.includes(q) || (i.level||'').toLowerCase().includes(q) || (grp?.name||'').toLowerCase().includes(q));
     });
 
-    document.getElementById('invoiceCount').textContent = `${filtered.length} invoice${filtered.length!==1?'s':''}`;
-
-    const el = document.getElementById('invoiceList');
-    if (!filtered.length) { el.innerHTML='<div class="empty-state"><div class="empty-icon">💳</div><p>No invoices found.</p></div>'; return; }
+    document.getElementById('invoiceCount').textContent = `${filtered.length} payment${filtered.length!==1?'s':''}`;
 
     const STATUS_BADGE = { Paid:'badge-green', Pending:'badge-gold', Overdue:'badge-red' };
+    const el = document.getElementById('invoiceList');
+
+    if (!filtered.length) {
+      el.innerHTML='<div class="empty-state"><div class="empty-icon">💳</div><p>No payments found.</p></div>';
+      return;
+    }
 
     el.innerHTML = filtered.map(i => {
       const stu  = students.find(s=>s.id===i.studentId);
@@ -291,13 +239,13 @@
           </div>
         </div>
         <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:900;white-space:nowrap">${fmt(i.total)}</div>
-        <span class="badge ${i.paymentType==='Click'?'badge-click':'badge-cash'}">${i.paymentType==='Click'?'📱':'💵'} ${i.paymentType}</span>
+        <span class="badge ${i.paymentType==='Click'?'badge-click':'badge-cash'}">${i.paymentType==='Click'?'📱':'💵'} ${i.paymentType||'Cash'}</span>
         <span class="badge ${STATUS_BADGE[i.status]||'badge-grey'}">${i.status}</span>
         <div style="display:flex;gap:6px">
-          ${i.status!=='Paid'?`
-            <button class="btn btn-ghost btn-sm" onclick="quickPay('${i.id}','Cash')" title="Mark paid (Cash)">💵✓</button>
-            <button class="btn btn-ghost btn-sm" onclick="quickPay('${i.id}','Click')" title="Mark paid (Click)">📱✓</button>
-          `:''}
+          ${i.status!=='Paid' ? `
+            <button class="btn btn-ghost btn-sm" onclick="quickPay('${i.id}','Cash')" title="Mark paid — Cash">💵✓</button>
+            <button class="btn btn-ghost btn-sm" onclick="quickPay('${i.id}','Click')" title="Mark paid — Click">📱✓</button>
+          ` : ''}
           <button class="btn btn-ghost btn-sm" onclick="editInvoice('${i.id}')">✏️</button>
           <button class="btn btn-danger btn-sm" onclick="deleteInvoice('${i.id}')">🗑</button>
         </div>
@@ -305,15 +253,12 @@
     }).join('');
   }
 
-  /* ── Add / Edit ── */
   function openAdd() {
     clearForm();
     populateStudentSelect();
     populateGroupSelect();
-    // Default month = current month
     const now = new Date();
     document.getElementById('invMonth').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-    // Default due = end of current month
     const due = new Date(now.getFullYear(), now.getMonth()+1, 0);
     document.getElementById('invDue').value = due.toISOString().split('T')[0];
     document.getElementById('invModalTitle').textContent = 'New Payment';
@@ -323,7 +268,6 @@
   function onStudentChange() {
     const sid = document.getElementById('invStudent').value;
     if (!sid) return;
-    // Auto-fill group if student is in one
     const grp = groups.find(g=>(g.studentIds||[]).includes(sid));
     if (grp) {
       document.getElementById('invGroup').value = grp.id;
@@ -340,8 +284,6 @@
       if (grp.price) document.getElementById('invTotal').value = grp.price;
     }
   }
-
-  function onLevelChange() {}
 
   function onPayType() {
     const val = document.querySelector('input[name="payType"]:checked')?.value;
@@ -376,50 +318,50 @@
     const month     = document.getElementById('invMonth').value;
     const total     = document.getElementById('invTotal').value;
     if (!studentId || !month || !total) { showToast('Student, month and amount are required.','error'); return; }
-
     const id = document.getElementById('editInvId').value;
+    const level = document.getElementById('invLevel').value;
     const data = {
       studentId,
       groupId:     document.getElementById('invGroup').value||null,
-      level:       document.getElementById('invLevel').value||null,
+      level:       level||null,
       month,
       total:       Number(total),
       status:      document.getElementById('invStatus').value,
       paymentType: document.querySelector('input[name="payType"]:checked')?.value||'Cash',
       dueDate:     document.getElementById('invDue').value||null,
       notes:       document.getElementById('invNotes').value.trim(),
-      desc:        `${document.getElementById('invLevel').value||''} — ${month}`,
+      desc:        `${level||''}${month?' — '+month:''}`,
     };
-
     try {
       if (id) {
         await apiPut('/api/invoices/'+id, data);
-        logActivity('Updated invoice','');
+        logActivity('Updated payment','');
       } else {
         data.id = genId();
         data.number = 'INV-'+Date.now().toString().slice(-6);
         await apiPost('/api/invoices', data);
-        logActivity('Created invoice','green');
+        logActivity('Created payment','green');
       }
       closeModal('invoiceModal');
       await load();
-      showToast(id?'Invoice updated!':'Invoice created!');
+      showToast(id?'Payment updated!':'Payment created!');
     } catch(e) { showToast('Error: '+e.message,'error'); }
   }
 
   async function quickPay(id, paymentType) {
     try {
       await apiPatch('/api/invoices/'+id+'/status', { status:'Paid', paymentType });
-      logActivity(`Invoice paid via ${paymentType}`,'green');
+      logActivity(`Payment received via ${paymentType}`,'green');
       await load();
       showToast(`Marked as paid (${paymentType})!`);
     } catch(e) { showToast('Error: '+e.message,'error'); }
   }
 
   async function deleteInvoice(id) {
-    if (!confirm('Delete this invoice?')) return;
+    if (!confirm('Delete this payment?')) return;
     await apiDelete('/api/invoices/'+id);
-    await load(); showToast('Deleted.','error');
+    await load();
+    showToast('Deleted.','error');
   }
 
   function clearForm() {
@@ -434,7 +376,7 @@
   function populateStudentSelect() {
     const sel = document.getElementById('invStudent');
     sel.innerHTML = '<option value="">— Select student —</option>' +
-      students.filter(s=>s.status==='Active'||s.status==='Trial').map(s =>
+      students.filter(s=>s.status==='Active'||s.status==='Trial').map(s=>
         `<option value="${s.id}">${s.firstName} ${s.lastName}</option>`
       ).join('');
   }
@@ -442,7 +384,7 @@
   function populateGroupSelect() {
     const sel = document.getElementById('invGroup');
     sel.innerHTML = '<option value="">— Select group —</option>' +
-      groups.map(g => `<option value="${g.id}">${g.name}${g.level?' · '+g.level:''}</option>`).join('');
+      groups.map(g=>`<option value="${g.id}">${g.name}${g.level?' · '+g.level:''}</option>`).join('');
   }
 
   load();
