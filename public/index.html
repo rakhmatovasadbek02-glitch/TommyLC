@@ -279,6 +279,7 @@
       sub: 'not in class today'
     },
   ];
+  function renderStats() {
     const row = document.getElementById('statRow');
     row.innerHTML = STAT_DEFS
       .filter(s => s.roles.includes(role))
@@ -295,6 +296,7 @@
       const el = document.getElementById(s.id);
       if (el) el.textContent = s.calc();
     });
+  }
 
   /* ══════════════════════════════════
      TIMETABLE — Classrooms × Time slots
