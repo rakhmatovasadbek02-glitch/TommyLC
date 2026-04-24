@@ -472,11 +472,12 @@
           });
 
           if (coveredByEarlier) {
-            return `<div style="width:${COL_W}px;flex-shrink:0;border-right:1px solid var(--border);min-height:90px;pointer-events:none;"></div>`;
+            return `<div style="width:${COL_W}px;flex-shrink:0;min-height:90px;pointer-events:none;background:white;"></div>`;
           }
 
           return `<div style="width:${COL_W}px;flex-shrink:0;border-right:1px solid var(--border);
-            min-height:90px;position:relative;">
+            min-height:90px;position:relative;background:white;">
+            ${startingHere.length === 0 ? '' : ''}
             ${startingHere.map(cls => {
               const c      = classColor(cls.id);
               const dur    = Number(cls.duration || 90);
@@ -484,15 +485,15 @@
               const cEnd   = cStart + dur;
               // Width = number of slots this class covers × COL_W, minus a little padding
               const spanSlots = slots.filter(s2 => s2 >= cStart && s2 < cEnd).length;
-              const blockW    = spanSlots * COL_W - 6;
+              const blockW    = spanSlots * COL_W - 4; // 2px offset left + 2px right
               const endT      = minToTime(cEnd);
               const enrolled  = (cls.studentIds || []).length;
 
               return `<div onclick="window.location.href='group.html?id=${cls.id}'"
-                style="position:absolute;top:4px;left:3px;
-                  width:${blockW}px;bottom:4px;
-                  background:${c}18;border-left:3px solid ${c};border-radius:6px;
-                  padding:5px 8px;cursor:pointer;overflow:hidden;z-index:2;box-sizing:border-box;
+                style="position:absolute;top:2px;left:2px;
+                  width:${blockW}px;bottom:2px;
+                  background:${c}15;border:1.5px solid ${c}40;border-left:3px solid ${c};border-radius:6px;
+                  padding:5px 8px;cursor:pointer;overflow:hidden;z-index:3;box-sizing:border-box;
                   display:grid;grid-template-columns:1fr auto;grid-template-rows:auto 1fr auto;gap:1px 4px;"
                 onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
 
