@@ -235,16 +235,16 @@
     {
       id: 'statActive', label: 'Active Students', icon: '👤',
       color: '',
-      roles: ['CEO','Manager'],
-      calc: () => window._students  || [].filter(s => s.status === 'Active').length,
+      roles: ['CEO'],
+      calc: () => (window._students || []).filter(s => s.status === 'Active').length,
       sub: 'currently enrolled'
     },
     {
       id: 'statDebtors', label: 'Debtors', icon: '⚠️',
       color: 'red',
-      roles: ['CEO','Manager'],
+      roles: ['CEO'],
       calc: () => {
-        const inv = window._invoices  || [];
+        const inv = window._invoices || [];
         const ids = new Set(inv.filter(i => i.status === 'Pending' || i.status === 'Overdue').map(i => i.studentId));
         return ids.size;
       },
@@ -253,27 +253,32 @@
     {
       id: 'statPaid', label: 'Paid', icon: '✅',
       color: 'green',
-      roles: ['CEO','Manager'],
-      calc: () => window._invoices  || [].filter(i => i.status === 'Paid').length,
+      roles: ['CEO'],
+      calc: () => (window._invoices || []).filter(i => i.status === 'Paid').length,
       sub: 'invoices settled'
     },
     {
       id: 'statLead', label: 'Leads', icon: '🎯',
       color: 'purple',
-      roles: ['Manager','Head Admin','Admin'],
-      calc: () => window._students  || [].filter(s => s.status === 'Lead').length,
+      roles: ['CEO'],
+      calc: () => (window._students || []).filter(s => s.status === 'Lead').length,
       sub: 'potential students'
     },
     {
       id: 'statTrial', label: 'Trial', icon: '🔬',
       color: 'amber',
-      roles: ['Manager','Head Admin','Admin'],
-      calc: () => window._students  || [].filter(s => s.status === 'Trial').length,
+      roles: ['CEO'],
+      calc: () => (window._students || []).filter(s => s.status === 'Trial').length,
       sub: 'on trial period'
     },
+    {
+      id: 'statAbsent', label: 'Absent Today', icon: '🚫',
+      color: 'red',
+      roles: ['CEO'],
+      calc: () => window._absentToday || 0,
+      sub: 'not in class today'
+    },
   ];
-
-  function renderStats() {
     const row = document.getElementById('statRow');
     row.innerHTML = STAT_DEFS
       .filter(s => s.roles.includes(role))
@@ -290,7 +295,6 @@
       const el = document.getElementById(s.id);
       if (el) el.textContent = s.calc();
     });
-  }
 
   /* ══════════════════════════════════
      TIMETABLE — Classrooms × Time slots
@@ -553,9 +557,22 @@
       window._classrooms = classrooms;
       window._students   = students;
       window._invoices   = invoices;
+
+      // Fetch today's attendance for all groups and count unique absent students
+      const today = new Date().toISOString().split('T')[0];
+      const attResults = await Promise.all(
+        groups.map(g => apiGet(`/api/attendance/${g.id}/${today}`).catch(() => []))
+      );
+      const absentIds = new Set();
+      attResults.forEach(records => {
+        records.filter(r => r.status === 'absent').forEach(r => absentIds.add(r.studentId));
+      });
+      window._absentToday = absentIds.size;
+
     } catch(e) {
       window._groups = []; window._classrooms = [];
       window._students = []; window._invoices = [];
+      window._absentToday = 0;
     }
     renderStats();
     const autoTab = autoDetectTab();
