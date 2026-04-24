@@ -104,7 +104,22 @@ async function initDB() {
       UNIQUE(group_id, date, student_id)
     );
 
-    CREATE TABLE IF NOT EXISTS activity (
+    CREATE TABLE IF NOT EXISTS leads (
+      id            TEXT PRIMARY KEY,
+      first_name    TEXT NOT NULL,
+      last_name     TEXT NOT NULL,
+      phone_student TEXT,
+      phone_father  TEXT,
+      phone_mother  TEXT,
+      phone_other   TEXT,
+      current_level TEXT,
+      test_result   TEXT,
+      status        TEXT DEFAULT 'Registration',
+      group_id      TEXT,
+      is_trial      BOOLEAN DEFAULT FALSE,
+      notes         TEXT,
+      created_at    TIMESTAMPTZ DEFAULT NOW()
+    );
       id          SERIAL PRIMARY KEY,
       text        TEXT NOT NULL,
       color       TEXT,
@@ -397,6 +412,105 @@ app.post('/api/attendance/:groupId/:date', async (req, res) => {
     );
   }
   res.json({ ok: true });
+});
+
+/* ══════════════════════════════════════
+   LEADS
+══════════════════════════════════════ */
+app.get('/api/leads', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM leads ORDER BY created_at DESC');
+    res.json(rows.map(l => ({
+      id: l.id, firstName: l.first_name, lastName: l.last_name,
+      phoneStudent: l.phone_student, phoneFather: l.phone_father,
+      phoneMother: l.phone_mother, phoneOther: l.phone_other,
+      currentLevel: l.current_level, testResult: l.test_result,
+      status: l.status, groupId: l.group_id, isTrial: l.is_trial,
+      notes: l.notes, createdAt: l.created_at
+    })));
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/leads', async (req, res) => {
+  try {
+    const { id, firstName, lastName, phoneStudent, phoneFather, phoneMother, phoneOther, currentLevel, testResult, notes } = req.body;
+    await pool.query(
+      `INSERT INTO leads(id,first_name,last_name,phone_student,phone_father,phone_mother,phone_other,current_level,test_result,notes,status)
+       VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'Registration')`,
+      [id, firstName, lastName, phoneStudent||null, phoneFather||null, phoneMother||null, phoneOther||null, currentLevel||null, testResult||null, notes||null]
+    );
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/leads/:id', async (req, res) => {
+  try {
+    const { firstName, lastName, phoneStudent, phoneFather, phoneMother, phoneOther, currentLevel, testResult, status, groupId, isTrial, notes } = req.body;
+    await pool.query(
+      `UPDATE leads SET first_name=$1,last_name=$2,phone_student=$3,phone_father=$4,phone_mother=$5,phone_other=$6,
+       current_level=$7,test_result=$8,status=$9,group_id=$10,is_trial=$11,notes=$12 WHERE id=$13`,
+      [firstName, lastName, phoneStudent||null, phoneFather||null, phoneMother||null, phoneOther||null,
+       currentLevel||null, testResult||null, status||'Registration', groupId||null, isTrial||false, notes||null, req.params.id]
+    );
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Move lead to Trial — assign group
+app.post('/api/leads/:id/to-trial', async (req, res) => {
+  try {
+    const { groupId } = req.body;
+    await pool.query(
+      `UPDATE leads SET status='Trial', group_id=$1, is_trial=TRUE WHERE id=$2`,
+      [groupId, req.params.id]
+    );
+    // Add to group's student_ids
+    const lead = await pool.query('SELECT * FROM leads WHERE id=$1', [req.params.id]);
+    if (lead.rows[0]) {
+      const grp = await pool.query('SELECT student_ids FROM groups WHERE id=$1', [groupId]);
+      if (grp.rows[0]) {
+        const ids = grp.rows[0].student_ids || [];
+        if (!ids.includes(req.params.id)) {
+          ids.push(req.params.id);
+          await pool.query('UPDATE groups SET student_ids=$1 WHERE id=$2', [JSON.stringify(ids), groupId]);
+        }
+      }
+    }
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Move lead to Payment (after trial)
+app.post('/api/leads/:id/to-payment', async (req, res) => {
+  try {
+    await pool.query(`UPDATE leads SET status='Payment' WHERE id=$1`, [req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Convert lead to permanent student
+app.post('/api/leads/:id/convert', async (req, res) => {
+  try {
+    const lead = await pool.query('SELECT * FROM leads WHERE id=$1', [req.params.id]);
+    if (!lead.rows[0]) return res.status(404).json({ error: 'Lead not found' });
+    const l = lead.rows[0];
+    // Insert into students
+    await pool.query(
+      `INSERT INTO students(id,first_name,last_name,phone,level,status)
+       VALUES($1,$2,$3,$4,$5,'Active') ON CONFLICT(id) DO UPDATE SET status='Active'`,
+      [l.id, l.first_name, l.last_name, l.phone_student||l.phone_father||l.phone_mother||l.phone_other, l.current_level]
+    );
+    // Update lead status
+    await pool.query(`UPDATE leads SET status='Student' WHERE id=$1`, [req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/leads/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM leads WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 /* ══════════════════════════════════════

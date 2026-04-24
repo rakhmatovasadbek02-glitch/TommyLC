@@ -138,6 +138,7 @@ function renderSidebar(activePage) {
 
   const NAV_ITEMS = [
     { feature:'dashboard',  href:'index.html',      icon:'⊞', label:'Dashboard'  },
+    { feature:'leads',      href:'leads.html',      icon:'🎯', label:'Leads'      },
     { feature:'students',   href:'students.html',   icon:'👤', label:'Students'   },
     { feature:'groups',     href:'groups.html',     icon:'👥', label:'Groups'     },
     { feature:'payments',   href:'payments.html',   icon:'💳', label:'Payments'   },

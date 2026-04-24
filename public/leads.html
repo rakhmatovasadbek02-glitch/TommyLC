@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leads — TommyLC CRM</title>
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    /* Pipeline tabs */
+    .pipeline-tabs {
+      display: flex; gap: 0; margin-bottom: 24px;
+      background: white; border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .pipe-tab {
+      flex: 1; padding: 14px 10px; text-align: center;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      border-right: 1px solid var(--border);
+      transition: all 0.15s; color: var(--muted);
+      background: white; border-bottom: 3px solid transparent;
+      position: relative;
+    }
+    .pipe-tab:last-child { border-right: none; }
+    .pipe-tab:hover { background: var(--crimson-soft); color: var(--crimson); }
+    .pipe-tab.active { color: var(--crimson); border-bottom-color: var(--crimson); background: var(--crimson-soft); }
+    .pipe-tab-count {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--crimson); color: white;
+      border-radius: 100px; font-size: 11px; font-weight: 700;
+      padding: 1px 7px; margin-left: 6px;
+    }
+    .pipe-tab.active .pipe-tab-count { background: var(--crimson); }
+
+    /* Lead cards */
+    .leads-list { display: flex; flex-direction: column; gap: 12px; }
+    .lead-card {
+      background: white; border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px 20px;
+      box-shadow: var(--shadow); display: flex;
+      align-items: center; gap: 16px; flex-wrap: wrap;
+      transition: box-shadow 0.15s;
+    }
+    .lead-card:hover { box-shadow: var(--shadow-lg); }
+    .lead-card-info { flex: 1; min-width: 0; }
+    .lead-name { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 900; color: var(--text); }
+    .lead-meta { font-size: 12px; color: var(--muted); margin-top: 4px; display: flex; gap: 14px; flex-wrap: wrap; }
+    .lead-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    /* Trial badge */
+    .trial-badge {
+      background: #FFF8E1; color: #A05C00;
+      border: 1px solid #FFE082;
+      border-radius: 100px; padding: 3px 10px;
+      font-size: 11px; font-weight: 700;
+    }
+
+    /* Step arrow */
+    .step-arrow {
+      display: flex; align-items: center; gap: 0;
+      font-size: 12px; color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .step { padding: 3px 10px; border-radius: 4px; font-weight: 600; }
+    .step.done  { background: #E8F5E9; color: #2E7D32; }
+    .step.curr  { background: var(--crimson-soft); color: var(--crimson); font-weight: 700; }
+    .step.next  { background: var(--surface); color: var(--muted); }
+    .step-sep   { margin: 0 4px; font-size: 10px; }
+
+    /* Phone chips */
+    .phone-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+<nav class="sidebar"></nav>
+<div class="main">
+  <div class="topbar">
+    <div class="page-title">Leads</div>
+    <div class="topbar-right">
+      <button class="btn btn-primary" onclick="openAdd()">➕ Register Lead</button>
+    </div>
+  </div>
+  <div class="page-content">
+
+    <!-- Pipeline tabs -->
+    <div class="pipeline-tabs">
+      <div class="pipe-tab active" data-status="Registration" onclick="setTab('Registration',this)">
+        📋 Registration <span class="pipe-tab-count" id="cnt-Registration">0</span>
+      </div>
+      <div class="pipe-tab" data-status="Trial" onclick="setTab('Trial',this)">
+        🔬 Trial <span class="pipe-tab-count" id="cnt-Trial">0</span>
+      </div>
+      <div class="pipe-tab" data-status="Payment" onclick="setTab('Payment',this)">
+        💳 Payment <span class="pipe-tab-count" id="cnt-Payment">0</span>
+      </div>
+      <div class="pipe-tab" data-status="Student" onclick="setTab('Student',this)">
+        ✅ Converted <span class="pipe-tab-count" id="cnt-Student">0</span>
+      </div>
+    </div>
+
+    <div class="leads-list" id="leadsList"></div>
+  </div>
+</div>
+
+<!-- ══ REGISTRATION MODAL ══ -->
+<div class="modal-overlay" id="leadModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <div class="modal-title" id="leadModalTitle">Register Lead</div>
+      <button class="modal-close" onclick="closeModal('leadModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editLeadId">
+
+      <div class="form-row">
+        <div class="form-group"><label>First Name *</label><input type="text" id="lFirst" placeholder="John"></div>
+        <div class="form-group"><label>Last Name *</label><input type="text" id="lLast" placeholder="Smith"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Phone Numbers <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(at least 2 required)</span></label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">👤 Student</div>
+            <input type="tel" id="lPhoneStudent" placeholder="+998 90 …">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">👨 Father</div>
+            <input type="tel" id="lPhoneFather" placeholder="+998 90 …">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">👩 Mother</div>
+            <input type="tel" id="lPhoneMother" placeholder="+998 90 …">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">👥 Other</div>
+            <input type="tel" id="lPhoneOther" placeholder="+998 90 …">
+          </div>
+        </div>
+        <div id="phoneError" style="color:var(--crimson);font-size:12px;margin-top:6px;display:none">⚠️ Please fill at least 2 phone numbers.</div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Current Level</label>
+          <input type="text" id="lLevel" placeholder="Beginner, A2, Intermediate…">
+        </div>
+        <div class="form-group">
+          <label>Test Result</label>
+          <input type="text" id="lTest" placeholder="Score or notes from placement test">
+        </div>
+      </div>
+
+      <div class="form-group"><label>Notes</label><textarea id="lNotes" placeholder="Any additional notes…"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('leadModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveLead()">Register</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SEND TO TRIAL MODAL ══ -->
+<div class="modal-overlay" id="trialModal">
+  <div class="modal" style="width:440px">
+    <div class="modal-header">
+      <div class="modal-title">🔬 Send to Trial</div>
+      <button class="modal-close" onclick="closeModal('trialModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="trialLeadName" style="font-family:'Playfair Display',serif;font-size:18px;font-weight:900;margin-bottom:16px;color:var(--text)"></div>
+      <div class="form-group">
+        <label>Assign to Group *</label>
+        <select id="trialGroupSelect"><option value="">— Select group —</option></select>
+      </div>
+      <div style="background:var(--crimson-soft);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--crimson-dark)">
+        The student will be added to the group and marked as <strong>Trial</strong> so teachers can identify them.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('trialModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmTrial()">Send to Trial →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LEAD DETAIL MODAL ══ -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="width:480px">
+    <div class="modal-header">
+      <div class="modal-title" id="detailName"></div>
+      <button class="modal-close" onclick="closeModal('detailModal')">✕</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+    <div class="modal-footer" id="detailFooter"></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="shared.js"></script>
+<script>
+  requireAuth('leads');
+  renderSidebar('leads');
+
+  let leads = [], groups = [];
+  let currentTab = 'Registration';
+  let trialLeadId = null;
+
+  const STATUS_STEPS = ['Registration','Trial','Payment','Student'];
+  const STATUS_ICON  = { Registration:'📋', Trial:'🔬', Payment:'💳', Student:'✅' };
+
+  async function load() {
+    [leads, groups] = await Promise.all([apiGet('/api/leads'), apiGet('/api/groups')]);
+    updateCounts();
+    renderLeads();
+  }
+
+  function updateCounts() {
+    STATUS_STEPS.forEach(s => {
+      const el = document.getElementById('cnt-'+s);
+      if (el) el.textContent = leads.filter(l => l.status === s).length;
+    });
+  }
+
+  function setTab(status, el) {
+    currentTab = status;
+    document.querySelectorAll('.pipe-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    renderLeads();
+  }
+
+  function renderLeads() {
+    const filtered = leads.filter(l => l.status === currentTab);
+    const el = document.getElementById('leadsList');
+
+    if (!filtered.length) {
+      el.innerHTML = `<div class="empty-state">
+        <div class="empty-icon">${STATUS_ICON[currentTab]}</div>
+        <p>No leads in the <strong>${currentTab}</strong> stage.</p>
+      </div>`;
+      return;
+    }
+
+    el.innerHTML = filtered.map(l => {
+      const name = l.firstName + ' ' + l.lastName;
+      const col  = avatarColor(name);
+      const phones = [
+        l.phoneStudent && `👤 ${l.phoneStudent}`,
+        l.phoneFather  && `👨 ${l.phoneFather}`,
+        l.phoneMother  && `👩 ${l.phoneMother}`,
+        l.phoneOther   && `👥 ${l.phoneOther}`,
+      ].filter(Boolean);
+
+      const group = groups.find(g => g.id === l.groupId);
+      const stepIdx = STATUS_STEPS.indexOf(currentTab);
+
+      return `<div class="lead-card">
+        <div class="avatar" style="background:${col};width:44px;height:44px;font-size:16px;flex-shrink:0">${initials(name)}</div>
+        <div class="lead-card-info">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <div class="lead-name">${name}</div>
+            ${l.isTrial ? '<span class="trial-badge">🆕 Trial Student</span>' : ''}
+          </div>
+          <div class="lead-meta">
+            ${phones.join(' · ')}
+            ${l.currentLevel ? `<span>📚 ${l.currentLevel}</span>` : ''}
+            ${l.testResult   ? `<span>📝 ${l.testResult}</span>`   : ''}
+            ${group          ? `<span>👥 ${group.name}</span>`     : ''}
+          </div>
+          <!-- Step progress -->
+          <div class="step-arrow" style="margin-top:8px">
+            ${STATUS_STEPS.map((s, i) => `
+              <span class="step ${i < stepIdx ? 'done' : i === stepIdx ? 'curr' : 'next'}">${STATUS_ICON[s]} ${s}</span>
+              ${i < STATUS_STEPS.length-1 ? '<span class="step-sep">→</span>' : ''}
+            `).join('')}
+          </div>
+        </div>
+        <div class="lead-actions">
+          <button class="btn btn-ghost btn-sm" onclick="showDetail('${l.id}')">Details</button>
+          ${currentTab === 'Registration' ? `<button class="btn btn-primary btn-sm" onclick="openTrial('${l.id}')">🔬 Send to Trial →</button>` : ''}
+          ${currentTab === 'Trial'        ? `<button class="btn btn-primary btn-sm" onclick="moveToPayment('${l.id}')">💳 Move to Payment →</button>` : ''}
+          ${currentTab === 'Payment'      ? `<button class="btn btn-primary btn-sm" onclick="convertToStudent('${l.id}')">✅ Convert to Student →</button>` : ''}
+          <button class="btn btn-danger btn-sm" onclick="deleteLead('${l.id}')">🗑</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  /* ── Registration ── */
+  function openAdd() {
+    clearForm();
+    document.getElementById('leadModalTitle').textContent = 'Register Lead';
+    openModal('leadModal');
+  }
+
+  async function saveLead() {
+    const first = document.getElementById('lFirst').value.trim();
+    const last  = document.getElementById('lLast').value.trim();
+    if (!first || !last) { showToast('Name required.', 'error'); return; }
+
+    const phones = [
+      document.getElementById('lPhoneStudent').value.trim(),
+      document.getElementById('lPhoneFather').value.trim(),
+      document.getElementById('lPhoneMother').value.trim(),
+      document.getElementById('lPhoneOther').value.trim(),
+    ];
+    const filled = phones.filter(Boolean).length;
+    if (filled < 2) {
+      document.getElementById('phoneError').style.display = '';
+      showToast('At least 2 phone numbers required.', 'error');
+      return;
+    }
+    document.getElementById('phoneError').style.display = 'none';
+
+    const id = document.getElementById('editLeadId').value;
+    const data = {
+      firstName: first, lastName: last,
+      phoneStudent: phones[0]||null, phoneFather: phones[1]||null,
+      phoneMother:  phones[2]||null, phoneOther:  phones[3]||null,
+      currentLevel: document.getElementById('lLevel').value.trim(),
+      testResult:   document.getElementById('lTest').value.trim(),
+      notes:        document.getElementById('lNotes').value.trim(),
+    };
+
+    try {
+      if (id) {
+        data.status = leads.find(l=>l.id===id)?.status || 'Registration';
+        await apiPut('/api/leads/'+id, data);
+        logActivity(`Updated lead: ${first} ${last}`, '');
+      } else {
+        data.id = genId();
+        await apiPost('/api/leads', data);
+        logActivity(`Registered lead: ${first} ${last}`, 'green');
+      }
+      closeModal('leadModal');
+      await load();
+      showToast(id ? 'Lead updated!' : 'Lead registered!');
+    } catch(e) { showToast('Error: '+e.message, 'error'); }
+  }
+
+  function clearForm() {
+    ['editLeadId','lFirst','lLast','lPhoneStudent','lPhoneFather','lPhoneMother','lPhoneOther','lLevel','lTest','lNotes']
+      .forEach(id => document.getElementById(id).value = '');
+    document.getElementById('phoneError').style.display = 'none';
+  }
+
+  /* ── Trial ── */
+  function openTrial(id) {
+    trialLeadId = id;
+    const l = leads.find(l=>l.id===id);
+    document.getElementById('trialLeadName').textContent = l ? l.firstName+' '+l.lastName : '';
+    const sel = document.getElementById('trialGroupSelect');
+    sel.innerHTML = '<option value="">— Select group —</option>' +
+      groups.map(g => `<option value="${g.id}">${g.name} · ${g.time||'—'} · ${g.room||'—'}</option>`).join('');
+    openModal('trialModal');
+  }
+
+  async function confirmTrial() {
+    const groupId = document.getElementById('trialGroupSelect').value;
+    if (!groupId) { showToast('Select a group.', 'error'); return; }
+    try {
+      await apiPost('/api/leads/'+trialLeadId+'/to-trial', { groupId });
+      logActivity('Sent lead to trial', 'green');
+      closeModal('trialModal');
+      await load();
+      showToast('Student sent to trial!');
+    } catch(e) { showToast('Error: '+e.message, 'error'); }
+  }
+
+  /* ── Payment ── */
+  async function moveToPayment(id) {
+    const l = leads.find(l=>l.id===id);
+    if (!confirm(`Move ${l?.firstName} ${l?.lastName} to Payment stage?`)) return;
+    try {
+      await apiPost('/api/leads/'+id+'/to-payment', {});
+      logActivity(`Moved to payment: ${l?.firstName} ${l?.lastName}`, '');
+      await load();
+      showToast('Moved to Payment!');
+    } catch(e) { showToast('Error: '+e.message, 'error'); }
+  }
+
+  /* ── Convert to Student ── */
+  async function convertToStudent(id) {
+    const l = leads.find(l=>l.id===id);
+    if (!confirm(`Convert ${l?.firstName} ${l?.lastName} to a permanent student?`)) return;
+    try {
+      await apiPost('/api/leads/'+id+'/convert', {});
+      logActivity(`Converted to student: ${l?.firstName} ${l?.lastName}`, 'green');
+      await load();
+      showToast('Student converted! ✅');
+      // Switch to Converted tab
+      document.querySelector('.pipe-tab[data-status="Student"]').click();
+    } catch(e) { showToast('Error: '+e.message, 'error'); }
+  }
+
+  /* ── Delete ── */
+  async function deleteLead(id) {
+    const l = leads.find(l=>l.id===id);
+    if (!confirm(`Delete ${l?.firstName} ${l?.lastName}?`)) return;
+    await apiDelete('/api/leads/'+id);
+    logActivity(`Deleted lead: ${l?.firstName} ${l?.lastName}`, 'red');
+    await load();
+    showToast('Deleted.', 'error');
+  }
+
+  /* ── Detail view ── */
+  function showDetail(id) {
+    const l = leads.find(l=>l.id===id);
+    if (!l) return;
+    const name = l.firstName+' '+l.lastName;
+    const group = groups.find(g=>g.id===l.groupId);
+    document.getElementById('detailName').textContent = name;
+    document.getElementById('detailBody').innerHTML = `
+      <div class="grid-2">
+        <div class="form-group"><label>Status</label><div style="font-weight:600">${STATUS_ICON[l.status]} ${l.status}</div></div>
+        <div class="form-group"><label>Level</label><div style="font-weight:600">${l.currentLevel||'—'}</div></div>
+        <div class="form-group"><label>Test Result</label><div style="font-weight:600">${l.testResult||'—'}</div></div>
+        <div class="form-group"><label>Group</label><div style="font-weight:600">${group?.name||'—'}</div></div>
+        <div class="form-group"><label>Registered</label><div style="font-weight:600">${formatDate(l.createdAt)}</div></div>
+      </div>
+      <div class="form-group"><label>Phone Numbers</label>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+          ${l.phoneStudent ? `<div>👤 Student: <strong>${l.phoneStudent}</strong></div>` : ''}
+          ${l.phoneFather  ? `<div>👨 Father: <strong>${l.phoneFather}</strong></div>`  : ''}
+          ${l.phoneMother  ? `<div>👩 Mother: <strong>${l.phoneMother}</strong></div>`  : ''}
+          ${l.phoneOther   ? `<div>👥 Other: <strong>${l.phoneOther}</strong></div>`   : ''}
+        </div>
+      </div>
+      ${l.notes ? `<div class="form-group"><label>Notes</label><div style="background:var(--crimson-soft);padding:12px;border-radius:8px;font-size:14px">${l.notes}</div></div>` : ''}
+    `;
+    document.getElementById('detailFooter').innerHTML = `
+      <button class="btn btn-ghost" onclick="editLead('${id}')">✏️ Edit</button>
+      <button class="btn btn-outline" onclick="closeModal('detailModal')">Close</button>
+    `;
+    openModal('detailModal');
+  }
+
+  function editLead(id) {
+    const l = leads.find(l=>l.id===id);
+    if (!l) return;
+    clearForm();
+    document.getElementById('editLeadId').value      = id;
+    document.getElementById('lFirst').value          = l.firstName;
+    document.getElementById('lLast').value           = l.lastName;
+    document.getElementById('lPhoneStudent').value   = l.phoneStudent||'';
+    document.getElementById('lPhoneFather').value    = l.phoneFather||'';
+    document.getElementById('lPhoneMother').value    = l.phoneMother||'';
+    document.getElementById('lPhoneOther').value     = l.phoneOther||'';
+    document.getElementById('lLevel').value          = l.currentLevel||'';
+    document.getElementById('lTest').value           = l.testResult||'';
+    document.getElementById('lNotes').value          = l.notes||'';
+    document.getElementById('leadModalTitle').textContent = 'Edit Lead';
+    closeModal('detailModal');
+    openModal('leadModal');
+  }
+
+  load();
+</script>
+</body>
+</html>

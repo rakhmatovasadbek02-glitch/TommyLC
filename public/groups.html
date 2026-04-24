@@ -167,16 +167,17 @@
   const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const SCHED_LABEL = { odd:'Odd days (Mon·Wed·Fri)', even:'Even days (Tue·Thu·Sat)', custom:'Custom' };
   const PALETTE = ['#FF0000','#1D4ED8','#1E6B45','#7C3AED','#A05C00','#0891B2','#BE185D'];
-  let groups=[], students=[], teachers=[], classrooms=[];
+  let groups=[], students=[], teachers=[], classrooms=[], leadsData=[];
   let attGroupId=null, attDate=null;
 
   function groupColor(id){let h=0;for(let c of(id||'?'))h=(h<<5)-h+c.charCodeAt(0);return PALETTE[Math.abs(h)%PALETTE.length];}
 
   async function load() {
-    [groups,students,teachers,classrooms] = await Promise.all([
+    [groups,students,teachers,classrooms,leadsData] = await Promise.all([
       apiGet('/api/groups'), apiGet('/api/students'),
-      apiGet('/api/teachers'), apiGet('/api/classrooms')
+      apiGet('/api/teachers'), apiGet('/api/classrooms'), apiGet('/api/leads').catch(()=>[])
     ]);
+    window._leads = leadsData;
     renderGroups();
   }
 
@@ -187,7 +188,7 @@
       (!q||g.name.toLowerCase().includes(q)||(g.teacher||'').toLowerCase().includes(q)||(g.level||'').toLowerCase().includes(q))
       &&(!fs||g.schedType===fs));
     document.getElementById('groupCount').textContent=`${filtered.length} group${filtered.length!==1?'s':''}`;
-    const canManage=['CEO','Manager','Admin'].includes(getRole());
+    const canManage=can('settings') || getRole()==='CEO';
     const grid=document.getElementById('groupsGrid');
     const today=new Date().toISOString().split('T')[0];
     const LANG_FLAG={UZ:'🇺🇿',RU:'🇷🇺'};
@@ -226,9 +227,11 @@
           ${enrolled?`<div>${(g.studentIds||[]).slice(0,4).map(sid=>{
             const s=students.find(s=>s.id===sid); if(!s)return '';
             const n=s.firstName+' '+s.lastName;
+            const isTrial=(window._leads||[]).some(l=>l.id===sid&&l.isTrial&&l.status==='Trial');
             return `<div class="group-student-row">
               <div class="avatar" style="background:${avatarColor(n)};width:24px;height:24px;font-size:9px">${initials(n)}</div>
               <div class="group-student-name">${n}</div>
+              ${isTrial?'<span style="background:#FFF8E1;color:#A05C00;font-size:9px;font-weight:700;padding:1px 6px;border-radius:100px;border:1px solid #FFE082">🆕</span>':''}
             </div>`;
           }).join('')}${enrolled>4?`<div style="font-size:12px;color:var(--muted);padding-top:4px">+${enrolled-4} more</div>`:''}</div>`
           :`<div style="padding:8px 0;color:var(--muted);font-size:13px;font-style:italic">No students yet.</div>`}
