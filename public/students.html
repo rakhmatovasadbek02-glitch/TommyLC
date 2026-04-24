@@ -5,185 +5,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Students — TommyLC CRM</title>
   <link rel="stylesheet" href="shared.css">
-  <style>
-    .toolbar { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
-    .profile-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:20px; }
-
-    .student-card {
-      background:white;
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      padding:22px;
-      transition: all 0.18s;
-      cursor:pointer;
-      position:relative;
-    }
-    .student-card:hover { box-shadow: var(--shadow); transform:translateY(-2px); border-color:var(--crimson); }
-
-    .sc-header { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
-    .sc-name { font-weight:700; font-size:15px; color:var(--crimson-deep); }
-    .sc-email { font-size:12px; color:var(--muted); margin-top:1px; }
-    .sc-body { font-size:13px; color:var(--text); }
-    .sc-row { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--border); }
-    .sc-row:last-child { border-bottom:none; }
-    .sc-row-label { color:var(--muted); }
-    .sc-actions { display:flex; gap:8px; margin-top:14px; }
-
-    .view-toggle { display:flex; gap:4px; }
-    .view-btn { background:var(--surface); border:none; padding:7px 12px; border-radius:6px; cursor:pointer; font-size:16px; }
-    .view-btn.active { background:var(--crimson); color:white; }
-
-    #tableView { display:none; }
-
-    .status-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px; }
-    .status-dot.active { background:var(--green); }
-    .status-dot.inactive { background:var(--muted); }
-    .status-dot.trial { background:#FF9999; }
-  </style>
 </head>
 <body>
-
 <nav class="sidebar"></nav>
-
 <div class="main">
   <div class="topbar">
     <div class="page-title">Students</div>
     <div class="topbar-right">
-      <span id="studentCount" class="text-muted"></span>
-      <button class="btn btn-primary" onclick="openModal('enrollModal')">➕ Enroll Student</button>
+      <button class="btn btn-primary" onclick="openAdd()">➕ Enroll Student</button>
     </div>
   </div>
-
   <div class="page-content">
-
     <div class="toolbar">
-      <div class="search-bar">
-        <span class="search-icon">🔍</span>
+      <div class="search-bar"><span class="search-icon">🔍</span>
         <input type="text" id="searchInput" placeholder="Search students…" oninput="renderStudents()">
       </div>
       <select id="filterStatus" onchange="renderStudents()" style="width:auto;padding:9px 14px;">
         <option value="">All Statuses</option>
-        <option>Active</option>
-        <option>Trial</option>
-        <option>Lead</option>
-        <option>Inactive</option>
+        <option>Active</option><option>Trial</option><option>Lead</option><option>Inactive</option>
       </select>
-      <input type="text" id="filterLevel" oninput="renderStudents()" placeholder="Filter by level…" style="width:160px;padding:9px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;">
-      <div class="view-toggle" style="margin-left:auto;">
-        <button class="view-btn active" id="cardViewBtn" onclick="setView('card')" title="Card view">⊞</button>
-        <button class="view-btn" id="tableViewBtn" onclick="setView('table')" title="Table view">☰</button>
-      </div>
+      <span class="text-muted" id="studentCount" style="margin-left:auto"></span>
     </div>
-
-    <!-- Card view -->
-    <div id="cardView">
-      <div class="profile-grid" id="studentGrid">
-        <div class="empty-state"><div class="empty-icon">👤</div><p>No students yet. Enroll your first student!</p></div>
-      </div>
-    </div>
-
-    <!-- Table view -->
-    <div id="tableView">
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Level</th>
-                <th>Status</th>
-                <th>Phone</th>
-                <th>Enrolled</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="studentTable"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
+    <div id="studentCards"></div>
   </div>
 </div>
 
-<!-- Enroll Modal -->
-<div class="modal-overlay" id="enrollModal">
-  <div class="modal">
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="studentModal">
+  <div class="modal" style="width:560px">
     <div class="modal-header">
-      <div class="modal-title" id="enrollModalTitle">Enroll New Student</div>
-      <button class="modal-close" onclick="closeModal('enrollModal')">✕</button>
+      <div class="modal-title" id="studentModalTitle">Enroll Student</div>
+      <button class="modal-close" onclick="closeModal('studentModal')">✕</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="editStudentId">
       <div class="form-row">
-        <div class="form-group">
-          <label>First Name *</label>
-          <input type="text" id="sFirstName" placeholder="Marie">
-        </div>
-        <div class="form-group">
-          <label>Last Name *</label>
-          <input type="text" id="sLastName" placeholder="Dupont">
+        <div class="form-group"><label>First Name *</label><input type="text" id="sFirst" placeholder="John"></div>
+        <div class="form-group"><label>Last Name *</label><input type="text" id="sLast" placeholder="Smith"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Phone</label><input type="tel" id="sPhone" placeholder="+998 90 123 45 67"></div>
+        <div class="form-group"><label>Status</label>
+          <select id="sStatus"><option>Active</option><option>Trial</option><option>Lead</option><option>Inactive</option></select>
         </div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="sEmail" placeholder="marie@example.com">
-        </div>
-        <div class="form-group">
-          <label>Phone</label>
-          <input type="tel" id="sPhone" placeholder="+1 514 000 0000">
-        </div>
+        <div class="form-group"><label>Level</label><input type="text" id="sLevel" placeholder="Intermediate, B2…"></div>
+        <div class="form-group"><label>Exam / Goal</label><input type="text" id="sExam" placeholder="IELTS, TOEFL…"></div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label>Level</label>
-          <input type="text" id="sLevel" placeholder="e.g. Beginner, Intermediate, Advanced…">
-        </div>
-        <div class="form-group">
-          <label>Status</label>
-          <select id="sStatus">
-            <option>Active</option>
-            <option>Trial</option>
-            <option>Lead</option>
-            <option>Inactive</option>
-          </select>
-        </div>
+        <div class="form-group"><label>Exam Date</label><input type="date" id="sExamDate"></div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Target Exam / Goal</label>
-          <input type="text" id="sExam" placeholder="e.g. IELTS, TOEFL, Business English…">
-        </div>
-        <div class="form-group">
-          <label>Exam Date</label>
-          <input type="date" id="sExamDate">
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Notes</label>
-        <textarea id="sNotes" placeholder="Any relevant notes about this student…"></textarea>
-      </div>
+      <div class="form-group"><label>Notes</label><textarea id="sNotes" placeholder="Any notes…"></textarea></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('enrollModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveStudent()">Save Student</button>
-    </div>
-  </div>
-</div>
-
-<!-- View Profile Modal -->
-<div class="modal-overlay" id="profileModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Student Profile</div>
-      <button class="modal-close" onclick="closeModal('profileModal')">✕</button>
-    </div>
-    <div class="modal-body" id="profileModalBody"></div>
-    <div class="modal-footer">
-      <button class="btn btn-danger btn-sm" id="deleteStudentBtn">🗑 Delete</button>
-      <button class="btn btn-outline" onclick="closeModal('profileModal')">Close</button>
-      <button class="btn btn-primary" id="editStudentBtn">✏️ Edit</button>
+      <button class="btn btn-outline" onclick="closeModal('studentModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStudent()">Save</button>
     </div>
   </div>
 </div>
@@ -191,228 +68,112 @@
 <div class="toast-container" id="toastContainer"></div>
 <script src="shared.js"></script>
 <script>
-  requireAuth("students");
-  renderSidebar("students");
-  let viewMode = 'card';
-  let currentProfileId = null;
+  requireAuth('students');
+  renderSidebar('students');
 
-  function setView(mode) {
-    viewMode = mode;
-    document.getElementById('cardView').style.display = mode === 'card' ? '' : 'none';
-    document.getElementById('tableView').style.display = mode === 'table' ? '' : 'none';
-    document.getElementById('cardViewBtn').classList.toggle('active', mode === 'card');
-    document.getElementById('tableViewBtn').classList.toggle('active', mode === 'table');
+  let students = [];
+
+  async function load() {
+    students = await apiGet('/api/students');
     renderStudents();
-  }
-
-  function getFilteredStudents() {
-    const q = document.getElementById('searchInput').value.toLowerCase();
-    const fStatus = document.getElementById('filterStatus').value;
-    const fLevel = document.getElementById('filterLevel').value;
-    return getDB('students').filter(s => {
-      const name = (s.firstName + ' ' + s.lastName).toLowerCase();
-      const fLevel = document.getElementById('filterLevel').value.toLowerCase();
-      return (!q || name.includes(q) || (s.email||'').includes(q))
-        && (!fStatus || s.status === fStatus)
-        && (!fLevel || (s.level||'').toLowerCase().includes(fLevel));
-    });
   }
 
   function renderStudents() {
-    const students = getFilteredStudents();
-    document.getElementById('studentCount').textContent = `${students.length} student${students.length !== 1 ? 's' : ''}`;
-
-    if (viewMode === 'card') renderCards(students);
-    else renderTable(students);
-  }
-
-  function statusDotClass(s) {
-    if (s === 'Active') return 'active';
-    if (s === 'Trial') return 'trial';
-    return 'inactive';
-  }
-
-  function renderCards(students) {
-    const grid = document.getElementById('studentGrid');
-    if (!students.length) {
-      grid.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>No students match your filters.</p></div>';
-      return;
+    const q  = document.getElementById('searchInput').value.toLowerCase();
+    const fs = document.getElementById('filterStatus').value;
+    const filtered = students.filter(s => {
+      const name = (s.firstName+' '+s.lastName).toLowerCase();
+      return (!q || name.includes(q) || (s.phone||'').includes(q) || (s.level||'').toLowerCase().includes(q))
+          && (!fs || s.status === fs);
+    });
+    document.getElementById('studentCount').textContent = `${filtered.length} student${filtered.length!==1?'s':''}`;
+    const SBADGE = { Active:'badge-green', Trial:'badge-gold', Lead:'badge-blue', Inactive:'badge-grey' };
+    const el = document.getElementById('studentCards');
+    if (!filtered.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>No students found.</p></div>'; return;
     }
-    grid.innerHTML = students.map(s => {
-      const name = s.firstName + ' ' + s.lastName;
-      const color = avatarColor(name);
-      const statusClass = { Active:'badge-green', Trial:'badge-gold', Lead:'badge-blue', Inactive:'badge-grey' }[s.status] || 'badge-grey';
-      return `
-        <div class="student-card" onclick="viewProfile('${s.id}')">
-          <div class="sc-header">
-            <div class="avatar" style="background:${color}">${initials(name)}</div>
-            <div>
-              <div class="sc-name">${name}</div>
-              <div class="sc-email">${s.email || '—'}</div>
+    el.innerHTML = filtered.map(s => {
+      const name = s.firstName+' '+s.lastName;
+      const col  = avatarColor(name);
+      return `<div class="card" style="margin-bottom:12px">
+        <div class="card-body" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <div class="avatar" style="background:${col};width:44px;height:44px;font-size:16px;flex-shrink:0">${initials(name)}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:15px">${name}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px;display:flex;gap:12px;flex-wrap:wrap">
+              ${s.phone?`<span>📞 ${s.phone}</span>`:''}
+              ${s.level?`<span>📚 ${s.level}</span>`:''}
+              ${s.exam?`<span>🎯 ${s.exam}</span>`:''}
             </div>
-            <span class="badge ${statusClass}" style="margin-left:auto">${s.status}</span>
           </div>
-          <div class="sc-body">
-            <div class="sc-row"><span class="sc-row-label">Level</span><strong>${s.level}</strong></div>
-            <div class="sc-row"><span class="sc-row-label">Exam</span><span>${s.exam || '—'}</span></div>
-            <div class="sc-row"><span class="sc-row-label">Phone</span><span>${s.phone || '—'}</span></div>
-            <div class="sc-row"><span class="sc-row-label">Since</span><span>${formatDate(s.createdAt)}</span></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <span class="badge ${SBADGE[s.status]||'badge-grey'}">${s.status}</span>
+            <button class="btn btn-ghost btn-sm" onclick="editStudent('${s.id}')">✏️ Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.id}')">🗑</button>
           </div>
         </div>
-      `;
+      </div>`;
     }).join('');
   }
 
-  function renderTable(students) {
-    const tbody = document.getElementById('studentTable');
-    if (!students.length) {
-      tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><p>No students found.</p></div></td></tr>';
-      return;
-    }
-    tbody.innerHTML = students.map(s => {
-      const name = s.firstName + ' ' + s.lastName;
-      const color = avatarColor(name);
-      const statusClass = { Active:'badge-green', Trial:'badge-gold', Lead:'badge-blue', Inactive:'badge-grey' }[s.status] || 'badge-grey';
-      return `
-        <tr>
-          <td>
-            <div class="flex items-center gap-8">
-              <div class="avatar" style="background:${color};width:30px;height:30px;font-size:11px">${initials(name)}</div>
-              <div>
-                <div style="font-weight:600">${name}</div>
-                <div class="text-muted">${s.email||'—'}</div>
-              </div>
-            </div>
-          </td>
-          <td><span class="badge badge-blue">${s.level}</span></td>
-          <td><span class="badge ${statusClass}">${s.status}</span></td>
-          <td>${s.phone||'—'}</td>
-          <td>${formatDate(s.createdAt)}</td>
-          <td>
-            <div class="flex gap-8">
-              <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();viewProfile('${s.id}')">View</button>
-              <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteStudent('${s.id}')">Delete</button>
-            </div>
-          </td>
-        </tr>
-      `;
-    }).join('');
-  }
-
-  function saveStudent() {
-    const fn = document.getElementById('sFirstName').value.trim();
-    const ln = document.getElementById('sLastName').value.trim();
-    if (!fn || !ln) { showToast('First and last name are required.', 'error'); return; }
-
-    const id = document.getElementById('editStudentId').value;
-    const students = getDB('students');
-
-    const data = {
-      firstName: fn, lastName: ln,
-      email: document.getElementById('sEmail').value.trim(),
-      phone: document.getElementById('sPhone').value.trim(),
-      level: document.getElementById('sLevel').value,
-      status: document.getElementById('sStatus').value,
-      exam: document.getElementById('sExam').value,
-      examDate: document.getElementById('sExamDate').value,
-      notes: document.getElementById('sNotes').value.trim(),
-    };
-
-    if (id) {
-      const idx = students.findIndex(s => s.id === id);
-      if (idx !== -1) students[idx] = { ...students[idx], ...data };
-      logActivity(`Updated student profile: ${fn} ${ln}`, '');
-    } else {
-      data.id = genId();
-      data.createdAt = new Date().toISOString();
-      students.push(data);
-      logActivity(`Enrolled new student: ${fn} ${ln}`, 'green');
-    }
-
-    setDB('students', students);
-    closeModal('enrollModal');
-    clearForm();
-    renderStudents();
-    showToast(id ? 'Student updated!' : 'Student enrolled successfully!');
-  }
-
-  function clearForm() {
-    ['sFirstName','sLastName','sEmail','sPhone','sNotes','sExamDate','editStudentId','sLevel','sExam']
-      .forEach(id => document.getElementById(id).value = '');
-    document.getElementById('sStatus').value = 'Active';
-    document.getElementById('enrollModalTitle').textContent = 'Enroll New Student';
-  }
-
-  function viewProfile(id) {
-    const s = getDB('students').find(s => s.id === id);
-    if (!s) return;
-    currentProfileId = id;
-    const name = s.firstName + ' ' + s.lastName;
-    const color = avatarColor(name);
-    const statusClass = { Active:'badge-green', Trial:'badge-gold', Lead:'badge-blue', Inactive:'badge-grey' }[s.status] || 'badge-grey';
-
-    document.getElementById('profileModalBody').innerHTML = `
-      <div class="flex items-center gap-16 mb-20">
-        <div class="avatar" style="background:${color};width:56px;height:56px;font-size:20px">${initials(name)}</div>
-        <div>
-          <div style="font-size:20px;font-weight:700;font-family:'Playfair Display',serif">${name}</div>
-          <div class="text-muted mt-8">${s.email||'—'} · ${s.phone||'—'}</div>
-        </div>
-        <span class="badge ${statusClass}" style="margin-left:auto;font-size:13px">${s.status}</span>
-      </div>
-      <div class="grid-2">
-        <div class="form-group"><label>Level</label><div style="font-weight:600">${s.level}</div></div>
-        <div class="form-group"><label>Target Exam</label><div style="font-weight:600">${s.exam||'—'}</div></div>
-        <div class="form-group"><label>Exam Date</label><div style="font-weight:600">${formatDate(s.examDate)||'—'}</div></div>
-        <div class="form-group"><label>Enrolled</label><div style="font-weight:600">${formatDate(s.createdAt)}</div></div>
-      </div>
-      ${s.notes ? `<div class="form-group"><label>Notes</label><div style="background:var(--crimson-soft);padding:12px;border-radius:8px;font-size:14px">${s.notes}</div></div>` : ''}
-    `;
-
-    document.getElementById('editStudentBtn').onclick = () => { closeModal('profileModal'); editStudent(id); };
-    document.getElementById('deleteStudentBtn').onclick = () => deleteStudent(id);
-    openModal('profileModal');
+  function openAdd() {
+    clearForm(); document.getElementById('studentModalTitle').textContent = 'Enroll Student';
+    openModal('studentModal');
   }
 
   function editStudent(id) {
-    const s = getDB('students').find(s => s.id === id);
-    if (!s) return;
+    const s = students.find(s=>s.id===id); if (!s) return;
+    clearForm();
     document.getElementById('editStudentId').value = id;
-    document.getElementById('sFirstName').value = s.firstName;
-    document.getElementById('sLastName').value = s.lastName;
-    document.getElementById('sEmail').value = s.email||'';
-    document.getElementById('sPhone').value = s.phone||'';
-    document.getElementById('sLevel').value = s.level;
-    document.getElementById('sStatus').value = s.status;
-    document.getElementById('sExam').value = s.exam||'';
-    document.getElementById('sExamDate').value = s.examDate||'';
-    document.getElementById('sNotes').value = s.notes||'';
-    document.getElementById('enrollModalTitle').textContent = 'Edit Student';
-    openModal('enrollModal');
+    document.getElementById('sFirst').value    = s.firstName;
+    document.getElementById('sLast').value     = s.lastName;
+    document.getElementById('sPhone').value    = s.phone||'';
+    document.getElementById('sStatus').value   = s.status||'Active';
+    document.getElementById('sLevel').value    = s.level||'';
+    document.getElementById('sExam').value     = s.exam||'';
+    document.getElementById('sExamDate').value = s.examDate ? s.examDate.split('T')[0] : '';
+    document.getElementById('sNotes').value    = s.notes||'';
+    document.getElementById('studentModalTitle').textContent = 'Edit Student';
+    openModal('studentModal');
   }
 
-  function deleteStudent(id) {
-    if (!confirm('Delete this student? This cannot be undone.')) return;
-    const students = getDB('students');
-    const s = students.find(s => s.id === id);
-    if (s) logActivity(`Removed student: ${s.firstName} ${s.lastName}`, 'red');
-    setDB('students', students.filter(s => s.id !== id));
-    closeModal('profileModal');
-    renderStudents();
-    showToast('Student deleted.', 'error');
+  async function saveStudent() {
+    const first = document.getElementById('sFirst').value.trim();
+    const last  = document.getElementById('sLast').value.trim();
+    if (!first||!last) { showToast('First and last name are required.','error'); return; }
+    const id  = document.getElementById('editStudentId').value;
+    const data = {
+      firstName: first, lastName: last,
+      phone:    document.getElementById('sPhone').value.trim(),
+      status:   document.getElementById('sStatus').value,
+      level:    document.getElementById('sLevel').value.trim(),
+      exam:     document.getElementById('sExam').value.trim(),
+      examDate: document.getElementById('sExamDate').value||null,
+      notes:    document.getElementById('sNotes').value.trim(),
+    };
+    try {
+      if (id) { await apiPut('/api/students/'+id, data); logActivity(`Updated student: ${first} ${last}`,''); }
+      else    { data.id = genId(); await apiPost('/api/students', data); logActivity(`Enrolled: ${first} ${last}`,'green'); }
+      closeModal('studentModal');
+      await load();
+      showToast(id ? 'Student updated!' : 'Student enrolled!');
+    } catch(e) { showToast('Error saving student.','error'); }
   }
 
-  // Seed sample data if empty
-  if (!getDB('students').length) {
-    const samples = [
-      { id:genId(), firstName:'James', lastName:'Wilson', email:'james.wilson@email.com', phone:'+1 555 0101', level:'Intermediate', status:'Active', exam:'IELTS', examDate:'2026-08-15', notes:'Preparing for university admission.', createdAt: new Date(Date.now()-86400000*30).toISOString() },
-      { id:genId(), firstName:'Sara', lastName:'Ahmed', email:'sara.a@email.com', phone:'+1 555 0202', level:'Beginner', status:'Trial', exam:'', examDate:'', notes:'', createdAt: new Date(Date.now()-86400000*5).toISOString() },
-      { id:genId(), firstName:'Michael', lastName:'Park', email:'michael.p@email.com', phone:'+1 555 0303', level:'Advanced', status:'Active', exam:'TOEFL', examDate:'2026-09-01', notes:'Strong grammar, needs speaking practice.', createdAt: new Date(Date.now()-86400000*90).toISOString() },
-    ];
-    setDB('students', samples);
+  async function deleteStudent(id) {
+    const s = students.find(s=>s.id===id);
+    if (!confirm(`Delete ${s?.firstName} ${s?.lastName}?`)) return;
+    await apiDelete('/api/students/'+id);
+    logActivity(`Removed student: ${s?.firstName} ${s?.lastName}`,'red');
+    await load(); showToast('Student deleted.','error');
   }
 
-  renderStudents();
+  function clearForm() {
+    ['editStudentId','sFirst','sLast','sPhone','sLevel','sExam','sExamDate','sNotes'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('sStatus').value = 'Active';
+  }
+
+  load();
 </script>
 </body>
 </html>

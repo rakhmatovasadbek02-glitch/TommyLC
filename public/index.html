@@ -236,7 +236,7 @@
       id: 'statActive', label: 'Active Students', icon: '👤',
       color: '',
       roles: ['CEO','Manager'],
-      calc: () => getDB('students').filter(s => s.status === 'Active').length,
+      calc: () => window._students  || [].filter(s => s.status === 'Active').length,
       sub: 'currently enrolled'
     },
     {
@@ -244,7 +244,7 @@
       color: 'red',
       roles: ['CEO','Manager'],
       calc: () => {
-        const inv = getDB('invoices');
+        const inv = window._invoices  || [];
         const ids = new Set(inv.filter(i => i.status === 'Pending' || i.status === 'Overdue').map(i => i.studentId));
         return ids.size;
       },
@@ -254,21 +254,21 @@
       id: 'statPaid', label: 'Paid', icon: '✅',
       color: 'green',
       roles: ['CEO','Manager'],
-      calc: () => getDB('invoices').filter(i => i.status === 'Paid').length,
+      calc: () => window._invoices  || [].filter(i => i.status === 'Paid').length,
       sub: 'invoices settled'
     },
     {
       id: 'statLead', label: 'Leads', icon: '🎯',
       color: 'purple',
       roles: ['Manager','Head Admin','Admin'],
-      calc: () => getDB('students').filter(s => s.status === 'Lead').length,
+      calc: () => window._students  || [].filter(s => s.status === 'Lead').length,
       sub: 'potential students'
     },
     {
       id: 'statTrial', label: 'Trial', icon: '🔬',
       color: 'amber',
       roles: ['Manager','Head Admin','Admin'],
-      calc: () => getDB('students').filter(s => s.status === 'Trial').length,
+      calc: () => window._students  || [].filter(s => s.status === 'Trial').length,
       sub: 'on trial period'
     },
   ];
@@ -346,8 +346,8 @@
   }
 
   function renderTimetable() {
-    const rooms   = getDB('classrooms');
-    const classes = getDB('groups');
+    const rooms   = window._classrooms|| [];
+    const classes = window._groups    || [];
     const grid    = document.getElementById('ttGrid');
 
     if (!rooms.length) {
@@ -526,7 +526,7 @@
   function goToGroups() { window.location.href = 'groups.html'; }
 
   function showClassDetail(id) {
-    const c = getDB('groups').find(c => c.id === id);
+    const c = window._groups    || [].find(c => c.id === id);
     if (!c) return;
     const SCHED = { odd:'Odd days', even:'Even days', custom:'Custom' };
     document.getElementById('cdTitle').textContent = c.name;
@@ -543,15 +543,29 @@
   }
 
   /* ── Init ── */
-  renderStats();
-
-  // Auto-detect: today is odd or even → activate matching tab
-  const autoTab = autoDetectTab();
-  dayFilter = autoTab;
-  document.querySelectorAll('.day-tab').forEach(btn => {
-    btn.classList.toggle('active', btn.textContent.toLowerCase().startsWith(autoTab));
-  });
-  renderTimetable();
+  async function init() {
+    try {
+      const [groups, classrooms, students, invoices] = await Promise.all([
+        apiGet('/api/groups'), apiGet('/api/classrooms'),
+        apiGet('/api/students'), apiGet('/api/invoices')
+      ]);
+      window._groups     = groups;
+      window._classrooms = classrooms;
+      window._students   = students;
+      window._invoices   = invoices;
+    } catch(e) {
+      window._groups = []; window._classrooms = [];
+      window._students = []; window._invoices = [];
+    }
+    renderStats();
+    const autoTab = autoDetectTab();
+    dayFilter = autoTab;
+    document.querySelectorAll('.day-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.textContent.toLowerCase().startsWith(autoTab));
+    });
+    renderTimetable();
+  }
+  init();
 </script>
 </body>
 </html>

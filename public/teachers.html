@@ -1,95 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Teachers — TommyLC CRM</title>
   <link rel="stylesheet" href="shared.css">
   <style>
-    .teacher-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px; }
-
-    .teacher-card {
-      background:white;
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      overflow:hidden;
-      transition:all 0.18s;
-    }
-    .teacher-card:hover { box-shadow:var(--shadow); transform:translateY(-2px); }
-
-    .tc-banner {
-      height:72px;
-      position:relative;
-    }
-    .tc-avatar-wrap {
-      position:absolute;
-      bottom:-22px;
-      left:22px;
-    }
-    .tc-avatar {
-      width:52px;
-      height:52px;
-      border-radius:50%;
-      display:flex;align-items:center;justify-content:center;
-      font-size:18px;
-      font-weight:700;
-      color:white;
-      border:3px solid white;
-      box-shadow:var(--shadow);
-    }
-
-    .tc-body { padding:32px 22px 22px; }
-    .tc-name { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:var(--text); }
-    .tc-email { font-size:12px; color:var(--muted); margin:2px 0 12px; }
-    .tc-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
-    .tc-tag { background:var(--crimson-light); color:var(--crimson-dark); font-size:11px; font-weight:600; padding:3px 9px; border-radius:100px; }
-    .tc-stats { display:flex; gap:20px; padding-top:12px; border-top:1px solid var(--border); }
-    .tc-stat { text-align:center; flex:1; }
-    .tc-stat-val { font-size:18px; font-weight:700; font-family:'Playfair Display',serif; color:var(--crimson); }
-    .tc-stat-label { font-size:11px; color:var(--muted); }
-    .tc-actions { display:flex; gap:8px; margin-top:14px; }
-
-    .toolbar { display:flex; align-items:center; gap:12px; margin-bottom:24px; }
+    .teacher-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:20px; }
+    .tc-card { background:white; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); transition:box-shadow 0.15s,transform 0.15s; }
+    .tc-card:hover { box-shadow:var(--shadow-lg); transform:translateY(-2px); }
+    .tc-banner { height:72px; background:linear-gradient(135deg,#990000,#FF0000); position:relative; }
+    .tc-avatar { position:absolute; bottom:-28px; left:20px; width:56px; height:56px; border-radius:50%; border:3px solid white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:18px; color:white; }
+    .tc-body { padding:36px 20px 16px; }
+    .tc-name { font-family:'Playfair Display',serif; font-size:17px; font-weight:900; color:var(--text); }
+    .tc-meta { font-size:12px; color:var(--muted); margin-top:4px; display:flex; gap:10px; flex-wrap:wrap; }
+    .tc-tag { background:#FFF0F0; color:#CC0000; border-radius:100px; padding:3px 10px; font-size:11px; font-weight:600; display:inline-block; margin:2px; }
+    .tc-footer { padding:12px 20px; border-top:1px solid var(--border); display:flex; gap:8px; justify-content:flex-end; }
   </style>
 </head>
 <body>
-
 <nav class="sidebar"></nav>
-
 <div class="main">
   <div class="topbar">
     <div class="page-title">Teachers</div>
-    <div class="topbar-right">
-      <span id="teacherCount" class="text-muted"></span>
-      <button class="btn btn-primary" onclick="openModal('teacherModal')">➕ Add Teacher</button>
-    </div>
+    <div class="topbar-right"><button class="btn btn-primary" onclick="openAdd()">➕ Add Teacher</button></div>
   </div>
-
   <div class="page-content">
-
     <div class="toolbar">
-      <div class="search-bar">
-        <span class="search-icon">🔍</span>
+      <div class="search-bar"><span class="search-icon">🔍</span>
         <input type="text" id="searchInput" placeholder="Search teachers…" oninput="renderTeachers()">
       </div>
-      <select id="filterStatus" onchange="renderTeachers()" style="width:auto;padding:9px 14px;">
-        <option value="">All</option>
-        <option>Active</option>
-        <option>Part-time</option>
-        <option>Inactive</option>
-      </select>
+      <span class="text-muted" id="teacherCount" style="margin-left:auto"></span>
     </div>
-
-    <div class="teacher-grid" id="teacherGrid">
-      <div class="empty-state"><div class="empty-icon">🎓</div><p>No teachers yet.</p></div>
-    </div>
-
+    <div class="teacher-grid" id="teacherGrid"></div>
   </div>
 </div>
 
-<!-- Add / Edit Teacher Modal -->
 <div class="modal-overlay" id="teacherModal">
-  <div class="modal">
+  <div class="modal" style="width:540px">
     <div class="modal-header">
       <div class="modal-title" id="teacherModalTitle">Add Teacher</div>
       <button class="modal-close" onclick="closeModal('teacherModal')">✕</button>
@@ -97,71 +44,30 @@
     <div class="modal-body">
       <input type="hidden" id="editTeacherId">
       <div class="form-row">
-        <div class="form-group">
-          <label>First Name *</label>
-          <input type="text" id="tFirst" placeholder="Marie">
-        </div>
-        <div class="form-group">
-          <label>Last Name *</label>
-          <input type="text" id="tLast" placeholder="Lefebvre">
-        </div>
+        <div class="form-group"><label>First Name *</label><input type="text" id="tFirst" placeholder="Sarah"></div>
+        <div class="form-group"><label>Last Name *</label><input type="text" id="tLast" placeholder="Thompson"></div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="tEmail" placeholder="marie@tommylc.com">
-        </div>
-        <div class="form-group">
-          <label>Phone</label>
-          <input type="tel" id="tPhone" placeholder="+1 514 000 0000">
-        </div>
+        <div class="form-group"><label>Phone</label><input type="tel" id="tPhone" placeholder="+998 90 …"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="tEmail" placeholder="sarah@tommylc.com"></div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label>Status</label>
-          <select id="tStatus">
-            <option>Active</option>
-            <option>Part-time</option>
-            <option>Inactive</option>
-          </select>
+        <div class="form-group"><label>Status</label>
+          <select id="tStatus"><option>Active</option><option>Inactive</option></select>
         </div>
-        <div class="form-group">
-          <label>Hourly Rate ($)</label>
-          <input type="number" id="tRate" placeholder="40" min="0" step="0.5">
-        </div>
+        <div class="form-group"><label>Hourly Rate ($)</label><input type="number" id="tRate" placeholder="25"></div>
       </div>
-      <div class="form-group">
-        <label>Specializations (comma-separated)</label>
-        <input type="text" id="tSpecs" placeholder="Grammar, Conversation, Business English…">
+      <div class="form-group"><label>Specializations <span style="font-weight:400;text-transform:none;letter-spacing:0">(comma separated)</span></label>
+        <input type="text" id="tSpecs" placeholder="IELTS, Business English, Grammar">
       </div>
-      <div class="form-group">
-        <label>Levels Taught</label>
-        <input type="text" id="tLevels" placeholder="e.g. Beginner, Intermediate, Advanced…">
+      <div class="form-group"><label>Levels Taught <span style="font-weight:400;text-transform:none;letter-spacing:0">(comma separated)</span></label>
+        <input type="text" id="tLevels" placeholder="Beginner, Intermediate, Advanced">
       </div>
-      <div class="form-group">
-        <label>Bio / Notes</label>
-        <textarea id="tBio" placeholder="Brief teacher bio or notes…"></textarea>
-      </div>
+      <div class="form-group"><label>Bio</label><textarea id="tBio" placeholder="Short bio…"></textarea></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('teacherModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveTeacher()">Save Teacher</button>
-    </div>
-  </div>
-</div>
-
-<!-- Teacher profile modal -->
-<div class="modal-overlay" id="teacherProfileModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Teacher Profile</div>
-      <button class="modal-close" onclick="closeModal('teacherProfileModal')">✕</button>
-    </div>
-    <div class="modal-body" id="teacherProfileBody"></div>
-    <div class="modal-footer">
-      <button class="btn btn-danger btn-sm" id="deleteTeacherBtn">🗑 Delete</button>
-      <button class="btn btn-outline" onclick="closeModal('teacherProfileModal')">Close</button>
-      <button class="btn btn-primary" id="editTeacherBtn">✏️ Edit</button>
+      <button class="btn btn-primary" onclick="saveTeacher()">Save</button>
     </div>
   </div>
 </div>
@@ -169,186 +75,96 @@
 <div class="toast-container" id="toastContainer"></div>
 <script src="shared.js"></script>
 <script>
-  requireAuth("teachers");
-  renderSidebar("teachers");
+  requireAuth('teachers');
+  renderSidebar('teachers');
+  let teachers = [];
+
+  async function load() { teachers = await apiGet('/api/teachers'); renderTeachers(); }
 
   function renderTeachers() {
     const q = document.getElementById('searchInput').value.toLowerCase();
-    const fStatus = document.getElementById('filterStatus').value;
-    const teachers = getDB('teachers').filter(t => {
-      const name = (t.firstName + ' ' + t.lastName).toLowerCase();
-      return (!q || name.includes(q) || (t.email||'').includes(q) || (t.specs||'').toLowerCase().includes(q))
-        && (!fStatus || t.status === fStatus);
-    });
-
-    document.getElementById('teacherCount').textContent = `${teachers.length} teacher${teachers.length !== 1 ? 's' : ''}`;
-
+    const filtered = teachers.filter(t => (t.firstName+' '+t.lastName).toLowerCase().includes(q)||(t.specs||'').toLowerCase().includes(q));
+    document.getElementById('teacherCount').textContent = `${filtered.length} teacher${filtered.length!==1?'s':''}`;
     const grid = document.getElementById('teacherGrid');
-    if (!teachers.length) {
-      grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🎓</div><p>No teachers match your search.</p></div>';
-      return;
-    }
-
-    const classes = getDB('groups');
-    const statusMap = { Active:'badge-green', 'Part-time':'badge-gold', Inactive:'badge-grey' };
-
-    grid.innerHTML = teachers.map(t => {
-      const name = t.firstName + ' ' + t.lastName;
-      const color = avatarColor(name);
-      const sc = statusMap[t.status] || 'badge-grey';
-      const teacherClasses = classes.filter(c => c.teacher === name);
-      const specs = (t.specs || '').split(',').map(s => s.trim()).filter(Boolean);
-      const levelTags = (t.levels || '').split(',').map(s => s.trim()).filter(Boolean);
-
-      return `<div class="teacher-card">
-        <div class="tc-banner" style="background:linear-gradient(135deg, ${color}22, ${color}44);">
-          <div class="tc-avatar-wrap">
-            <div class="tc-avatar" style="background:${color}">${initials(name)}</div>
-          </div>
-        </div>
+    if (!filtered.length) { grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🎓</div><p>No teachers found.</p></div>'; return; }
+    grid.innerHTML = filtered.map(t => {
+      const name = t.firstName+' '+t.lastName;
+      const col  = avatarColor(name);
+      const specs = (t.specs||'').split(',').map(s=>s.trim()).filter(Boolean);
+      const levels= (t.levels||'').split(',').map(s=>s.trim()).filter(Boolean);
+      return `<div class="tc-card">
+        <div class="tc-banner"><div class="tc-avatar" style="background:${col}">${initials(name)}</div></div>
         <div class="tc-body">
-          <div style="display:flex;justify-content:flex-end;margin-bottom:4px">
-            <span class="badge ${sc}">${t.status}</span>
-          </div>
           <div class="tc-name">${name}</div>
-          <div class="tc-email">${t.email||'—'} · ${t.phone||'—'}</div>
-          <div class="tc-tags">
-            ${specs.map(s => `<span class="tc-tag">📚 ${s}</span>`).join('')}
-            ${levelTags.map(l => `<span class="tc-tag">${l}</span>`).join('')}
+          <div class="tc-meta">
+            ${t.phone?`<span>📞 ${t.phone}</span>`:''}
+            ${t.rate?`<span>💰 $${t.rate}/hr</span>`:''}
+            <span class="badge ${t.status==='Active'?'badge-green':'badge-grey'}">${t.status||'Active'}</span>
           </div>
-          <div class="tc-stats">
-            <div class="tc-stat">
-              <div class="tc-stat-val">${teacherClasses.length}</div>
-              <div class="tc-stat-label">Classes</div>
-            </div>
-            <div class="tc-stat">
-              <div class="tc-stat-val">${t.rate ? '$'+t.rate : '—'}</div>
-              <div class="tc-stat-label">Per hour</div>
-            </div>
-          </div>
-          <div class="tc-actions">
-            <button class="btn btn-ghost btn-sm w-full" onclick="viewTeacher('${t.id}')">View Profile</button>
-            <button class="btn btn-primary btn-sm" onclick="editTeacher('${t.id}')">Edit</button>
-          </div>
+          ${specs.length?`<div style="margin-top:10px">${specs.map(s=>`<span class="tc-tag">${s}</span>`).join('')}</div>`:''}
+          ${levels.length?`<div style="margin-top:6px">${levels.map(l=>`<span class="tc-tag" style="background:#FFF0F0;color:#990000">${l}</span>`).join('')}</div>`:''}
+          ${t.bio?`<div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5">${t.bio}</div>`:''}
+        </div>
+        <div class="tc-footer">
+          <button class="btn btn-ghost btn-sm" onclick="editTeacher('${t.id}')">✏️ Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteTeacher('${t.id}')">🗑</button>
         </div>
       </div>`;
     }).join('');
   }
 
-  function saveTeacher() {
-    const fn = document.getElementById('tFirst').value.trim();
-    const ln = document.getElementById('tLast').value.trim();
-    if (!fn || !ln) { showToast('First and last name required.', 'error'); return; }
-
-    const levels = document.getElementById('tLevels').value.trim();
-    const id = document.getElementById('editTeacherId').value;
-    const teachers = getDB('teachers');
-
-    const data = {
-      firstName: fn, lastName: ln,
-      email: document.getElementById('tEmail').value.trim(),
-      phone: document.getElementById('tPhone').value.trim(),
-      status: document.getElementById('tStatus').value,
-      rate: document.getElementById('tRate').value,
-      specs: document.getElementById('tSpecs').value.trim(),
-      levels,
-      bio: document.getElementById('tBio').value.trim(),
-    };
-
-    if (id) {
-      const idx = teachers.findIndex(t => t.id === id);
-      if (idx !== -1) teachers[idx] = { ...teachers[idx], ...data };
-      logActivity(`Updated teacher: ${fn} ${ln}`, '');
-    } else {
-      data.id = genId();
-      data.createdAt = new Date().toISOString();
-      teachers.push(data);
-      logActivity(`Added teacher: ${fn} ${ln}`, 'green');
-    }
-
-    setDB('teachers', teachers);
-    closeModal('teacherModal');
-    clearTeacherForm();
-    renderTeachers();
-    showToast(id ? 'Teacher updated!' : 'Teacher added!');
-  }
-
-  function clearTeacherForm() {
-    ['tFirst','tLast','tEmail','tPhone','tRate','tSpecs','tBio','tLevels','editTeacherId'].forEach(i => document.getElementById(i).value = '');
-    document.getElementById('tStatus').value = 'Active';
-    document.getElementById('teacherModalTitle').textContent = 'Add Teacher';
-  }
-
-  function viewTeacher(id) {
-    const t = getDB('teachers').find(t => t.id === id);
-    if (!t) return;
-    const name = t.firstName + ' ' + t.lastName;
-    const color = avatarColor(name);
-    const classes = getDB('groups').filter(c => c.teacher === name);
-    const specs = (t.specs || '').split(',').map(s => s.trim()).filter(Boolean);
-    const statusMap = { Active:'badge-green', 'Part-time':'badge-gold', Inactive:'badge-grey' };
-
-    document.getElementById('teacherProfileBody').innerHTML = `
-      <div class="flex items-center gap-16 mb-20">
-        <div class="avatar" style="background:${color};width:60px;height:60px;font-size:22px">${initials(name)}</div>
-        <div>
-          <div style="font-size:20px;font-weight:700;font-family:'Playfair Display',serif">${name}</div>
-          <div class="text-muted mt-8">${t.email||'—'} · ${t.phone||'—'}</div>
-        </div>
-        <span class="badge ${statusMap[t.status]||'badge-grey'}" style="margin-left:auto">${t.status}</span>
-      </div>
-      <div class="grid-2">
-        <div class="form-group"><label>Hourly Rate</label><div style="font-weight:700;font-size:17px">${t.rate ? '$'+t.rate+'/hr' : '—'}</div></div>
-        <div class="form-group"><label>Levels</label><div>${levelTags.map(l => `<span class="badge badge-blue" style="margin:2px">${l}</span>`).join('')||'—'}</div></div>
-      </div>
-      <div class="form-group"><label>Specializations</label><div style="display:flex;flex-wrap:wrap;gap:6px">${specs.map(s=>`<span class="tc-tag">📚 ${s}</span>`).join('')||'—'}</div></div>
-      <div class="form-group"><label>Classes (${classes.length})</label>
-        ${classes.length ? `<div style="max-height:120px;overflow-y:auto">${classes.map(c=>`<div style="font-size:13px;padding:5px 0;border-bottom:1px solid var(--border)">${formatDate(c.date)} · ${c.name}</div>`).join('')}</div>` : '<div class="text-muted">No classes assigned.</div>'}
-      </div>
-      ${t.bio ? `<div class="form-group"><label>Bio / Notes</label><div style="background:var(--crimson-soft);padding:12px;border-radius:8px;font-size:14px">${t.bio}</div></div>` : ''}
-    `;
-    document.getElementById('editTeacherBtn').onclick = () => { closeModal('teacherProfileModal'); editTeacher(id); };
-    document.getElementById('deleteTeacherBtn').onclick = () => deleteTeacher(id);
-    openModal('teacherProfileModal');
-  }
-
+  function openAdd() { clearForm(); document.getElementById('teacherModalTitle').textContent='Add Teacher'; openModal('teacherModal'); }
   function editTeacher(id) {
-    const t = getDB('teachers').find(t => t.id === id);
-    if (!t) return;
+    const t = teachers.find(t=>t.id===id); if(!t) return;
+    clearForm();
     document.getElementById('editTeacherId').value = id;
-    document.getElementById('tFirst').value = t.firstName;
-    document.getElementById('tLast').value = t.lastName;
-    document.getElementById('tEmail').value = t.email||'';
-    document.getElementById('tPhone').value = t.phone||'';
-    document.getElementById('tStatus').value = t.status;
-    document.getElementById('tRate').value = t.rate||'';
+    document.getElementById('tFirst').value  = t.firstName;
+    document.getElementById('tLast').value   = t.lastName;
+    document.getElementById('tPhone').value  = t.phone||'';
+    document.getElementById('tEmail').value  = t.email||'';
+    document.getElementById('tStatus').value = t.status||'Active';
+    document.getElementById('tRate').value   = t.rate||'';
+    document.getElementById('tSpecs').value  = t.specs||'';
     document.getElementById('tLevels').value = t.levels||'';
-    document.getElementById('tSpecs').value = t.specs||'';
-    document.getElementById('tBio').value = t.bio||'';
-    document.getElementById('teacherModalTitle').textContent = 'Edit Teacher';
+    document.getElementById('tBio').value    = t.bio||'';
+    document.getElementById('teacherModalTitle').textContent='Edit Teacher';
     openModal('teacherModal');
   }
 
-  function deleteTeacher(id) {
-    if (!confirm('Delete this teacher?')) return;
-    const teachers = getDB('teachers');
-    const t = teachers.find(t => t.id === id);
-    if (t) logActivity(`Removed teacher: ${t.firstName} ${t.lastName}`, 'red');
-    setDB('teachers', teachers.filter(t => t.id !== id));
-    closeModal('teacherProfileModal');
-    renderTeachers();
-    showToast('Teacher deleted.', 'error');
+  async function saveTeacher() {
+    const first = document.getElementById('tFirst').value.trim();
+    const last  = document.getElementById('tLast').value.trim();
+    if(!first||!last){showToast('Name required.','error');return;}
+    const id = document.getElementById('editTeacherId').value;
+    const data = { firstName:first, lastName:last,
+      phone:document.getElementById('tPhone').value.trim(),
+      email:document.getElementById('tEmail').value.trim(),
+      status:document.getElementById('tStatus').value,
+      rate:document.getElementById('tRate').value||null,
+      specs:document.getElementById('tSpecs').value.trim(),
+      levels:document.getElementById('tLevels').value.trim(),
+      bio:document.getElementById('tBio').value.trim() };
+    try {
+      if(id){await apiPut('/api/teachers/'+id,data);logActivity(`Updated teacher: ${first} ${last}`,'');}
+      else{data.id=genId();await apiPost('/api/teachers',data);logActivity(`Added teacher: ${first} ${last}`,'green');}
+      closeModal('teacherModal'); await load(); showToast(id?'Teacher updated!':'Teacher added!');
+    } catch(e){showToast('Error saving.','error');}
   }
 
-  // Seed
-  if (!getDB('teachers').length) {
-    setDB('teachers', [
-      { id:genId(), firstName:'Sarah', lastName:'Thompson', email:'sarah@tommylc.com', phone:'+1 555 0401', status:'Active', rate:'45', specs:'IELTS, TOEFL, Business English', levels:'Intermediate, Advanced', bio:'8 years teaching English as a second language.', createdAt:new Date().toISOString() },
-      { id:genId(), firstName:'David', lastName:'Kim', email:'david@tommylc.com', phone:'+1 555 0402', status:'Active', rate:'40', specs:'Grammar, Pronunciation, Conversation', levels:'Beginner, Elementary', bio:'Specializes in beginner learners and pronunciation coaching.', createdAt:new Date().toISOString() },
-    ]);
+  async function deleteTeacher(id) {
+    const t=teachers.find(t=>t.id===id);
+    if(!confirm(`Delete ${t?.firstName} ${t?.lastName}?`))return;
+    await apiDelete('/api/teachers/'+id);
+    logActivity(`Removed teacher: ${t?.firstName} ${t?.lastName}`,'red');
+    await load(); showToast('Teacher deleted.','error');
   }
 
-  renderTeachers();
+  function clearForm() {
+    ['editTeacherId','tFirst','tLast','tPhone','tEmail','tRate','tSpecs','tLevels','tBio'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('tStatus').value='Active';
+  }
+
+  load();
 </script>
 </body>
 </html>

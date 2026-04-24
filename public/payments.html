@@ -1,182 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Payments — TommyLC CRM</title>
   <link rel="stylesheet" href="shared.css">
   <style>
-    .finance-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-bottom:28px; }
-
-    .toolbar { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
-
-    .inv-row-student { display:flex; align-items:center; gap:10px; }
-
-    /* Invoice print view */
-    .invoice-preview {
-      font-family:'DM Sans',sans-serif;
-      max-width:560px;
-    }
-    .inv-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:32px; }
-    .inv-brand { font-family:'Playfair Display',serif; font-size:22px; color:var(--crimson); font-weight:900; }
-    .inv-meta { text-align:right; font-size:13px; color:var(--muted); }
-    .inv-meta strong { display:block; font-size:16px; color:var(--crimson); }
-    .inv-parties { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:28px; }
-    .inv-party-label { font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); font-weight:700; margin-bottom:6px; }
-    .inv-party-name { font-size:15px; font-weight:700; }
-    .inv-party-detail { font-size:13px; color:var(--muted); }
-    .inv-table { width:100%; border-collapse:collapse; margin-bottom:20px; }
-    .inv-table th { text-align:left; padding:8px 12px; background:var(--crimson); font-size:11px; text-transform:uppercase; letter-spacing:1px; color:white; }
-    .inv-table td { padding:10px 12px; border-bottom:1px solid var(--border); font-size:14px; }
-    .inv-total-row { display:flex; justify-content:flex-end; }
-    .inv-total-box { background:var(--crimson); color:white; padding:14px 20px; border-radius:10px; font-size:15px; font-weight:700; min-width:180px; display:flex; justify-content:space-between; }
-    .inv-note { font-size:12px; color:var(--muted); margin-top:20px; }
-    .status-select { padding:5px 10px; border-radius:6px; border:1.5px solid var(--border); font-size:13px; font-weight:600; cursor:pointer; }
+    .summary-cards{display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+    .sum-card{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;flex:1;min-width:140px;box-shadow:var(--shadow)}
+    .sum-card-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+    .sum-card-val{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--text)}
+    .sum-card.green .sum-card-val{color:var(--green)}
+    .sum-card.red   .sum-card-val{color:var(--crimson)}
+    .sum-card.amber .sum-card-val{color:var(--amber)}
+    .inv-row{display:flex;align-items:center;gap:14px;padding:13px 20px;border-bottom:1px solid var(--border);font-size:13px;cursor:pointer;transition:background 0.1s}
+    .inv-row:hover{background:var(--crimson-soft)}
+    .inv-row:last-child{border-bottom:none}
   </style>
 </head>
 <body>
-
 <nav class="sidebar"></nav>
-
 <div class="main">
   <div class="topbar">
-    <div class="page-title">Payments & Invoices</div>
-    <div class="topbar-right">
-      <button class="btn btn-primary" onclick="openModal('invoiceModal')">➕ New Invoice</button>
-    </div>
+    <div class="page-title">Payments</div>
+    <div class="topbar-right"><button class="btn btn-primary" onclick="openAdd()">➕ New Invoice</button></div>
   </div>
-
   <div class="page-content">
-
-    <!-- Finance summary -->
-    <div class="finance-grid">
-      <div class="stat-card green">
-        <span class="stat-icon">✓</span>
-        <div class="stat-label">Paid</div>
-        <div class="stat-value" id="sumPaid">$0</div>
-        <div class="stat-sub">this month</div>
-      </div>
-      <div class="stat-card">
-        <span class="stat-icon">⏳</span>
-        <div class="stat-label">Pending</div>
-        <div class="stat-value" id="sumPending">$0</div>
-        <div class="stat-sub">awaiting payment</div>
-      </div>
-      <div class="stat-card red">
-        <span class="stat-icon">!</span>
-        <div class="stat-label">Overdue</div>
-        <div class="stat-value" id="sumOverdue">$0</div>
-        <div class="stat-sub">past due date</div>
-      </div>
-    </div>
-
-    <!-- Toolbar -->
+    <div class="summary-cards" id="summaryCards"></div>
     <div class="toolbar">
-      <div class="search-bar">
-        <span class="search-icon">🔍</span>
+      <div class="search-bar"><span class="search-icon">🔍</span>
         <input type="text" id="searchInput" placeholder="Search invoices…" oninput="renderInvoices()">
       </div>
-      <select id="filterStatus" onchange="renderInvoices()" style="width:auto;padding:9px 14px;">
-        <option value="">All Statuses</option>
-        <option>Paid</option>
-        <option>Pending</option>
-        <option>Overdue</option>
+      <select id="filterStatus" onchange="renderInvoices()" style="width:auto;padding:9px 14px">
+        <option value="">All</option><option>Paid</option><option>Pending</option><option>Overdue</option>
       </select>
+      <span class="text-muted" id="invoiceCount" style="margin-left:auto"></span>
     </div>
-
-    <!-- Invoice table -->
     <div class="card">
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Invoice #</th>
-              <th>Student</th>
-              <th>Description</th>
-              <th>Amount</th>
-              <th>Due Date</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="invoiceTable"></tbody>
-        </table>
-      </div>
+      <div id="invoiceList"></div>
     </div>
-
   </div>
 </div>
 
-<!-- New Invoice Modal -->
+<!-- Invoice modal -->
 <div class="modal-overlay" id="invoiceModal">
-  <div class="modal">
+  <div class="modal" style="width:560px">
     <div class="modal-header">
-      <div class="modal-title" id="invoiceModalTitle">New Invoice</div>
+      <div class="modal-title" id="invModalTitle">New Invoice</div>
       <button class="modal-close" onclick="closeModal('invoiceModal')">✕</button>
     </div>
     <div class="modal-body">
-      <input type="hidden" id="editInvoiceId">
-      <div class="form-group">
-        <label>Student *</label>
-        <select id="iStudent"></select>
-      </div>
-      <div class="form-group">
-        <label>Description *</label>
-        <input type="text" id="iDesc" placeholder="e.g. Monthly tuition — May 2026">
-      </div>
-
-      <div id="lineItems">
-        <label style="display:flex;justify-content:space-between;align-items:center;">
-          Line Items
-          <button type="button" class="btn btn-ghost btn-sm" onclick="addLineItem()">+ Add line</button>
-        </label>
-        <div id="lineItemsBody"></div>
-      </div>
-
-      <div class="form-row" style="margin-top:16px;">
-        <div class="form-group">
-          <label>Due Date</label>
-          <input type="date" id="iDueDate">
-        </div>
-        <div class="form-group">
-          <label>Status</label>
-          <select id="iStatus">
-            <option>Pending</option>
-            <option>Paid</option>
-            <option>Overdue</option>
-          </select>
+      <input type="hidden" id="editInvId">
+      <div class="form-row">
+        <div class="form-group"><label>Student *</label><select id="invStudent"><option value="">— Select —</option></select></div>
+        <div class="form-group"><label>Status</label>
+          <select id="invStatus"><option>Pending</option><option>Paid</option><option>Overdue</option></select>
         </div>
       </div>
-      <div class="form-group">
-        <label>Notes</label>
-        <textarea id="iNotes" placeholder="Payment instructions, notes…"></textarea>
+      <div class="form-group"><label>Description *</label><input type="text" id="invDesc" placeholder="Monthly tuition — May 2026"></div>
+      <div class="form-group"><label>Amount ($) *</label><input type="number" id="invAmount" placeholder="150" step="0.01" min="0"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Due Date</label><input type="date" id="invDue"></div>
       </div>
-      <div style="text-align:right; font-size:15px; font-weight:700; color:var(--crimson); margin-top:8px;">
-        Total: <span id="invoiceTotal">$0.00</span>
-      </div>
+      <div class="form-group"><label>Notes</label><textarea id="invNotes" placeholder="Any notes…"></textarea></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('invoiceModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveInvoice()">Save Invoice</button>
-    </div>
-  </div>
-</div>
-
-<!-- Invoice Preview Modal -->
-<div class="modal-overlay" id="previewModal">
-  <div class="modal" style="width:620px">
-    <div class="modal-header">
-      <div class="modal-title">Invoice Preview</div>
-      <button class="modal-close" onclick="closeModal('previewModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="invoice-preview" id="invoicePreviewContent"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-danger btn-sm" id="deleteInvBtn">🗑 Delete</button>
-      <button class="btn btn-outline" onclick="closeModal('previewModal')">Close</button>
-      <button class="btn btn-ghost" onclick="window.print()">🖨 Print</button>
-      <button class="btn btn-primary" id="editInvBtn">✏️ Edit</button>
+      <button class="btn btn-primary" onclick="saveInvoice()">Save</button>
     </div>
   </div>
 </div>
@@ -184,275 +73,111 @@
 <div class="toast-container" id="toastContainer"></div>
 <script src="shared.js"></script>
 <script>
-  requireAuth("payments");
-  renderSidebar("payments");
-  let lineItemCount = 0;
-  let currentInvId = null;
+  requireAuth('payments');
+  renderSidebar('payments');
+  let invoices=[], students=[];
 
-  function populateStudentSelect() {
-    const sel = document.getElementById('iStudent');
-    const students = getDB('students');
-    sel.innerHTML = '<option value="">— Select student —</option>' +
-      students.map(s => `<option value="${s.id}">${s.firstName} ${s.lastName}</option>`).join('');
+  async function load() {
+    [invoices, students] = await Promise.all([apiGet('/api/invoices'), apiGet('/api/students')]);
+    renderSummary(); renderInvoices();
   }
 
-  function addLineItem(desc='', qty=1, price='') {
-    lineItemCount++;
-    const n = lineItemCount;
-    const div = document.createElement('div');
-    div.id = 'line_' + n;
-    div.style.cssText = 'display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center;';
-    div.innerHTML = `
-      <input type="text" placeholder="Description" value="${desc}" id="ldesc_${n}" oninput="calcTotal()">
-      <input type="number" placeholder="Qty" value="${qty}" id="lqty_${n}" min="1" oninput="calcTotal()" style="text-align:center">
-      <input type="number" placeholder="Price" value="${price}" id="lprice_${n}" min="0" step="0.01" oninput="calcTotal()">
-      <button type="button" style="background:var(--crimson-soft);color:var(--crimson);border:none;border-radius:6px;padding:8px 10px;cursor:pointer;font-size:14px" onclick="document.getElementById('line_${n}').remove();calcTotal()">✕</button>
-    `;
-    document.getElementById('lineItemsBody').appendChild(div);
-    calcTotal();
-  }
-
-  function getLineItems() {
-    const items = [];
-    document.querySelectorAll('[id^="line_"]').forEach(row => {
-      const n = row.id.split('_')[1];
-      const desc = document.getElementById('ldesc_' + n)?.value?.trim();
-      const qty = parseFloat(document.getElementById('lqty_' + n)?.value) || 1;
-      const price = parseFloat(document.getElementById('lprice_' + n)?.value) || 0;
-      if (desc || price) items.push({ desc, qty, price });
-    });
-    return items;
-  }
-
-  function calcTotal() {
-    const total = getLineItems().reduce((s,i) => s + i.qty * i.price, 0);
-    document.getElementById('invoiceTotal').textContent = formatCurrency(total);
-  }
-
-  function saveInvoice() {
-    const studentId = document.getElementById('iStudent').value;
-    const desc = document.getElementById('iDesc').value.trim();
-    if (!studentId || !desc) { showToast('Student and description required.', 'error'); return; }
-
-    const items = getLineItems();
-    const total = items.reduce((s,i) => s + i.qty * i.price, 0);
-    const id = document.getElementById('editInvoiceId').value;
-
-    const data = {
-      studentId,
-      desc,
-      items,
-      total,
-      dueDate: document.getElementById('iDueDate').value,
-      status: document.getElementById('iStatus').value,
-      notes: document.getElementById('iNotes').value.trim(),
-    };
-
-    const invoices = getDB('invoices');
-    const students = getDB('students');
-    const s = students.find(s => s.id === studentId);
-    const sName = s ? `${s.firstName} ${s.lastName}` : 'Student';
-
-    if (id) {
-      const idx = invoices.findIndex(i => i.id === id);
-      if (idx !== -1) invoices[idx] = { ...invoices[idx], ...data };
-      logActivity(`Updated invoice for ${sName}`, '');
-    } else {
-      const num = (invoices.length + 1).toString().padStart(4, '0');
-      data.id = genId();
-      data.number = 'INV-' + num;
-      data.createdAt = new Date().toISOString();
-      invoices.push(data);
-      logActivity(`Created invoice ${data.number} for ${sName}`, 'green');
-    }
-
-    setDB('invoices', invoices);
-    closeModal('invoiceModal');
-    clearInvoiceForm();
-    renderInvoices();
-    showToast(id ? 'Invoice updated!' : 'Invoice created!');
-  }
-
-  function clearInvoiceForm() {
-    ['iDesc','iNotes','iDueDate','editInvoiceId'].forEach(i => document.getElementById(i).value = '');
-    document.getElementById('iStudent').value = '';
-    document.getElementById('iStatus').value = 'Pending';
-    document.getElementById('lineItemsBody').innerHTML = '';
-    document.getElementById('invoiceTotal').textContent = '$0.00';
-    document.getElementById('invoiceModalTitle').textContent = 'New Invoice';
-    lineItemCount = 0;
+  function renderSummary() {
+    const paid     = invoices.filter(i=>i.status==='Paid').reduce((s,i)=>s+Number(i.total||0),0);
+    const pending  = invoices.filter(i=>i.status==='Pending').reduce((s,i)=>s+Number(i.total||0),0);
+    const overdue  = invoices.filter(i=>i.status==='Overdue').reduce((s,i)=>s+Number(i.total||0),0);
+    document.getElementById('summaryCards').innerHTML = `
+      <div class="sum-card green"><div class="sum-card-label">Paid</div><div class="sum-card-val">$${paid.toFixed(0)}</div></div>
+      <div class="sum-card"><div class="sum-card-label">Pending</div><div class="sum-card-val">$${pending.toFixed(0)}</div></div>
+      <div class="sum-card red"><div class="sum-card-label">Overdue</div><div class="sum-card-val">$${overdue.toFixed(0)}</div></div>
+      <div class="sum-card"><div class="sum-card-label">Total Invoices</div><div class="sum-card-val">${invoices.length}</div></div>`;
   }
 
   function renderInvoices() {
-    const q = document.getElementById('searchInput').value.toLowerCase();
-    const fStatus = document.getElementById('filterStatus').value;
-    const invoices = getDB('invoices');
-    const students = getDB('students');
-
-    let paid = 0, pending = 0, overdue = 0;
-    invoices.forEach(i => {
-      if (i.status === 'Paid') paid += i.total || 0;
-      else if (i.status === 'Pending') pending += i.total || 0;
-      else if (i.status === 'Overdue') overdue += i.total || 0;
-    });
-    document.getElementById('sumPaid').textContent = formatCurrency(paid);
-    document.getElementById('sumPending').textContent = formatCurrency(pending);
-    document.getElementById('sumOverdue').textContent = formatCurrency(overdue);
-
+    const q  = document.getElementById('searchInput').value.toLowerCase();
+    const fs = document.getElementById('filterStatus').value;
     const filtered = invoices.filter(i => {
-      const s = students.find(s => s.id === i.studentId);
-      const sName = s ? `${s.firstName} ${s.lastName}` : '';
-      return (!q || sName.toLowerCase().includes(q) || (i.desc||'').toLowerCase().includes(q) || (i.number||'').includes(q))
-        && (!fStatus || i.status === fStatus);
+      const stu = students.find(s=>s.id===i.studentId);
+      const name = stu ? stu.firstName+' '+stu.lastName : '';
+      return (!q || name.toLowerCase().includes(q) || (i.desc||'').toLowerCase().includes(q))
+          && (!fs || i.status === fs);
     });
-
-    const tbody = document.getElementById('invoiceTable');
-    if (!filtered.length) {
-      tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📄</div><p>No invoices found.</p></div></td></tr>';
-      return;
-    }
-
-    tbody.innerHTML = filtered.sort((a,b) => b.createdAt?.localeCompare(a.createdAt)).map(inv => {
-      const s = students.find(s => s.id === inv.studentId);
-      const name = s ? `${s.firstName} ${s.lastName}` : 'Unknown';
-      const color = avatarColor(name);
-      const statusMap = { Paid:'badge-green', Pending:'badge-gold', Overdue:'badge-red' };
-      const sc = statusMap[inv.status] || 'badge-grey';
-      return `<tr>
-        <td><strong>${inv.number||'—'}</strong></td>
-        <td>
-          <div class="inv-row-student">
-            <div class="avatar" style="background:${color};width:28px;height:28px;font-size:10px">${initials(name)}</div>
-            ${name}
-          </div>
-        </td>
-        <td>${inv.desc||'—'}</td>
-        <td><strong>${formatCurrency(inv.total)}</strong></td>
-        <td>${formatDate(inv.dueDate)||'—'}</td>
-        <td><span class="badge ${sc}">${inv.status}</span></td>
-        <td>
-          <div class="flex gap-8">
-            <button class="btn btn-ghost btn-sm" onclick="previewInvoice('${inv.id}')">View</button>
-            <select class="status-select" onchange="changeStatus('${inv.id}',this.value)">
-              <option value="" disabled selected>Status</option>
-              <option>Paid</option><option>Pending</option><option>Overdue</option>
-            </select>
-          </div>
-        </td>
-      </tr>`;
+    document.getElementById('invoiceCount').textContent = `${filtered.length} invoice${filtered.length!==1?'s':''}`;
+    const STATUS_COL = { Paid:'badge-green', Pending:'badge-gold', Overdue:'badge-red' };
+    const el = document.getElementById('invoiceList');
+    if (!filtered.length) { el.innerHTML='<div class="empty-state"><div class="empty-icon">💳</div><p>No invoices found.</p></div>'; return; }
+    el.innerHTML = filtered.map(i => {
+      const stu  = students.find(s=>s.id===i.studentId);
+      const name = stu ? stu.firstName+' '+stu.lastName : 'Unknown';
+      return `<div class="inv-row" onclick="editInvoice('${i.id}')">
+        <div class="avatar" style="background:${avatarColor(name)};width:36px;height:36px;font-size:13px;flex-shrink:0">${initials(name)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600">${name}</div>
+          <div style="font-size:12px;color:var(--muted)">${i.desc||'—'}</div>
+        </div>
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:900">$${Number(i.total||0).toFixed(0)}</div>
+        <span class="badge ${STATUS_COL[i.status]||'badge-grey'}">${i.status}</span>
+        ${i.dueDate?`<div style="font-size:11px;color:var(--muted)">${formatDate(i.dueDate)}</div>`:''}
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteInvoice('${i.id}')">🗑</button>
+      </div>`;
     }).join('');
   }
 
-  function changeStatus(id, status) {
-    const invoices = getDB('invoices');
-    const idx = invoices.findIndex(i => i.id === id);
-    if (idx !== -1) { invoices[idx].status = status; setDB('invoices', invoices); }
-    logActivity(`Marked invoice ${invoices[idx]?.number} as ${status}`, status === 'Paid' ? 'green' : status === 'Overdue' ? 'red' : '');
-    renderInvoices();
-    showToast(`Status updated to ${status}!`);
-  }
-
-  function previewInvoice(id) {
-    currentInvId = id;
-    const inv = getDB('invoices').find(i => i.id === id);
-    const students = getDB('students');
-    const s = students.find(s => s.id === inv.studentId);
-    const sName = s ? `${s.firstName} ${s.lastName}` : 'Student';
-    const statusMap = { Paid:'badge-green', Pending:'badge-gold', Overdue:'badge-red' };
-
-    document.getElementById('invoicePreviewContent').innerHTML = `
-      <div class="inv-top">
-        <div>
-          <div class="inv-brand">Tommy Learning Center</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">TommyLC · English Learning Center</div>
-        </div>
-        <div class="inv-meta">
-          <strong>${inv.number}</strong>
-          Issued: ${formatDate(inv.createdAt)}<br>
-          Due: ${formatDate(inv.dueDate)||'—'}<br>
-          <span class="badge ${statusMap[inv.status]||'badge-grey'}" style="margin-top:6px">${inv.status}</span>
-        </div>
-      </div>
-      <div class="inv-parties">
-        <div>
-          <div class="inv-party-label">Bill To</div>
-          <div class="inv-party-name">${sName}</div>
-          <div class="inv-party-detail">${s?.email||''}</div>
-        </div>
-        <div>
-          <div class="inv-party-label">From</div>
-          <div class="inv-party-name">Tommy Learning Center (TommyLC)</div>
-          <div class="inv-party-detail">admin@tommylc.com</div>
-        </div>
-      </div>
-      <div style="font-weight:600;margin-bottom:8px">${inv.desc}</div>
-      <table class="inv-table">
-        <thead><tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead>
-        <tbody>${(inv.items||[]).map(item => `
-          <tr>
-            <td data-label="Description">${item.desc}</td>
-            <td data-label="Qty">${item.qty}</td>
-            <td data-label="Unit Price">${formatCurrency(item.price)}</td>
-            <td data-label="Total">${formatCurrency(item.qty * item.price)}</td>
-          </tr>
-        `).join('') || '<tr><td colspan="4" style="color:var(--muted);text-align:center" data-label="Description">No line items</td></tr>'}</tbody>
-      </table>
-      <div class="inv-total-row">
-        <div class="inv-total-box"><span>Total Due</span><span>${formatCurrency(inv.total)}</span></div>
-      </div>
-      ${inv.notes ? `<div class="inv-note">Note: ${inv.notes}</div>` : ''}
-    `;
-
-    document.getElementById('editInvBtn').onclick = () => { closeModal('previewModal'); editInvoice(id); };
-    document.getElementById('deleteInvBtn').onclick = () => deleteInvoice(id);
-    openModal('previewModal');
-  }
-
-  function editInvoice(id) {
-    const inv = getDB('invoices').find(i => i.id === id);
-    if (!inv) return;
-    document.getElementById('editInvoiceId').value = id;
-    document.getElementById('iStudent').value = inv.studentId;
-    document.getElementById('iDesc').value = inv.desc;
-    document.getElementById('iDueDate').value = inv.dueDate||'';
-    document.getElementById('iStatus').value = inv.status;
-    document.getElementById('iNotes').value = inv.notes||'';
-    document.getElementById('lineItemsBody').innerHTML = '';
-    lineItemCount = 0;
-    (inv.items||[]).forEach(item => addLineItem(item.desc, item.qty, item.price));
-    document.getElementById('invoiceModalTitle').textContent = 'Edit Invoice';
+  async function openAdd() {
+    clearForm(); populateStudentSelect();
+    document.getElementById('invModalTitle').textContent='New Invoice';
     openModal('invoiceModal');
   }
 
-  function deleteInvoice(id) {
-    if (!confirm('Delete this invoice?')) return;
-    const invoices = getDB('invoices');
-    const inv = invoices.find(i => i.id === id);
-    if (inv) logActivity(`Deleted invoice ${inv.number}`, 'red');
-    setDB('invoices', invoices.filter(i => i.id !== id));
-    closeModal('previewModal');
-    renderInvoices();
-    showToast('Invoice deleted.', 'error');
+  function editInvoice(id) {
+    const i=invoices.find(i=>i.id===id); if(!i) return;
+    clearForm(); populateStudentSelect();
+    document.getElementById('editInvId').value=id;
+    document.getElementById('invStudent').value=i.studentId||'';
+    document.getElementById('invStatus').value=i.status||'Pending';
+    document.getElementById('invDesc').value=i.desc||'';
+    document.getElementById('invAmount').value=i.total||'';
+    document.getElementById('invDue').value=i.dueDate?i.dueDate.split('T')[0]:'';
+    document.getElementById('invNotes').value=i.notes||'';
+    document.getElementById('invModalTitle').textContent='Edit Invoice';
+    openModal('invoiceModal');
   }
 
-  // Seed
-  if (!getDB('invoices').length) {
-    const students = getDB('students');
-    if (students.length) {
-      setDB('invoices', [
-        { id:genId(), number:'INV-0001', studentId:students[0].id, desc:'Monthly tuition — April 2026', items:[{desc:'English classes (8 sessions)',qty:8,price:45}], total:360, dueDate:'2026-04-30', status:'Paid', notes:'', createdAt:new Date(Date.now()-86400000*25).toISOString() },
-        { id:genId(), number:'INV-0002', studentId:students[1].id, desc:'Trial session', items:[{desc:'Trial class × 1',qty:1,price:0}], total:0, dueDate:'', status:'Paid', notes:'Complimentary.', createdAt:new Date(Date.now()-86400000*4).toISOString() },
-        { id:genId(), number:'INV-0003', studentId:students[0].id, desc:'Monthly tuition — May 2026', items:[{desc:'English classes (8 sessions)',qty:8,price:45},{desc:'IELTS prep materials',qty:1,price:30}], total:390, dueDate:'2026-05-31', status:'Pending', notes:'', createdAt:new Date().toISOString() },
-      ]);
-    }
+  async function saveInvoice() {
+    const studentId=document.getElementById('invStudent').value;
+    const desc=document.getElementById('invDesc').value.trim();
+    const amount=document.getElementById('invAmount').value;
+    if(!studentId||!desc||!amount){showToast('Student, description and amount required.','error');return;}
+    const id=document.getElementById('editInvId').value;
+    const data={studentId,desc,total:Number(amount),
+      status:document.getElementById('invStatus').value,
+      dueDate:document.getElementById('invDue').value||null,
+      notes:document.getElementById('invNotes').value.trim(),items:[]};
+    try {
+      if(id){await apiPut('/api/invoices/'+id,data);logActivity(`Updated invoice`,'');}
+      else{data.id=genId();data.number='INV-'+Date.now().toString().slice(-6);await apiPost('/api/invoices',data);logActivity(`Created invoice for ${students.find(s=>s.id===studentId)?.firstName||''}`,'green');}
+      closeModal('invoiceModal'); await load(); showToast(id?'Invoice updated!':'Invoice created!');
+    } catch(e){showToast('Error saving.','error');}
   }
 
-  // Set default due date to 30 days from now
-  const due = new Date(); due.setDate(due.getDate()+30);
-  document.getElementById('iDueDate').value = due.toISOString().split('T')[0];
+  async function deleteInvoice(id) {
+    if(!confirm('Delete this invoice?'))return;
+    await apiDelete('/api/invoices/'+id);
+    await load(); showToast('Deleted.','error');
+  }
 
-  populateStudentSelect();
-  renderInvoices();
+  function populateStudentSelect() {
+    const sel=document.getElementById('invStudent');
+    sel.innerHTML='<option value="">— Select student —</option>'+
+      students.filter(s=>s.status==='Active'||s.status==='Trial').map(s=>`<option value="${s.id}">${s.firstName} ${s.lastName}</option>`).join('');
+  }
+
+  function clearForm(){
+    ['editInvId','invStudent','invDesc','invAmount','invDue','invNotes'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('invStatus').value='Pending';
+  }
+
+  load();
 </script>
 </body>
 </html>

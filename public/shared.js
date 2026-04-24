@@ -1,19 +1,53 @@
 // ══════════════════════════════════════════
-//  TommyLC CRM — Shared Utilities
+//  TommyLC CRM — Shared Utilities (PostgreSQL)
 // ══════════════════════════════════════════
 
-// ── DB helpers (localStorage) ──
-function getDB(key) {
-  try { return JSON.parse(localStorage.getItem('lc_' + key) || '[]'); }
-  catch { return []; }
+/* ── API base ── */
+const API = '';  // same origin — Railway serves both
+
+/* ── Generic fetch helpers ── */
+async function apiGet(path) {
+  const r = await fetch(API + path);
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function apiPost(path, data) {
+  const r = await fetch(API + path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function apiPut(path, data) {
+  const r = await fetch(API + path, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function apiDelete(path) {
+  const r = await fetch(API + path, { method:'DELETE' });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
 }
 
-function setDB(key, data) {
-  localStorage.setItem('lc_' + key, JSON.stringify(data));
-}
-
+/* ── ID generator ── */
 function genId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+/* ── Format helpers ── */
+function formatCurrency(n) { return '$' + Number(n || 0).toFixed(2); }
+function formatDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+
+/* ── Avatar ── */
+const AVATAR_COLORS = ['#FF0000','#1D4ED8','#1E6B45','#7C3AED','#A05C00','#0891B2','#BE185D','#D97706'];
+function avatarColor(name) {
+  let h = 0;
+  for (let c of (name||'?')) h = (h<<5)-h+c.charCodeAt(0);
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
+function initials(name) {
+  return (name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
 }
 
 // ══════════════════════════════════════════
@@ -21,34 +55,30 @@ function genId() {
 // ══════════════════════════════════════════
 
 const ROLE_PERMISSIONS = {
-  'CEO':        ['dashboard', 'students', 'groups', 'payments', 'teachers', 'classrooms', 'settings'],
-  'Manager':    ['dashboard', 'students', 'groups', 'payments', 'teachers', 'classrooms', 'settings'],
-  'Head Admin': ['dashboard', 'students', 'groups', 'teachers', 'classrooms'],
-  'Admin':      ['dashboard', 'students', 'groups', 'classrooms'],
+  'CEO':        ['dashboard','students','groups','payments','teachers','classrooms','settings'],
+  'Manager':    ['dashboard','students','groups','payments','teachers','classrooms','settings'],
+  'Head Admin': ['dashboard','students','groups','teachers','classrooms'],
+  'Admin':      ['dashboard','students','groups','classrooms'],
 };
 
 const ROLE_META = {
-  'CEO':        { color: '#FF0000', badge: 'badge-red',   label: 'CEO'        },
-  'Manager':    { color: '#CC0000', badge: 'badge-red',   label: 'Manager'    },
-  'Head Admin': { color: '#1d4ed8', badge: 'badge-blue',  label: 'Head Admin' },
-  'Admin':      { color: '#1E6B45', badge: 'badge-green', label: 'Admin'      },
+  'CEO':        { color:'#FF0000', badge:'badge-red',   label:'CEO'        },
+  'Manager':    { color:'#CC0000', badge:'badge-red',   label:'Manager'    },
+  'Head Admin': { color:'#1d4ed8', badge:'badge-blue',  label:'Head Admin' },
+  'Admin':      { color:'#1E6B45', badge:'badge-green', label:'Admin'      },
 };
 
 function getSession() {
-  try { return JSON.parse(localStorage.getItem('lc_session') || 'null'); }
+  try { return JSON.parse(sessionStorage.getItem('lc_session') || localStorage.getItem('lc_session') || 'null'); }
   catch { return null; }
 }
-
-function getRole() {
-  const s = getSession();
-  return s ? s.role : null;
+function setSession(data) {
+  const s = JSON.stringify(data);
+  sessionStorage.setItem('lc_session', s);
+  localStorage.setItem('lc_session', s);
 }
-
-function can(feature) {
-  const role = getRole();
-  if (!role) return false;
-  return (ROLE_PERMISSIONS[role] || []).includes(feature);
-}
+function getRole() { const s = getSession(); return s ? s.role : null; }
+function can(feature) { const role = getRole(); return !!(role && (ROLE_PERMISSIONS[role]||[]).includes(feature)); }
 
 function requireAuth(requiredFeature) {
   const session = getSession();
@@ -58,34 +88,71 @@ function requireAuth(requiredFeature) {
     window.location.replace('index.html');
   }
 }
-
 function logout() {
+  sessionStorage.removeItem('lc_session');
   localStorage.removeItem('lc_session');
   window.location.replace('login.html');
 }
 
-// ── Render sidebar dynamically based on role ──
+// ── Activity log (fire-and-forget) ──
+function logActivity(text, color) {
+  const session = getSession();
+  apiPost('/api/activity', {
+    text, color: color||'',
+    actor: session?.name || 'System',
+    role:  session?.role  || ''
+  }).catch(() => {});
+}
+
+// ── Toast ──
+function showToast(message, type) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + (type||'success');
+  toast.innerHTML = `<span>${type==='error'?'⚠️':'✓'}</span> ${message}`;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
+
+function checkAccessDeniedMessage() {
+  const denied = sessionStorage.getItem('lc_access_denied');
+  if (denied) {
+    sessionStorage.removeItem('lc_access_denied');
+    const labels = { payments:'Payments', teachers:'Teachers', settings:'Users', groups:'Groups', classrooms:'Classrooms' };
+    showToast(`Your role does not have access to ${labels[denied]||denied}.`, 'error');
+  }
+}
+
+// ── Modal helpers ──
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open');
+});
+
+// ── Sidebar ──
 function renderSidebar(activePage) {
   const session = getSession();
   if (!session) return;
 
   const NAV_ITEMS = [
-    { feature: 'dashboard', href: 'index.html',    icon: '⊞', label: 'Dashboard'  },
-    { feature: 'students',  href: 'students.html', icon: '👤', label: 'Students'   },
-    { feature: 'groups',    href: 'groups.html',   icon: '👥', label: 'Groups'     },
-    { feature: 'payments',  href: 'payments.html', icon: '💳', label: 'Payments'   },
-    { feature: 'teachers',  href: 'teachers.html', icon: '🎓', label: 'Teachers'   },
-    { feature: 'classrooms',href: 'classrooms.html',icon:'🏛', label: 'Classrooms' },
-    { feature: 'settings',  href: 'users.html',    icon: '🔧', label: 'Users'      },
+    { feature:'dashboard',  href:'index.html',      icon:'⊞', label:'Dashboard'  },
+    { feature:'students',   href:'students.html',   icon:'👤', label:'Students'   },
+    { feature:'groups',     href:'groups.html',     icon:'👥', label:'Groups'     },
+    { feature:'payments',   href:'payments.html',   icon:'💳', label:'Payments'   },
+    { feature:'teachers',   href:'teachers.html',   icon:'🎓', label:'Teachers'   },
+    { feature:'classrooms', href:'classrooms.html', icon:'🏛', label:'Classrooms' },
+    { feature:'settings',   href:'users.html',      icon:'🔧', label:'Users'      },
   ];
 
   const meta = ROLE_META[session.role] || ROLE_META['Admin'];
-
-  const navHTML = NAV_ITEMS.map(item => {
-    if (!can(item.feature)) return '';
-    const isActive = item.feature === activePage;
-    return `<a href="${item.href}" class="nav-link${isActive ? ' active' : ''}"><span class="icon">${item.icon}</span> ${item.label}</a>`;
-  }).join('');
+  const navHTML = NAV_ITEMS
+    .filter(item => can(item.feature))
+    .map(item => {
+      const isActive = item.feature === activePage;
+      return `<a href="${item.href}" class="nav-link${isActive?' active':''}"><span class="icon">${item.icon}</span> ${item.label}</a>`;
+    }).join('');
 
   const sidebarHTML = `
     <a href="index.html" class="sidebar-brand" style="text-decoration:none;display:block;">
@@ -98,33 +165,26 @@ function renderSidebar(activePage) {
     </div>
     <div class="sidebar-footer">
       <div class="user-pill" style="margin-bottom:10px">
-        <div class="user-avatar">${session.avatar || initials(session.name)}</div>
+        <div class="user-avatar" style="background:${meta.color}">${session.avatar||initials(session.name)}</div>
         <div class="user-info">
           <div class="user-name">${session.name}</div>
-          <div class="user-role"><span style="font-size:10px;color:rgba(255,255,255,0.45);letter-spacing:1px;text-transform:uppercase">${session.role}</span></div>
+          <div class="user-role"><span class="badge ${meta.badge}" style="font-size:9px;padding:1px 7px">${session.role}</span></div>
         </div>
       </div>
-      <button onclick="logout()" style="
-        width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);
-        color:rgba(255,255,255,0.55);border-radius:8px;padding:8px;font-size:12px;
-        cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;
-      " onmouseover="this.style.background='rgba(255,255,255,0.14)';this.style.color='white'"
-         onmouseout="this.style.background='rgba(255,255,255,0.07)';this.style.color='rgba(255,255,255,0.55)'">
+      <button onclick="logout()" style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.55);border-radius:8px;padding:8px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.14)';this.style.color='white'" onmouseout="this.style.background='rgba(255,255,255,0.07)';this.style.color='rgba(255,255,255,0.55)'">
         Sign Out
       </button>
-    </div>
-  `;
+    </div>`;
 
   const sidebar = document.querySelector('.sidebar');
   if (sidebar) sidebar.innerHTML = sidebarHTML;
 
-  // ── Mobile hamburger + overlay ──
+  // Mobile hamburger
   const topbar = document.querySelector('.topbar');
   if (topbar && !document.getElementById('menuToggle')) {
     const toggle = document.createElement('button');
     toggle.id = 'menuToggle';
     toggle.className = 'menu-toggle';
-    toggle.setAttribute('aria-label', 'Toggle menu');
     toggle.innerHTML = '<span></span><span></span><span></span>';
     toggle.onclick = toggleSidebar;
     topbar.insertBefore(toggle, topbar.firstChild);
@@ -138,88 +198,17 @@ function renderSidebar(activePage) {
   }
 }
 
-// ── Mobile sidebar toggle ──
 function toggleSidebar() {
-  const sidebar = document.querySelector('.sidebar');
-  const overlay = document.getElementById('sidebarOverlay');
-  if (!sidebar) return;
-  const isOpen = sidebar.classList.contains('open');
-  sidebar.classList.toggle('open', !isOpen);
-  if (overlay) overlay.classList.toggle('show', !isOpen);
+  const s = document.querySelector('.sidebar');
+  const o = document.getElementById('sidebarOverlay');
+  const open = s?.classList.contains('open');
+  s?.classList.toggle('open', !open);
+  o?.classList.toggle('show', !open);
 }
-
 function closeSidebar() {
-  const sidebar = document.querySelector('.sidebar');
-  const overlay = document.getElementById('sidebarOverlay');
-  if (sidebar) sidebar.classList.remove('open');
-  if (overlay) overlay.classList.remove('show');
+  document.querySelector('.sidebar')?.classList.remove('open');
+  document.getElementById('sidebarOverlay')?.classList.remove('show');
 }
-
-// Close sidebar when a nav link is tapped on mobile
 document.addEventListener('click', e => {
   if (e.target.closest('.nav-link') && window.innerWidth <= 640) closeSidebar();
 });
-function logActivity(text, color) {
-  const session = getSession();
-  const activity = getDB('activity');
-  activity.unshift({
-    text,
-    color: color || '',
-    actor: session ? session.name : 'System',
-    role: session ? session.role : '',
-    time: new Date().toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' })
-  });
-  setDB('activity', activity.slice(0, 50));
-}
-
-// ── Toast notifications ──
-function showToast(message, type) {
-  const container = document.getElementById('toastContainer');
-  if (!container) return;
-  const toast = document.createElement('div');
-  toast.className = 'toast ' + (type || 'success');
-  toast.innerHTML = `<span>${type === 'error' ? '⚠️' : '✓'}</span> ${message}`;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 3500);
-}
-
-function checkAccessDeniedMessage() {
-  const denied = sessionStorage.getItem('lc_access_denied');
-  if (denied) {
-    sessionStorage.removeItem('lc_access_denied');
-    const labels = { payments:'Payments', teachers:'Teachers', settings:'Users', groups:'Groups' };
-    showToast(`Your role does not have access to ${labels[denied] || denied}.`, 'error');
-  }
-}
-
-// ── Modal helpers ──
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-document.addEventListener('click', e => {
-  if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open');
-});
-
-// ── Avatar ──
-const AVATAR_COLORS = ['#FF0000','#CC0000','#990000','#C94060','#3b82f6','#1E6B45','#0891b2','#A05C00'];
-function avatarColor(name) {
-  let h = 0;
-  for (let c of (name||'?')) h = (h << 5) - h + c.charCodeAt(0);
-  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
-}
-function initials(name) {
-  return (name || '?').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-}
-
-// ── Utilities ──
-function filterTable(inputId, tableBodyId) {
-  const val = document.getElementById(inputId).value.toLowerCase();
-  document.querySelectorAll(`#${tableBodyId} tr`).forEach(r => {
-    r.style.display = r.textContent.toLowerCase().includes(val) ? '' : 'none';
-  });
-}
-function formatCurrency(n) { return '$' + Number(n || 0).toFixed(2); }
-function formatDate(iso) {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-}

@@ -1,105 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Classrooms — TommyLC CRM</title>
   <link rel="stylesheet" href="shared.css">
   <style>
-    .rooms-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 20px;
-    }
-    .room-card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      box-shadow: var(--shadow);
-      transition: box-shadow 0.15s, transform 0.15s;
-    }
-    .room-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
-    .room-card-top {
-      background: var(--crimson);
-      padding: 24px 20px 20px;
-      position: relative;
-    }
-    .room-card-top .room-icon {
-      font-size: 36px; margin-bottom: 8px; display: block;
-    }
-    .room-card-name {
-      font-family: 'Playfair Display', serif;
-      font-size: 20px; font-weight: 900; color: white;
-    }
-    .room-card-body { padding: 16px 20px; }
-    .room-stat {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 8px 0; border-bottom: 1px solid var(--border);
-      font-size: 13px;
-    }
-    .room-stat:last-child { border-bottom: none; }
-    .room-stat-label { color: var(--muted); }
-    .room-stat-val { font-weight: 700; color: var(--text); }
-    .room-card-footer {
-      padding: 12px 20px;
-      border-top: 1px solid var(--border);
-      display: flex; gap: 8px; justify-content: flex-end;
-    }
-
-    /* Add form card */
-    .add-card {
-      background: white;
-      border: 2px dashed var(--border);
-      border-radius: var(--radius);
-      padding: 28px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .add-card-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 16px; font-weight: 900; color: var(--text);
-      margin-bottom: 4px;
-    }
+    .rooms-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:20px; }
+    .room-card { background:white; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); transition:box-shadow 0.15s,transform 0.15s; }
+    .room-card:hover { box-shadow:var(--shadow-lg); transform:translateY(-2px); }
+    .room-card-top { background:var(--crimson); padding:24px 20px 20px; }
+    .room-icon { font-size:36px; margin-bottom:8px; display:block; }
+    .room-card-name { font-family:'Playfair Display',serif; font-size:20px; font-weight:900; color:white; }
+    .room-card-body { padding:16px 20px; }
+    .room-stat { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px; }
+    .room-stat:last-child { border-bottom:none; }
+    .room-stat-label { color:var(--muted); }
+    .room-stat-val { font-weight:700; color:var(--text); }
+    .room-card-footer { padding:12px 20px; border-top:1px solid var(--border); display:flex; gap:8px; justify-content:flex-end; }
+    .add-card { background:white; border:2px dashed var(--border); border-radius:var(--radius); padding:28px 24px; display:flex; flex-direction:column; gap:12px; }
+    .add-card-title { font-family:'Playfair Display',serif; font-size:16px; font-weight:900; color:var(--text); margin-bottom:4px; }
   </style>
 </head>
 <body>
-
 <nav class="sidebar"></nav>
-
 <div class="main">
   <div class="topbar">
     <div class="page-title">Classrooms</div>
-    <div class="topbar-right">
-      <span class="text-muted" id="roomCount"></span>
-    </div>
+    <div class="topbar-right"><span class="text-muted" id="roomCount"></span></div>
   </div>
-
   <div class="page-content">
-
     <div class="rooms-grid" id="roomsGrid"></div>
-
   </div>
 </div>
 
-<!-- Edit modal -->
 <div class="modal-overlay" id="editModal">
-  <div class="modal" style="width:420px">
+  <div class="modal" style="width:400px">
     <div class="modal-header">
       <div class="modal-title">Edit Classroom</div>
       <button class="modal-close" onclick="closeModal('editModal')">✕</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="editRoomId">
-      <div class="form-group">
-        <label>Room Name *</label>
-        <input type="text" id="editRoomName" placeholder="e.g. Room 1">
-      </div>
-      <div class="form-group">
-        <label>Capacity</label>
-        <input type="number" id="editRoomCap" placeholder="e.g. 12" min="1">
-      </div>
+      <div class="form-group"><label>Room Name *</label><input type="text" id="editRoomName" placeholder="Room 1"></div>
+      <div class="form-group"><label>Capacity</label><input type="number" id="editRoomCap" placeholder="12" min="1"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('editModal')">Cancel</button>
@@ -113,135 +56,83 @@
 <script>
   requireAuth('classrooms');
   renderSidebar('classrooms');
+  let rooms = [], groups = [];
+
+  async function load() {
+    [rooms, groups] = await Promise.all([apiGet('/api/classrooms'), apiGet('/api/groups')]);
+    renderRooms();
+  }
 
   function renderRooms() {
-    const rooms   = getDB('classrooms');
-    const groups  = getDB('groups');
-    const grid    = document.getElementById('roomsGrid');
-    const canEdit = ['CEO','Manager','Head Admin','Admin'].includes(getRole());
-
-    document.getElementById('roomCount').textContent =
-      `${rooms.length} classroom${rooms.length !== 1 ? 's' : ''}`;
-
-    let html = '';
-
-    // ── Add new room card (always first) ──
-    html += `<div class="add-card">
+    const grid = document.getElementById('roomsGrid');
+    document.getElementById('roomCount').textContent = `${rooms.length} classroom${rooms.length!==1?'s':''}`;
+    let html = `<div class="add-card">
       <div class="add-card-title">🏛 Add Classroom</div>
-      <div class="form-group" style="margin:0">
-        <label>Room Name *</label>
-        <input type="text" id="newRoomName" placeholder="e.g. Room 3">
-      </div>
-      <div class="form-group" style="margin:0">
-        <label>Capacity</label>
-        <input type="number" id="newRoomCap" placeholder="e.g. 15" min="1">
-      </div>
+      <div class="form-group" style="margin:0"><label>Room Name *</label><input type="text" id="newRoomName" placeholder="Room 3"></div>
+      <div class="form-group" style="margin:0"><label>Capacity</label><input type="number" id="newRoomCap" placeholder="15" min="1"></div>
       <button class="btn btn-primary" onclick="addRoom()" style="margin-top:4px">Add Classroom</button>
     </div>`;
 
-    // ── Existing rooms ──
-    rooms.forEach(r => {
-      const groupsHere = groups.filter(g => g.room === r.name);
-      html += `<div class="room-card">
-        <div class="room-card-top">
-          <span class="room-icon">🏛</span>
-          <div class="room-card-name">${r.name}</div>
-        </div>
+    html += rooms.map(r => {
+      const here = groups.filter(g => g.room === r.name);
+      return `<div class="room-card">
+        <div class="room-card-top"><span class="room-icon">🏛</span><div class="room-card-name">${r.name}</div></div>
         <div class="room-card-body">
-          <div class="room-stat">
-            <span class="room-stat-label">Capacity</span>
-            <span class="room-stat-val">${r.capacity ? r.capacity + ' students' : '—'}</span>
-          </div>
-          <div class="room-stat">
-            <span class="room-stat-label">Groups assigned</span>
-            <span class="room-stat-val">${groupsHere.length}</span>
-          </div>
-          ${groupsHere.length ? `<div class="room-stat" style="flex-direction:column;align-items:flex-start;gap:4px">
-            <span class="room-stat-label">Groups</span>
-            <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
-              ${groupsHere.map(g => `<span class="badge badge-red">${g.name}</span>`).join('')}
-            </div>
-          </div>` : ''}
+          <div class="room-stat"><span class="room-stat-label">Capacity</span><span class="room-stat-val">${r.capacity?r.capacity+' students':'—'}</span></div>
+          <div class="room-stat"><span class="room-stat-label">Groups</span><span class="room-stat-val">${here.length}</span></div>
+          ${here.length?`<div class="room-stat" style="flex-direction:column;align-items:flex-start;gap:6px">
+            <span class="room-stat-label">Assigned groups</span>
+            <div style="display:flex;flex-wrap:wrap;gap:4px">${here.map(g=>`<span class="badge badge-red">${g.name}</span>`).join('')}</div>
+          </div>`:''}
         </div>
-        ${canEdit ? `<div class="room-card-footer">
+        <div class="room-card-footer">
           <button class="btn btn-ghost btn-sm" onclick="openEdit('${r.id}')">✏️ Edit</button>
           <button class="btn btn-danger btn-sm" onclick="deleteRoom('${r.id}')">🗑 Delete</button>
-        </div>` : ''}
+        </div>
       </div>`;
-    });
-
+    }).join('');
     grid.innerHTML = html;
   }
 
-  function addRoom() {
+  async function addRoom() {
     const name = document.getElementById('newRoomName').value.trim();
     const cap  = document.getElementById('newRoomCap').value.trim();
-    if (!name) { showToast('Room name is required.', 'error'); return; }
-    const rooms = getDB('classrooms');
-    if (rooms.find(r => r.name.toLowerCase() === name.toLowerCase())) {
-      showToast('A classroom with that name already exists.', 'error'); return;
-    }
-    rooms.push({ id: genId(), name, capacity: cap ? Number(cap) : null });
-    setDB('classrooms', rooms);
-    logActivity(`Added classroom: ${name}`, 'green');
-    document.getElementById('newRoomName').value = '';
-    document.getElementById('newRoomCap').value = '';
-    renderRooms();
-    showToast(`"${name}" added!`);
+    if (!name) { showToast('Room name required.','error'); return; }
+    if (rooms.find(r=>r.name.toLowerCase()===name.toLowerCase())) { showToast('Already exists.','error'); return; }
+    await apiPost('/api/classrooms', { id:genId(), name, capacity:cap?Number(cap):null });
+    logActivity(`Added classroom: ${name}`,'green');
+    document.getElementById('newRoomName').value='';
+    document.getElementById('newRoomCap').value='';
+    await load(); showToast(`"${name}" added!`);
   }
 
   function openEdit(id) {
-    const r = getDB('classrooms').find(r => r.id === id);
-    if (!r) return;
-    document.getElementById('editRoomId').value  = id;
-    document.getElementById('editRoomName').value = r.name;
-    document.getElementById('editRoomCap').value  = r.capacity || '';
+    const r=rooms.find(r=>r.id===id); if(!r) return;
+    document.getElementById('editRoomId').value=id;
+    document.getElementById('editRoomName').value=r.name;
+    document.getElementById('editRoomCap').value=r.capacity||'';
     openModal('editModal');
   }
 
-  function saveEdit() {
-    const id   = document.getElementById('editRoomId').value;
-    const name = document.getElementById('editRoomName').value.trim();
-    const cap  = document.getElementById('editRoomCap').value.trim();
-    if (!name) { showToast('Room name is required.', 'error'); return; }
-    const rooms = getDB('classrooms');
-    const idx = rooms.findIndex(r => r.id === id);
-    if (idx !== -1) {
-      const oldName = rooms[idx].name;
-      rooms[idx].name     = name;
-      rooms[idx].capacity = cap ? Number(cap) : null;
-      // Update groups referencing the old name
-      if (oldName !== name) {
-        const groups = getDB('groups').map(g => g.room === oldName ? { ...g, room: name } : g);
-        setDB('groups', groups);
-      }
-    }
-    setDB('classrooms', rooms);
-    logActivity(`Updated classroom: ${name}`, '');
-    closeModal('editModal');
-    renderRooms();
-    showToast('Classroom updated!');
+  async function saveEdit() {
+    const id=document.getElementById('editRoomId').value;
+    const name=document.getElementById('editRoomName').value.trim();
+    const cap=document.getElementById('editRoomCap').value.trim();
+    if(!name){showToast('Name required.','error');return;}
+    await apiPut('/api/classrooms/'+id,{name,capacity:cap?Number(cap):null});
+    logActivity(`Updated classroom: ${name}`,'');
+    closeModal('editModal'); await load(); showToast('Classroom updated!');
   }
 
-  function deleteRoom(id) {
-    const rooms = getDB('classrooms');
-    const r = rooms.find(r => r.id === id);
-    if (!confirm(`Delete "${r?.name}"? Groups assigned to it will lose their room.`)) return;
-    setDB('classrooms', rooms.filter(r => r.id !== id));
-    logActivity(`Deleted classroom: ${r?.name}`, 'red');
-    renderRooms();
-    showToast('Classroom deleted.', 'error');
+  async function deleteRoom(id) {
+    const r=rooms.find(r=>r.id===id);
+    if(!confirm(`Delete "${r?.name}"?`))return;
+    await apiDelete('/api/classrooms/'+id);
+    logActivity(`Deleted classroom: ${r?.name}`,'red');
+    await load(); showToast('Deleted.','error');
   }
 
-  // Seed if empty
-  if (!getDB('classrooms').length) {
-    setDB('classrooms', [
-      { id: genId(), name: 'Room 1', capacity: 12 },
-      { id: genId(), name: 'Room 2', capacity: 8 },
-    ]);
-  }
-
-  renderRooms();
+  load();
 </script>
 </body>
 </html>

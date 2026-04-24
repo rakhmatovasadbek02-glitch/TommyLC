@@ -1,153 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Groups — TommyLC CRM</title>
   <link rel="stylesheet" href="shared.css">
   <style>
-    .toolbar { display:flex; align-items:center; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
-
-    /* ── Group cards ── */
-    .groups-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 20px;
-    }
-
-    .group-card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      box-shadow: var(--shadow);
-      transition: box-shadow 0.15s, transform 0.15s;
-    }
-    .group-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
-
-    .group-card-top {
-      padding: 18px 20px 14px;
-      border-bottom: 1px solid var(--border);
-      position: relative;
-    }
-    .group-color-bar {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 4px;
-    }
-    .group-name {
-      font-family: 'Playfair Display', serif;
-      font-size: 17px; font-weight: 900;
-      color: var(--text); margin-bottom: 6px;
-      margin-top: 6px;
-    }
-    .group-meta { display:flex; gap:12px; flex-wrap:wrap; font-size:12px; color:var(--muted); }
-    .group-meta span { display:flex; align-items:center; gap:4px; }
-
-    .group-card-body { padding: 14px 20px; }
-
-    .group-badges { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
-
-    /* Student list inside card */
-    .group-student-row {
-      display: flex; align-items: center; gap:10px;
-      padding: 7px 0; border-bottom: 1px solid var(--border);
-      font-size: 13px;
-    }
-    .group-student-row:last-child { border-bottom: none; }
-    .group-student-name { flex:1; font-weight:500; }
-    .group-student-level { font-size:11px; color:var(--muted); }
-
-    .group-card-footer {
-      padding: 12px 20px;
-      border-top: 1px solid var(--border);
-      display: flex; gap:8px; justify-content:flex-end;
-      background: var(--surface);
-    }
-
-    /* ── Sched type cards (modal) ── */
-    .sched-opt input[type="radio"] { display:none; }
-    .sched-box {
-      border: 1.5px solid var(--border); border-radius: 10px;
-      padding: 12px 10px; text-align: center; cursor: pointer;
-      transition: all 0.15s; background: white;
-    }
-    .sched-opt input:checked + .sched-box {
-      border-color: var(--crimson); background: var(--crimson-soft);
-      box-shadow: 0 0 0 3px rgba(255,0,0,0.08);
-    }
-    .sched-box:hover { border-color: var(--crimson); }
-    .sched-icon { font-size: 20px; margin-bottom: 4px; }
-    .sched-name { font-size: 13px; font-weight: 700; color: var(--text); }
-    .sched-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
-
-    /* Day chips */
-    .day-chip input[type="checkbox"] { display:none; }
-    .day-chip span {
-      display:inline-flex; align-items:center; justify-content:center;
-      width:40px; height:34px; border:1.5px solid var(--border); border-radius:7px;
-      font-size:12px; font-weight:700; cursor:pointer; transition:all 0.15s;
-      background:white; color:var(--muted);
-    }
-    .day-chip input:checked + span { background:var(--crimson); color:white; border-color:var(--crimson); }
-    .day-chip span:hover { border-color:var(--crimson); color:var(--crimson); }
-    .day-chip input:checked + span:hover { color:white; }
-
-    /* Student checklist in modal */
-    .student-check-row {
-      display:flex; align-items:center; gap:10px;
-      padding:9px 0; border-bottom:1px solid var(--border);
-      cursor:pointer;
-    }
-    .student-check-row:last-child { border-bottom:none; }
-    .student-check-row input { accent-color:var(--crimson); width:16px; height:16px; cursor:pointer; }
-
-    /* Attendance */
-    .att-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); }
-    .att-row:last-child { border-bottom:none; }
-    .att-name { flex:1; font-size:14px; }
-    .att-toggle { display:flex; gap:6px; }
-    .att-btn { padding:5px 12px; border-radius:6px; border:1.5px solid var(--border); background:white; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.15s; }
-    .att-btn.present { background:var(--green); color:white; border-color:var(--green); }
-    .att-btn.absent  { background:var(--crimson); color:white; border-color:var(--crimson); }
-    .att-btn.late    { background:#FF9999; color:#990000; border-color:#FF9999; }
+    .groups-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+    .group-card{background:white;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);transition:box-shadow 0.15s,transform 0.15s}
+    .group-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+    .group-card-top{padding:18px 20px 14px;border-bottom:1px solid var(--border);position:relative}
+    .group-color-bar{position:absolute;top:0;left:0;right:0;height:4px}
+    .group-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:900;color:var(--text);margin-bottom:6px;margin-top:6px}
+    .group-meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+    .group-card-body{padding:14px 20px}
+    .group-student-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+    .group-student-row:last-child{border-bottom:none}
+    .group-student-name{flex:1;font-weight:500}
+    .group-card-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--surface)}
+    .sched-opt input[type="radio"]{display:none}
+    .sched-box{border:1.5px solid var(--border);border-radius:10px;padding:12px 10px;text-align:center;cursor:pointer;transition:all 0.15s;background:white}
+    .sched-opt input:checked+.sched-box{border-color:var(--crimson);background:var(--crimson-soft);box-shadow:0 0 0 3px rgba(255,0,0,0.08)}
+    .sched-box:hover{border-color:var(--crimson)}
+    .sched-icon{font-size:20px;margin-bottom:4px}
+    .sched-name{font-size:13px;font-weight:700;color:var(--text)}
+    .sched-desc{font-size:11px;color:var(--muted);margin-top:2px}
+    .day-chip input[type="checkbox"]{display:none}
+    .day-chip span{display:inline-flex;align-items:center;justify-content:center;width:40px;height:34px;border:1.5px solid var(--border);border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.15s;background:white;color:var(--muted)}
+    .day-chip input:checked+span{background:var(--crimson);color:white;border-color:var(--crimson)}
+    .day-chip span:hover{border-color:var(--crimson);color:var(--crimson)}
+    .student-check-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer}
+    .student-check-row:last-child{border-bottom:none}
+    .student-check-row input{accent-color:var(--crimson);width:16px;height:16px;cursor:pointer}
+    .att-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+    .att-row:last-child{border-bottom:none}
+    .att-name{flex:1;font-size:14px}
+    .att-toggle{display:flex;gap:6px}
+    .att-btn{padding:5px 12px;border-radius:6px;border:1.5px solid var(--border);background:white;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s}
+    .att-btn.present{background:var(--green);color:white;border-color:var(--green)}
+    .att-btn.absent{background:var(--crimson);color:white;border-color:var(--crimson)}
+    .att-btn.late{background:#FF9999;color:#990000;border-color:#FF9999}
   </style>
 </head>
 <body>
-
 <nav class="sidebar"></nav>
-
 <div class="main">
   <div class="topbar">
     <div class="page-title">Groups</div>
-    <div class="topbar-right">
-      <button class="btn btn-primary" onclick="openAddModal()">➕ Add Group</button>
-    </div>
+    <div class="topbar-right"><button class="btn btn-primary" onclick="openAdd()">➕ Add Group</button></div>
   </div>
-
   <div class="page-content">
     <div class="toolbar">
-      <div class="search-bar">
-        <span class="search-icon">🔍</span>
+      <div class="search-bar"><span class="search-icon">🔍</span>
         <input type="text" id="searchInput" placeholder="Search groups…" oninput="renderGroups()">
       </div>
-      <select id="filterSched" onchange="renderGroups()" style="width:auto;padding:9px 14px;">
-        <option value="">All Schedules</option>
-        <option value="odd">Odd Days</option>
-        <option value="even">Even Days</option>
-        <option value="custom">Custom</option>
-      </select>
-      <select id="filterTeacher" onchange="renderGroups()" style="width:auto;padding:9px 14px;">
-        <option value="">All Teachers</option>
+      <select id="filterSched" onchange="renderGroups()" style="width:auto;padding:9px 14px">
+        <option value="">All Schedules</option><option value="odd">Odd Days</option><option value="even">Even Days</option><option value="custom">Custom</option>
       </select>
       <span class="text-muted" id="groupCount" style="margin-left:auto"></span>
     </div>
-
     <div class="groups-grid" id="groupsGrid"></div>
   </div>
 </div>
 
-<!-- ══ ADD / EDIT GROUP MODAL ══ -->
 <div class="modal-overlay" id="groupModal">
   <div class="modal" style="width:580px">
     <div class="modal-header">
@@ -156,67 +70,25 @@
     </div>
     <div class="modal-body">
       <input type="hidden" id="editGroupId">
-
-      <div class="form-group">
-        <label>Group Name *</label>
-        <input type="text" id="gName" placeholder="e.g. Intermediate A · Morning">
-      </div>
-
+      <div class="form-group"><label>Group Name *</label><input type="text" id="gName" placeholder="Intermediate A · Morning"></div>
       <div class="form-row">
-        <div class="form-group">
-          <label>Teacher</label>
-          <select id="gTeacher"><option value="">— Select —</option></select>
-        </div>
-        <div class="form-group">
-          <label>Room</label>
-          <select id="gRoom"><option value="">— Select room —</option></select>
-        </div>
+        <div class="form-group"><label>Teacher</label><select id="gTeacher"><option value="">— Select —</option></select></div>
+        <div class="form-group"><label>Room</label><select id="gRoom"><option value="">— Select room —</option></select></div>
       </div>
-
       <div class="form-row">
-        <div class="form-group">
-          <label>Level</label>
-          <input type="text" id="gLevel" placeholder="e.g. Intermediate, B2…">
-        </div>
-        <div class="form-group">
-          <label>Max Students</label>
-          <input type="number" id="gMaxStudents" placeholder="e.g. 12" min="1">
-        </div>
+        <div class="form-group"><label>Level</label><input type="text" id="gLevel" placeholder="Intermediate, B2…"></div>
+        <div class="form-group"><label>Max Students</label><input type="number" id="gMax" placeholder="12" min="1"></div>
       </div>
-
-      <!-- Schedule type -->
       <div class="form-group">
         <label>Schedule Type *</label>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px">
-          <label class="sched-opt">
-            <input type="radio" name="gSchedType" value="odd" onchange="onSchedType()" checked>
-            <div class="sched-box">
-              <div class="sched-icon">📅</div>
-              <div class="sched-name">Odd Days</div>
-              <div class="sched-desc">Mon · Wed · Fri</div>
-            </div>
-          </label>
-          <label class="sched-opt">
-            <input type="radio" name="gSchedType" value="even" onchange="onSchedType()">
-            <div class="sched-box">
-              <div class="sched-icon">📆</div>
-              <div class="sched-name">Even Days</div>
-              <div class="sched-desc">Tue · Thu · Sat</div>
-            </div>
-          </label>
-          <label class="sched-opt">
-            <input type="radio" name="gSchedType" value="custom" onchange="onSchedType()">
-            <div class="sched-box">
-              <div class="sched-icon">✏️</div>
-              <div class="sched-name">Custom</div>
-              <div class="sched-desc">Pick days</div>
-            </div>
-          </label>
+          <label class="sched-opt"><input type="radio" name="gSched" value="odd" onchange="onSched()" checked><div class="sched-box"><div class="sched-icon">📅</div><div class="sched-name">Odd Days</div><div class="sched-desc">Mon·Wed·Fri</div></div></label>
+          <label class="sched-opt"><input type="radio" name="gSched" value="even" onchange="onSched()"><div class="sched-box"><div class="sched-icon">📆</div><div class="sched-name">Even Days</div><div class="sched-desc">Tue·Thu·Sat</div></div></label>
+          <label class="sched-opt"><input type="radio" name="gSched" value="custom" onchange="onSched()"><div class="sched-box"><div class="sched-icon">✏️</div><div class="sched-name">Custom</div><div class="sched-desc">Pick days</div></div></label>
         </div>
       </div>
-
-      <div class="form-group" id="customDaysGroup" style="display:none">
-        <label>Days of the Week *</label>
+      <div class="form-group" id="customDays" style="display:none">
+        <label>Days *</label>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
           <label class="day-chip"><input type="checkbox" name="gDay" value="1"><span>Mon</span></label>
           <label class="day-chip"><input type="checkbox" name="gDay" value="2"><span>Tue</span></label>
@@ -227,40 +99,22 @@
           <label class="day-chip"><input type="checkbox" name="gDay" value="0"><span>Sun</span></label>
         </div>
       </div>
-
       <div class="form-row">
-        <div class="form-group">
-          <label>Start Time *</label>
-          <input type="time" id="gTime">
-        </div>
-        <div class="form-group">
-          <label>Duration</label>
-          <select id="gDuration">
-            <option value="60">60 min</option>
-            <option value="90">90 min</option>
-            <option value="120">120 min</option>
-          </select>
+        <div class="form-group"><label>Start Time *</label><input type="time" id="gTime"></div>
+        <div class="form-group"><label>Duration</label>
+          <select id="gDur"><option value="60">60 min</option><option value="90">90 min</option><option value="120">120 min</option></select>
         </div>
       </div>
-
-      <div class="form-group">
-        <label>Start Date *</label>
-        <input type="date" id="gDate">
-        <div style="font-size:11px;color:var(--muted);margin-top:4px">Group runs on this schedule until deleted.</div>
+      <div class="form-group"><label>Start Date *</label><input type="date" id="gDate">
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Repeats until deleted.</div>
       </div>
-
-      <!-- Student selection -->
       <div class="form-group">
-        <label>Students <span id="studentCountLabel" style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)"></span></label>
-        <div style="max-height:200px;overflow-y:auto;border:1.5px solid var(--border);border-radius:8px;padding:4px 12px;" id="studentChecklist">
-          <p class="text-muted" style="padding:12px 0">No students found.</p>
+        <label>Students <span id="stuCountLabel" style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)"></span></label>
+        <div style="max-height:200px;overflow-y:auto;border:1.5px solid var(--border);border-radius:8px;padding:4px 12px" id="studentChecklist">
+          <p class="text-muted" style="padding:12px 0">Loading…</p>
         </div>
       </div>
-
-      <div class="form-group">
-        <label>Notes</label>
-        <textarea id="gNotes" placeholder="Any notes about this group…"></textarea>
-      </div>
+      <div class="form-group"><label>Notes</label><textarea id="gNotes" placeholder="Any notes…"></textarea></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('groupModal')">Cancel</button>
@@ -269,20 +123,16 @@
   </div>
 </div>
 
-<!-- ══ ATTENDANCE MODAL ══ -->
 <div class="modal-overlay" id="attendanceModal">
   <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">✅ Attendance</div>
-      <button class="modal-close" onclick="closeModal('attendanceModal')">✕</button>
-    </div>
+    <div class="modal-header"><div class="modal-title">✅ Attendance</div><button class="modal-close" onclick="closeModal('attendanceModal')">✕</button></div>
     <div class="modal-body">
-      <div id="attendanceInfo" style="margin-bottom:16px;padding:12px;background:var(--crimson-soft);border-radius:8px;font-size:13px;font-weight:600;color:#CC0000"></div>
-      <div id="attendanceList"></div>
+      <div id="attInfo" style="margin-bottom:16px;padding:12px;background:var(--crimson-soft);border-radius:8px;font-size:13px;font-weight:600;color:#CC0000"></div>
+      <div id="attList"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('attendanceModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveAttendance()">Save</button>
+      <button class="btn btn-primary" onclick="saveAtt()">Save</button>
     </div>
   </div>
 </div>
@@ -293,336 +143,214 @@
   requireAuth('groups');
   renderSidebar('groups');
 
-  const DAY_NAMES   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const SCHED_LABEL = { odd:'Odd days (Mon·Wed·Fri)', even:'Even days (Tue·Thu·Sat)', custom:'Custom' };
-  const PALETTE     = ['#FF0000','#1D4ED8','#1E6B45','#7C3AED','#A05C00','#0891B2','#BE185D'];
+  const PALETTE = ['#FF0000','#1D4ED8','#1E6B45','#7C3AED','#A05C00','#0891B2','#BE185D'];
+  let groups=[], students=[], teachers=[], classrooms=[];
+  let attGroupId=null, attDate=null;
 
-  let attendanceKey = null;
+  function groupColor(id){let h=0;for(let c of(id||'?'))h=(h<<5)-h+c.charCodeAt(0);return PALETTE[Math.abs(h)%PALETTE.length];}
 
-  function groupColor(id) {
-    let h = 0;
-    for (let c of (id||'?')) h = (h<<5)-h+c.charCodeAt(0);
-    return PALETTE[Math.abs(h) % PALETTE.length];
+  async function load() {
+    [groups,students,teachers,classrooms] = await Promise.all([
+      apiGet('/api/groups'), apiGet('/api/students'),
+      apiGet('/api/teachers'), apiGet('/api/classrooms')
+    ]);
+    renderGroups();
   }
 
-  /* ══════════════════════════════════
-     RENDER GROUP CARDS
-  ══════════════════════════════════ */
   function renderGroups() {
-    const q        = document.getElementById('searchInput').value.toLowerCase();
-    const fSched   = document.getElementById('filterSched').value;
-    const fTeacher = document.getElementById('filterTeacher').value;
-
-    // Groups are stored in 'classes' key for compatibility with dashboard timetable
-    const groups = getDB('groups').filter(g =>
-      (!q || g.name.toLowerCase().includes(q) || (g.teacher||'').toLowerCase().includes(q))
-      && (!fSched   || g.schedType === fSched)
-      && (!fTeacher || g.teacher === fTeacher)
-    );
-
-    document.getElementById('groupCount').textContent =
-      `${groups.length} group${groups.length !== 1 ? 's' : ''}`;
-
-    const grid = document.getElementById('groupsGrid');
-    if (!groups.length) {
-      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
-        <div class="empty-icon">👥</div>
-        <p>No groups yet. Click "+ Add Group" to create one.</p>
-      </div>`;
-      return;
-    }
-
-    const canManage = ['CEO','Manager','Admin'].includes(getRole());
-
-    grid.innerHTML = groups.map(g => {
-      const col       = groupColor(g.id);
-      const students  = getDB('students');
-      const enrolled  = (g.studentIds || []).map(id => students.find(s => s.id === id)).filter(Boolean);
-      const daysLabel = g.schedType === 'custom' && g.customDays?.length
-        ? g.customDays.map(d => DAY_NAMES[d]).join(' · ')
-        : '';
-      const schedBadge = g.schedType === 'custom'
-        ? `Custom: ${daysLabel || '—'}`
-        : SCHED_LABEL[g.schedType] || '—';
-      const today = new Date().toISOString().split('T')[0];
-
+    const q=document.getElementById('searchInput').value.toLowerCase();
+    const fs=document.getElementById('filterSched').value;
+    const filtered=groups.filter(g=>
+      (!q||g.name.toLowerCase().includes(q)||(g.teacher||'').toLowerCase().includes(q))&&(!fs||g.schedType===fs));
+    document.getElementById('groupCount').textContent=`${filtered.length} group${filtered.length!==1?'s':''}`;
+    const canManage=['CEO','Manager','Admin'].includes(getRole());
+    const grid=document.getElementById('groupsGrid');
+    if(!filtered.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">👥</div><p>No groups yet.</p></div>';return;}
+    const today=new Date().toISOString().split('T')[0];
+    grid.innerHTML=filtered.map(g=>{
+      const col=groupColor(g.id);
+      const enrolled=(g.studentIds||[]).map(id=>students.find(s=>s.id===id)).filter(Boolean);
+      const daysLabel=g.schedType==='custom'&&g.customDays?.length?g.customDays.map(d=>DAY_NAMES[d]).join(' · '):'';
+      const schedBadge=g.schedType==='custom'?`Custom: ${daysLabel||'—'}`:SCHED_LABEL[g.schedType]||'—';
       return `<div class="group-card">
         <div class="group-card-top">
           <div class="group-color-bar" style="background:${col}"></div>
           <div class="group-name">${g.name}</div>
           <div class="group-meta">
-            ${g.teacher ? `<span>👤 ${g.teacher}</span>` : ''}
-            ${g.room    ? `<span>📍 ${g.room}</span>`    : ''}
+            ${g.teacher?`<span>👤 ${g.teacher}</span>`:''}
+            ${g.room?`<span>📍 ${g.room}</span>`:''}
             <span>🕐 ${g.time||'—'} · ${g.duration||60}min</span>
             <span>📅 From ${formatDate(g.startDate)}</span>
           </div>
         </div>
         <div class="group-card-body">
-          <div class="group-badges">
+          <div class="group-badges" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
             <span class="badge badge-red">${schedBadge}</span>
-            ${g.level ? `<span class="badge badge-blue">${g.level}</span>` : ''}
-            <span class="badge badge-grey">${enrolled.length}${g.maxStudents ? '/'+g.maxStudents : ''} students</span>
+            ${g.level?`<span class="badge badge-blue">${g.level}</span>`:''}
+            <span class="badge badge-grey">${enrolled.length}${g.maxStudents?'/'+g.maxStudents:''} students</span>
           </div>
-          ${enrolled.length
-            ? `<div>${enrolled.slice(0,5).map(s => {
-                const name = s.firstName + ' ' + s.lastName;
-                return `<div class="group-student-row">
-                  <div class="avatar" style="background:${avatarColor(name)};width:26px;height:26px;font-size:10px">${initials(name)}</div>
-                  <div class="group-student-name">${name}</div>
-                  <div class="group-student-level">${s.level||''}</div>
-                </div>`;
-              }).join('')}
-              ${enrolled.length > 5 ? `<div style="font-size:12px;color:var(--muted);padding-top:6px">+${enrolled.length-5} more students</div>` : ''}
-            </div>`
-            : `<div class="empty-state" style="padding:16px 0"><p>No students enrolled yet.</p></div>`
-          }
+          ${enrolled.length?`<div>${enrolled.slice(0,5).map(s=>{
+            const name=s.firstName+' '+s.lastName;
+            return `<div class="group-student-row">
+              <div class="avatar" style="background:${avatarColor(name)};width:26px;height:26px;font-size:10px">${initials(name)}</div>
+              <div class="group-student-name">${name}</div>
+              <div style="font-size:11px;color:var(--muted)">${s.level||''}</div>
+            </div>`;
+          }).join('')}${enrolled.length>5?`<div style="font-size:12px;color:var(--muted);padding-top:6px">+${enrolled.length-5} more</div>`:''}</div>`
+          :'<div class="empty-state" style="padding:16px 0"><p>No students enrolled.</p></div>'}
         </div>
         <div class="group-card-footer">
-          <button class="btn btn-ghost btn-sm" onclick="openAttendance('${g.id}','${today}','${g.name.replace(/'/g,"\\'")}','${g.time||''}')">✅ Attendance</button>
-          ${canManage ? `
-            <button class="btn btn-ghost btn-sm" onclick="editGroup('${g.id}')">✏️ Edit</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteGroup('${g.id}')">🗑</button>
-          ` : ''}
+          <button class="btn btn-ghost btn-sm" onclick="openAtt('${g.id}','${today}','${g.name.replace(/'/g,"\\'")}','${g.time||''}')">✅ Attendance</button>
+          ${canManage?`<button class="btn btn-ghost btn-sm" onclick="editGroup('${g.id}')">✏️ Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteGroup('${g.id}')">🗑</button>`:''}
         </div>
       </div>`;
     }).join('');
   }
 
-  /* ══════════════════════════════════
-     ADD / EDIT GROUP
-  ══════════════════════════════════ */
-  function onSchedType() {
-    const type = document.querySelector('input[name="gSchedType"]:checked')?.value;
-    document.getElementById('customDaysGroup').style.display = type === 'custom' ? '' : 'none';
+  function onSched(){
+    const t=document.querySelector('input[name="gSched"]:checked')?.value;
+    document.getElementById('customDays').style.display=t==='custom'?'':'none';
   }
 
-  function openAddModal() {
-    clearGroupForm();
-    populateTeacherSelect();
-    populateRoomSelect();
-    populateStudentChecklist([]);
-    document.getElementById('gDate').value = new Date().toISOString().split('T')[0];
-    document.getElementById('groupModalTitle').textContent = 'Add Group';
+  async function openAdd() {
+    clearForm();
+    await populateSelects([]);
+    document.getElementById('gDate').value=new Date().toISOString().split('T')[0];
+    document.getElementById('groupModalTitle').textContent='Add Group';
     openModal('groupModal');
   }
 
-  function saveGroup() {
-    const name = document.getElementById('gName').value.trim();
-    const time = document.getElementById('gTime').value;
-    const date = document.getElementById('gDate').value;
-    if (!name || !time || !date) { showToast('Name, time and start date are required.', 'error'); return; }
-
-    const type = document.querySelector('input[name="gSchedType"]:checked')?.value || 'odd';
-    const days = [...document.querySelectorAll('input[name="gDay"]:checked')].map(c => Number(c.value));
-    if (type === 'custom' && !days.length) { showToast('Select at least one day.', 'error'); return; }
-
-    const selectedStudents = [...document.querySelectorAll('#studentChecklist input:checked')].map(c => c.value);
-
-    const editId = document.getElementById('editGroupId').value;
-    const data = {
-      name,
-      time,
-      startDate: date,
-      duration:   document.getElementById('gDuration').value,
-      teacher:    document.getElementById('gTeacher').value,
-      room:       document.getElementById('gRoom').value,
-      level:      document.getElementById('gLevel').value.trim(),
-      maxStudents: document.getElementById('gMaxStudents').value || null,
-      notes:      document.getElementById('gNotes').value.trim(),
-      schedType:  type,
-      customDays: type === 'custom' ? days : [],
-      studentIds: selectedStudents,
-    };
-
-    const groups = getDB('groups');
-    if (editId) {
-      const idx = groups.findIndex(g => g.id === editId);
-      if (idx !== -1) groups[idx] = { ...groups[idx], ...data };
-      setDB('groups', groups);
-      logActivity(`Updated group: ${name}`, '');
-      showToast('Group updated!');
-    } else {
-      data.id = genId();
-      groups.push(data);
-      setDB('groups', groups);
-      logActivity(`Added group: ${name}`, 'green');
-      showToast('Group created!');
-    }
-
-    closeModal('groupModal');
-    clearGroupForm();
-    populateTeacherFilter();
-    renderGroups();
-  }
-
-  function clearGroupForm() {
-    ['gName','gTime','gDate','gLevel','gNotes','gMaxStudents','editGroupId'].forEach(id => {
-      const el = document.getElementById(id); if (el) el.value = '';
-    });
-    document.getElementById('gDuration').value = '60';
-    document.querySelectorAll('input[name="gSchedType"]')[0].checked = true;
-    document.querySelectorAll('input[name="gDay"]').forEach(c => c.checked = false);
-    document.getElementById('customDaysGroup').style.display = 'none';
-  }
-
-  function editGroup(id) {
-    const g = getDB('groups').find(g => g.id === id);
-    if (!g) return;
-    clearGroupForm();
-    populateTeacherSelect();
-    populateRoomSelect();
-    populateStudentChecklist(g.studentIds || []);
-    document.getElementById('editGroupId').value = id;
-    document.getElementById('gName').value        = g.name;
-    document.getElementById('gTime').value        = g.time || '';
-    document.getElementById('gDate').value        = g.startDate || '';
-    document.getElementById('gDuration').value    = g.duration || '60';
-    document.getElementById('gTeacher').value     = g.teacher || '';
-    document.getElementById('gRoom').value        = g.room || '';
-    document.getElementById('gLevel').value       = g.level || '';
-    document.getElementById('gMaxStudents').value = g.maxStudents || '';
-    document.getElementById('gNotes').value       = g.notes || '';
-    const radio = document.querySelector(`input[name="gSchedType"][value="${g.schedType||'odd'}"]`);
-    if (radio) radio.checked = true;
-    document.getElementById('customDaysGroup').style.display = g.schedType === 'custom' ? '' : 'none';
-    document.querySelectorAll('input[name="gDay"]').forEach(cb => {
-      cb.checked = (g.customDays||[]).includes(Number(cb.value));
-    });
-    document.getElementById('groupModalTitle').textContent = 'Edit Group';
+  async function editGroup(id) {
+    const g=groups.find(g=>g.id===id); if(!g) return;
+    clearForm();
+    await populateSelects(g.studentIds||[]);
+    document.getElementById('editGroupId').value=id;
+    document.getElementById('gName').value=g.name;
+    document.getElementById('gTime').value=g.time||'';
+    document.getElementById('gDate').value=g.startDate?g.startDate.split('T')[0]:'';
+    document.getElementById('gDur').value=g.duration||'60';
+    document.getElementById('gTeacher').value=g.teacher||'';
+    document.getElementById('gRoom').value=g.room||'';
+    document.getElementById('gLevel').value=g.level||'';
+    document.getElementById('gMax').value=g.maxStudents||'';
+    document.getElementById('gNotes').value=g.notes||'';
+    const r=document.querySelector(`input[name="gSched"][value="${g.schedType||'odd'}"]`);
+    if(r)r.checked=true;
+    document.getElementById('customDays').style.display=g.schedType==='custom'?'':'none';
+    document.querySelectorAll('input[name="gDay"]').forEach(cb=>{cb.checked=(g.customDays||[]).includes(Number(cb.value));});
+    document.getElementById('groupModalTitle').textContent='Edit Group';
     openModal('groupModal');
   }
 
-  function deleteGroup(id) {
-    const g = getDB('groups').find(g => g.id === id);
-    if (!confirm(`Delete group "${g?.name}"? This cannot be undone.`)) return;
-    setDB('groups', getDB('groups').filter(g => g.id !== id));
-    logActivity(`Deleted group: ${g?.name}`, 'red');
-    renderGroups();
-    showToast('Group deleted.', 'error');
+  async function saveGroup() {
+    const name=document.getElementById('gName').value.trim();
+    const time=document.getElementById('gTime').value;
+    const date=document.getElementById('gDate').value;
+    if(!name||!time||!date){showToast('Name, time and start date required.','error');return;}
+    const type=document.querySelector('input[name="gSched"]:checked')?.value||'odd';
+    const days=[...document.querySelectorAll('input[name="gDay"]:checked')].map(c=>Number(c.value));
+    if(type==='custom'&&!days.length){showToast('Select at least one day.','error');return;}
+    const selStudents=[...document.querySelectorAll('#studentChecklist input:checked')].map(c=>c.value);
+    const id=document.getElementById('editGroupId').value;
+    const data={name,time,startDate:date,
+      duration:document.getElementById('gDur').value,
+      teacher:document.getElementById('gTeacher').value,
+      room:document.getElementById('gRoom').value,
+      level:document.getElementById('gLevel').value.trim(),
+      maxStudents:document.getElementById('gMax').value||null,
+      notes:document.getElementById('gNotes').value.trim(),
+      schedType:type,customDays:type==='custom'?days:[],studentIds:selStudents};
+    try {
+      if(id){await apiPut('/api/groups/'+id,data);logActivity(`Updated group: ${name}`,'');}
+      else{data.id=genId();await apiPost('/api/groups',data);logActivity(`Added group: ${name}`,'green');}
+      closeModal('groupModal'); await load(); showToast(id?'Group updated!':'Group created!');
+    } catch(e){showToast('Error saving.','error');}
   }
 
-  /* ══════════════════════════════════
-     STUDENT CHECKLIST
-  ══════════════════════════════════ */
-  function populateStudentChecklist(selectedIds) {
-    const students = getDB('students').filter(s => s.status === 'Active' || s.status === 'Trial' || s.status === 'Lead');
-    const el = document.getElementById('studentChecklist');
-    if (!students.length) {
-      el.innerHTML = '<p class="text-muted" style="padding:10px 0">No active students yet.</p>';
-      return;
-    }
-    el.innerHTML = students.map(s => {
-      const name = s.firstName + ' ' + s.lastName;
-      const checked = selectedIds.includes(s.id);
+  async function deleteGroup(id) {
+    const g=groups.find(g=>g.id===id);
+    if(!confirm(`Delete "${g?.name}"?`))return;
+    await apiDelete('/api/groups/'+id);
+    logActivity(`Deleted group: ${g?.name}`,'red');
+    await load(); showToast('Deleted.','error');
+  }
+
+  async function populateSelects(selectedIds) {
+    const tSel=document.getElementById('gTeacher');
+    tSel.innerHTML='<option value="">— Select —</option>'+teachers.map(t=>`<option value="${t.firstName} ${t.lastName}">${t.firstName} ${t.lastName}</option>`).join('');
+    const rSel=document.getElementById('gRoom');
+    if(!classrooms.length){rSel.innerHTML='<option value="">No classrooms yet</option>';rSel.disabled=true;}
+    else{rSel.disabled=false;rSel.innerHTML='<option value="">— Select room —</option>'+classrooms.map(r=>`<option value="${r.name}">${r.name}${r.capacity?` (${r.capacity})`:''}</option>`).join('');}
+    const el=document.getElementById('studentChecklist');
+    const active=students.filter(s=>['Active','Trial','Lead'].includes(s.status));
+    if(!active.length){el.innerHTML='<p class="text-muted" style="padding:10px 0">No active students.</p>';return;}
+    el.innerHTML=active.map(s=>{
+      const name=s.firstName+' '+s.lastName;
       return `<label class="student-check-row">
-        <input type="checkbox" value="${s.id}" ${checked?'checked':''} onchange="updateStudentCount()">
+        <input type="checkbox" value="${s.id}" ${selectedIds.includes(s.id)?'checked':''} onchange="updateStuCount()">
         <div class="avatar" style="background:${avatarColor(name)};width:26px;height:26px;font-size:10px">${initials(name)}</div>
         <div style="flex:1"><div style="font-weight:600;font-size:13px">${name}</div>
           <div style="font-size:11px;color:var(--muted)">${s.level||''} · ${s.status}</div>
         </div>
       </label>`;
     }).join('');
-    updateStudentCount();
+    updateStuCount();
   }
 
-  function updateStudentCount() {
-    const count = document.querySelectorAll('#studentChecklist input:checked').length;
-    document.getElementById('studentCountLabel').textContent = `(${count} selected)`;
+  function updateStuCount(){
+    const n=document.querySelectorAll('#studentChecklist input:checked').length;
+    document.getElementById('stuCountLabel').textContent=`(${n} selected)`;
   }
 
-  /* ══════════════════════════════════
-     ATTENDANCE
-  ══════════════════════════════════ */
-  function openAttendance(groupId, date, groupName, time) {
-    attendanceKey = groupId + '::' + date;
-    const g        = getDB('groups').find(g => g.id === groupId);
-    const students = getDB('students');
-    const enrolled = (g?.studentIds || []).map(id => students.find(s => s.id === id)).filter(Boolean);
-    const existing = getDB('att_' + attendanceKey);
+  function clearForm(){
+    ['editGroupId','gName','gTime','gDate','gLevel','gNotes','gMax'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('gDur').value='60';
+    document.querySelectorAll('input[name="gSched"]')[0].checked=true;
+    document.querySelectorAll('input[name="gDay"]').forEach(c=>c.checked=false);
+    document.getElementById('customDays').style.display='none';
+  }
 
-    document.getElementById('attendanceInfo').textContent =
-      `${groupName} · ${formatDate(date)} at ${time}`;
-
-    document.getElementById('attendanceList').innerHTML = enrolled.length
-      ? enrolled.map(s => {
-          const name = s.firstName + ' ' + s.lastName;
-          const prev = existing.find(a => a.studentId === s.id);
-          const status = prev?.status || '';
+  // Attendance
+  async function openAtt(groupId, date, name, time) {
+    attGroupId=groupId; attDate=date;
+    const g=groups.find(g=>g.id===groupId);
+    const enrolled=(g?.studentIds||[]).map(id=>students.find(s=>s.id===id)).filter(Boolean);
+    const existing=await apiGet(`/api/attendance/${groupId}/${date}`).catch(()=>[]);
+    document.getElementById('attInfo').textContent=`${name} · ${formatDate(date)} at ${time}`;
+    document.getElementById('attList').innerHTML=enrolled.length
+      ?enrolled.map(s=>{
+          const n=s.firstName+' '+s.lastName;
+          const prev=existing.find(a=>a.studentId===s.id);
+          const st=prev?.status||'';
           return `<div class="att-row">
-            <div class="avatar" style="background:${avatarColor(name)};width:30px;height:30px;font-size:11px">${initials(name)}</div>
-            <div class="att-name">${name}</div>
+            <div class="avatar" style="background:${avatarColor(n)};width:30px;height:30px;font-size:11px">${initials(n)}</div>
+            <div class="att-name">${n}</div>
             <div class="att-toggle">
-              <button class="att-btn${status==='present'?' present':''}" data-sid="${s.id}" data-status="present" onclick="toggleAtt(this)">✓ Present</button>
-              <button class="att-btn${status==='late'?' late':''}"     data-sid="${s.id}" data-status="late"    onclick="toggleAtt(this)">⏱ Late</button>
-              <button class="att-btn${status==='absent'?' absent':''}" data-sid="${s.id}" data-status="absent"  onclick="toggleAtt(this)">✕ Absent</button>
+              <button class="att-btn${st==='present'?' present':''}" data-sid="${s.id}" data-status="present" onclick="togAtt(this)">✓</button>
+              <button class="att-btn${st==='late'?' late':''}"    data-sid="${s.id}" data-status="late"    onclick="togAtt(this)">⏱</button>
+              <button class="att-btn${st==='absent'?' absent':''}" data-sid="${s.id}" data-status="absent"  onclick="togAtt(this)">✕</button>
             </div>
           </div>`;
         }).join('')
-      : '<p class="text-muted">No students enrolled in this group.</p>';
-
+      :'<p class="text-muted">No students enrolled.</p>';
     openModal('attendanceModal');
   }
-
-  function toggleAtt(btn) {
-    btn.closest('.att-toggle').querySelectorAll('.att-btn').forEach(b => b.classList.remove('present','late','absent'));
-    btn.classList.add(btn.dataset.status);
-  }
-
-  function saveAttendance() {
-    const records = [];
-    document.querySelectorAll('.att-toggle').forEach(row => {
-      const active = row.querySelector('.att-btn.present,.att-btn.late,.att-btn.absent');
-      if (active) records.push({ studentId: active.dataset.sid, status: active.dataset.status });
+  function togAtt(btn){btn.closest('.att-toggle').querySelectorAll('.att-btn').forEach(b=>b.classList.remove('present','late','absent'));btn.classList.add(btn.dataset.status);}
+  async function saveAtt(){
+    const records=[];
+    document.querySelectorAll('.att-toggle').forEach(row=>{
+      const a=row.querySelector('.att-btn.present,.att-btn.late,.att-btn.absent');
+      if(a)records.push({studentId:a.dataset.sid,status:a.dataset.status});
     });
-    setDB('att_' + attendanceKey, records);
-    logActivity('Recorded attendance for a group session', '');
-    closeModal('attendanceModal');
-    showToast('Attendance saved!');
+    await apiPost(`/api/attendance/${attGroupId}/${attDate}`,{records});
+    logActivity('Recorded attendance','');
+    closeModal('attendanceModal'); showToast('Attendance saved!');
   }
 
-  /* ══════════════════════════════════
-     HELPERS
-  ══════════════════════════════════ */
-  function populateTeacherSelect() {
-    const sel = document.getElementById('gTeacher');
-    sel.innerHTML = '<option value="">— Select —</option>' +
-      getDB('teachers').map(t => `<option value="${t.firstName} ${t.lastName}">${t.firstName} ${t.lastName}</option>`).join('');
-  }
-
-  function populateRoomSelect() {
-    const sel   = document.getElementById('gRoom');
-    const rooms = getDB('classrooms');
-    if (!rooms.length) {
-      sel.innerHTML = '<option value="">No classrooms yet — add them first</option>';
-      sel.disabled  = true;
-      sel.style.color = 'var(--muted)';
-    } else {
-      sel.disabled  = false;
-      sel.style.color = '';
-      sel.innerHTML = '<option value="">— Select room —</option>' +
-        rooms.map(r => `<option value="${r.name}">${r.name}${r.capacity ? ` (cap. ${r.capacity})` : ''}</option>`).join('');
-    }
-  }
-
-  function populateTeacherFilter() {
-    const sel   = document.getElementById('filterTeacher');
-    const cur   = sel.value;
-    const names = [...new Set(getDB('groups').map(g => g.teacher).filter(Boolean))].sort();
-    sel.innerHTML = '<option value="">All Teachers</option>' +
-      names.map(t => `<option value="${t}"${t===cur?' selected':''}>${t}</option>`).join('');
-  }
-
-  // Seed sample group if empty
-  if (!getDB('groups').length) {
-    setDB('groups', [
-      { id:genId(), name:'Intermediate English — Group A', time:'09:00', duration:'90',
-        teacher:'', room:'Room 1', level:'Intermediate', maxStudents:12, notes:'',
-        schedType:'odd', customDays:[], startDate:new Date().toISOString().split('T')[0], studentIds:[] },
-    ]);
-  }
-
-  populateTeacherFilter();
-  renderGroups();
+  load();
 </script>
 </body>
 </html>
