@@ -147,7 +147,7 @@
       const grid  = document.getElementById('roleGrid');
       const ICONS = { CEO:'👑', Manager:'🏢', 'Head Admin':'📋', Admin:'🗂' };
       const shown = [];
-      const roles = ['CEO','Manager','Head Admin','Admin'];
+      const roles = ['CEO'];
       roles.forEach(role => {
         const u = users.find(u => u.role === role);
         if (u) shown.push(u);

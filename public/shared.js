@@ -55,17 +55,11 @@ function initials(name) {
 // ══════════════════════════════════════════
 
 const ROLE_PERMISSIONS = {
-  'CEO':        '*',  // all features
-  'Manager':    ['dashboard','students','groups','payments','teachers','classrooms','settings'],
-  'Head Admin': ['dashboard','students','groups','teachers','classrooms'],
-  'Admin':      ['dashboard','students','groups','classrooms'],
+  'CEO': '*',
 };
 
 const ROLE_META = {
-  'CEO':        { color:'#FF0000', badge:'badge-red',   label:'CEO'        },
-  'Manager':    { color:'#CC0000', badge:'badge-red',   label:'Manager'    },
-  'Head Admin': { color:'#1d4ed8', badge:'badge-blue',  label:'Head Admin' },
-  'Admin':      { color:'#1E6B45', badge:'badge-green', label:'Admin'      },
+  'CEO': { color:'#FF0000', badge:'badge-red', label:'CEO' },
 };
 
 function getSession() {
