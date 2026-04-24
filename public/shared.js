@@ -146,7 +146,7 @@ function renderSidebar(activePage) {
     { feature:'leads',      href:'leads.html',      icon:'🎯', label:'Leads'      },
     { feature:'students',   href:'students.html',   icon:'👤', label:'Students'   },
     { feature:'groups',     href:'groups.html',     icon:'👥', label:'Groups'     },
-    { feature:'payments',   href:'payments.html',   icon:'💳', label:'Payments'   },
+    { feature:'payments',   href:'finance.html',    icon:'💳', label:'Finance'    },
     { feature:'teachers',   href:'teachers.html',   icon:'🎓', label:'Teachers'   },
     { feature:'classrooms', href:'classrooms.html', icon:'🏛', label:'Classrooms' },
     { feature:'settings',   href:'users.html',      icon:'🔧', label:'Users'      },

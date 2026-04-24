@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Payments — TommyLC CRM</title>
+  <title>Finance — TommyLC CRM</title>
   <link rel="stylesheet" href="shared.css">
   <style>
     /* Summary cards */
@@ -40,25 +40,26 @@
     .tab-btn { flex:1; padding:11px; text-align:center; font-size:13px; font-weight:600; cursor:pointer; border:none; background:none; color:var(--muted); border-bottom:3px solid transparent; transition:all 0.14s; font-family:'DM Sans',sans-serif; }
     .tab-btn:hover { background:var(--crimson-soft); color:var(--crimson); }
     .tab-btn.active { color:var(--crimson); border-bottom-color:var(--crimson); background:var(--crimson-soft); }
+  
+    /* Remove number input arrows */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+    input[type=number] { -moz-appearance:textfield; }
   </style>
 </head>
 <body>
 <nav class="sidebar"></nav>
 <div class="main">
   <div class="topbar">
-    <div class="page-title">Payments</div>
+    <div class="page-title">Finance</div>
     <div class="topbar-right">
-      <button class="btn btn-outline btn-sm" onclick="togglePricing()">💰 Manage Pricing</button>
-      <button class="btn btn-primary" onclick="openAdd()">➕ New Invoice</button>
+      <button class="btn btn-outline btn-sm" style='display:none'></button>
+      <button class="btn btn-primary" onclick="openAdd()">➕ New Payment</button>
     </div>
   </div>
   <div class="page-content">
 
-    <!-- Pricing panel (collapsible) -->
-    <div id="pricingPanel" style="display:none;margin-bottom:24px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:900">💰 Pricing per Level <span style="font-size:13px;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400">(12 lessons / month)</span></div>
-        <button class="btn btn-primary btn-sm" onclick="savePricing()">Save Prices</button>
+    <button class="btn btn-primary btn-sm" onclick="savePricing()">Save Prices</button>
       </div>
       <div class="pricing-grid" id="pricingGrid"></div>
     </div>
@@ -96,7 +97,7 @@
 <div class="modal-overlay" id="invoiceModal">
   <div class="modal" style="width:520px">
     <div class="modal-header">
-      <div class="modal-title" id="invModalTitle">New Invoice</div>
+      <div class="modal-title" id="invModalTitle">New Payment</div>
       <button class="modal-close" onclick="closeModal('invoiceModal')">✕</button>
     </div>
     <div class="modal-body">
@@ -183,16 +184,14 @@
   };
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-  let invoices=[], students=[], groups=[], pricing={};
+  let invoices=[], students=[], groups=[];
   let currentTab = 'all';
-  let pricingOpen = false;
 
   async function load() {
     [invoices, students, groups] = await Promise.all([
       apiGet('/api/invoices'), apiGet('/api/students'), apiGet('/api/groups')
     ]);
-    const pricingArr = await apiGet('/api/pricing').catch(()=>[]);
-    pricingArr.forEach(p => pricing[p.level] = p.price);
+
     renderSummary();
     renderInvoices();
     renderPricing();
@@ -317,7 +316,7 @@
     // Default due = end of current month
     const due = new Date(now.getFullYear(), now.getMonth()+1, 0);
     document.getElementById('invDue').value = due.toISOString().split('T')[0];
-    document.getElementById('invModalTitle').textContent = 'New Invoice';
+    document.getElementById('invModalTitle').textContent = 'New Payment';
     openModal('invoiceModal');
   }
 
@@ -329,22 +328,20 @@
     if (grp) {
       document.getElementById('invGroup').value = grp.id;
       document.getElementById('invLevel').value = grp.level || '';
-      onLevelChange();
+      if (grp.price) document.getElementById('invTotal').value = grp.price;
     }
   }
 
   function onGroupChange() {
     const gid = document.getElementById('invGroup').value;
     const grp = groups.find(g=>g.id===gid);
-    if (grp?.level) { document.getElementById('invLevel').value = grp.level; onLevelChange(); }
-  }
-
-  function onLevelChange() {
-    const level = document.getElementById('invLevel').value;
-    if (level && pricing[level] !== undefined) {
-      document.getElementById('invTotal').value = pricing[level];
+    if (grp) {
+      if (grp.level) document.getElementById('invLevel').value = grp.level;
+      if (grp.price) document.getElementById('invTotal').value = grp.price;
     }
   }
+
+  function onLevelChange() {}
 
   function onPayType() {
     const val = document.querySelector('input[name="payType"]:checked')?.value;
@@ -370,7 +367,7 @@
     document.getElementById('invNotes').value    = i.notes||'';
     const radio = document.querySelector(`input[name="payType"][value="${i.paymentType||'Cash'}"]`);
     if (radio) { radio.checked = true; onPayType(); }
-    document.getElementById('invModalTitle').textContent = 'Edit Invoice';
+    document.getElementById('invModalTitle').textContent = 'Edit Payment';
     openModal('invoiceModal');
   }
 

@@ -82,6 +82,13 @@ async function initDB() {
     );
     ALTER TABLE groups ADD COLUMN IF NOT EXISTS lang         TEXT DEFAULT 'UZ';
     ALTER TABLE groups ADD COLUMN IF NOT EXISTS current_unit TEXT DEFAULT '1A';
+    ALTER TABLE groups ADD COLUMN IF NOT EXISTS price        NUMERIC DEFAULT 0;
+
+    -- Custom levels table
+    CREATE TABLE IF NOT EXISTS custom_levels (
+      level TEXT PRIMARY KEY,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
 
     CREATE TABLE IF NOT EXISTS pricing (
       level       TEXT PRIMARY KEY,
@@ -363,8 +370,32 @@ app.get('/api/groups', async (req, res) => {
       time: g.time, duration: g.duration, startDate: g.start_date,
       notes: g.notes, studentIds: g.student_ids,
       currentUnit: g.current_unit || '1A',
+      price: Number(g.price || 0),
       createdAt: g.created_at
     })));
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Custom levels
+app.get('/api/levels', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT level FROM custom_levels ORDER BY created_at');
+    res.json(rows.map(r => r.level));
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/levels', async (req, res) => {
+  try {
+    const { level } = req.body;
+    await pool.query('INSERT INTO custom_levels(level) VALUES($1) ON CONFLICT DO NOTHING', [level]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/levels/:level', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM custom_levels WHERE level=$1', [req.params.level]);
+    res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -379,10 +410,10 @@ app.patch('/api/groups/:id/unit', async (req, res) => {
 
 app.post('/api/groups', async (req, res) => {
   try {
-    const { id, name, teacher, room, level, lang, maxStudents, schedType, customDays, time, duration, startDate, notes, studentIds } = req.body;
+    const { id, name, teacher, room, level, lang, maxStudents, schedType, customDays, time, duration, startDate, notes, studentIds, currentUnit, price } = req.body;
     await pool.query(
-      'INSERT INTO groups(id,name,teacher,room,level,lang,max_students,sched_type,custom_days,time,duration,start_date,notes,student_ids) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)',
-      [id, name, teacher||null, room||null, level||null, lang||'UZ', maxStudents||null, schedType||'odd', JSON.stringify(customDays||[]), time||null, duration||90, startDate||null, notes||null, JSON.stringify(studentIds||[])]
+      'INSERT INTO groups(id,name,teacher,room,level,lang,max_students,sched_type,custom_days,time,duration,start_date,notes,student_ids,current_unit,price) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)',
+      [id, name, teacher||null, room||null, level||null, lang||'UZ', maxStudents||null, schedType||'odd', JSON.stringify(customDays||[]), time||null, duration||90, startDate||null, notes||null, JSON.stringify(studentIds||[]), currentUnit||'1A', price||0]
     );
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -390,10 +421,10 @@ app.post('/api/groups', async (req, res) => {
 
 app.put('/api/groups/:id', async (req, res) => {
   try {
-    const { name, teacher, room, level, lang, maxStudents, schedType, customDays, time, duration, startDate, notes, studentIds, currentUnit } = req.body;
+    const { name, teacher, room, level, lang, maxStudents, schedType, customDays, time, duration, startDate, notes, studentIds, currentUnit, price } = req.body;
     await pool.query(
-      'UPDATE groups SET name=$1,teacher=$2,room=$3,level=$4,lang=$5,max_students=$6,sched_type=$7,custom_days=$8,time=$9,duration=$10,start_date=$11,notes=$12,student_ids=$13,current_unit=$14 WHERE id=$15',
-      [name, teacher||null, room||null, level||null, lang||'UZ', maxStudents||null, schedType||'odd', JSON.stringify(customDays||[]), time||null, duration||90, startDate||null, notes||null, JSON.stringify(studentIds||[]), currentUnit||'1A', req.params.id]
+      'UPDATE groups SET name=$1,teacher=$2,room=$3,level=$4,lang=$5,max_students=$6,sched_type=$7,custom_days=$8,time=$9,duration=$10,start_date=$11,notes=$12,student_ids=$13,current_unit=$14,price=$15 WHERE id=$16',
+      [name, teacher||null, room||null, level||null, lang||'UZ', maxStudents||null, schedType||'odd', JSON.stringify(customDays||[]), time||null, duration||90, startDate||null, notes||null, JSON.stringify(studentIds||[]), currentUnit||'1A', price||0, req.params.id]
     );
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }

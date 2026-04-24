@@ -46,7 +46,10 @@
 <div class="main">
   <div class="topbar">
     <div class="page-title">Groups</div>
-    <div class="topbar-right"><button class="btn btn-primary" onclick="openAdd()">➕ Add Group</button></div>
+    <div class="topbar-right">
+      <button class="btn btn-outline btn-sm" onclick="openLevelsModal()">📚 Levels</button>
+      <button class="btn btn-primary" onclick="openAdd()">➕ Add Group</button>
+    </div>
   </div>
   <div class="page-content">
     <div class="toolbar">
@@ -73,14 +76,7 @@
 
       <div class="form-row">
         <div class="form-group"><label>Group Code *</label><input type="text" id="gCode" placeholder="e.g. INT-A1, BEG-01"></div>
-        <div class="form-group"><label>Level *</label><select id="gLevel"><option value="">— Select level —</option>
-            <option>RoundUp</option>
-            <option>Beginner</option>
-            <option>Elementary</option>
-            <option>Pre-Intermediate</option>
-            <option>Intermediate</option>
-            <option>CEFR</option>
-            <option>IELTS</option></select></div>
+        <div class="form-group"><label>Level *</label><select id="gLevel"><option value="">— Select level —</option></select></div>
       </div>
 
       <div class="form-row">
@@ -165,6 +161,26 @@
   </div>
 </div>
 
+<!-- Levels Management Modal -->
+<div class="modal-overlay" id="levelsModal">
+  <div class="modal" style="width:440px">
+    <div class="modal-header">
+      <div class="modal-title">📚 Levels</div>
+      <button class="modal-close" onclick="closeModal('levelsModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:10px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)">
+        <input type="text" id="newLevelInput" placeholder="e.g. Advanced" style="flex:1">
+        <button class="btn btn-primary" onclick="addLevel()">Add</button>
+      </div>
+      <div id="levelsList"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('levelsModal')">Close</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-container" id="toastContainer"></div>
 <script src="shared.js"></script>
 <script>
@@ -174,15 +190,15 @@
   const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const SCHED_LABEL = { odd:'Odd days (Mon·Wed·Fri)', even:'Even days (Tue·Thu·Sat)', custom:'Custom' };
   const PALETTE = ['#FF0000','#1D4ED8','#1E6B45','#7C3AED','#A05C00','#0891B2','#BE185D'];
-  let groups=[], students=[], teachers=[], classrooms=[], leadsData=[];
+  let groups=[], students=[], teachers=[], classrooms=[], leadsData=[], customLevels=[];
   let attGroupId=null, attDate=null;
 
   function groupColor(id){let h=0;for(let c of(id||'?'))h=(h<<5)-h+c.charCodeAt(0);return PALETTE[Math.abs(h)%PALETTE.length];}
 
   async function load() {
-    [groups,students,teachers,classrooms,leadsData] = await Promise.all([
+    [groups,students,teachers,classrooms,leadsData,customLevels] = await Promise.all([
       apiGet('/api/groups'), apiGet('/api/students'),
-      apiGet('/api/teachers'), apiGet('/api/classrooms'), apiGet('/api/leads').catch(()=>[])
+      apiGet('/api/teachers'), apiGet('/api/classrooms'), apiGet('/api/leads').catch(()=>[]), apiGet('/api/levels').catch(()=>[])
     ]);
     window._leads = leadsData;
     renderGroups();
@@ -269,6 +285,7 @@
   async function openAdd() {
     clearForm();
     await populateSelects();
+    populateLevelSelect();
     document.getElementById('gDate').value=new Date().toISOString().split('T')[0];
     document.getElementById('groupModalTitle').textContent='Add Group';
     openModal('groupModal');
@@ -278,6 +295,7 @@
     const g=groups.find(g=>g.id===id); if(!g) return;
     clearForm();
     await populateSelects();
+    populateLevelSelect();
     document.getElementById('editGroupId').value=id;
     document.getElementById('gCode').value=g.name;
     document.getElementById('gLevel').value=g.level||'';
@@ -340,7 +358,7 @@
   }
 
   function clearForm(){
-    ['editGroupId','gCode','gLevel','gTime','gDate'].forEach(id=>document.getElementById(id).value='');
+    ['editGroupId','gCode','gLevel','gTime','gDate','gPrice'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('gTeacher').value='';
     document.getElementById('gRoom').value='';
     document.querySelectorAll('input[name="gSched"]')[0].checked=true;
@@ -384,6 +402,55 @@
     await apiPost(`/api/attendance/${attGroupId}/${attDate}`,{records});
     logActivity('Recorded attendance','');
     closeModal('attendanceModal'); showToast('Attendance saved!');
+  }
+
+  // ── All levels (built-in + custom) ──
+  const BUILT_IN_LEVELS = ['RoundUp','Beginner','Elementary','Pre-Intermediate','Intermediate','CEFR','IELTS'];
+
+  function getAllLevels() {
+    return [...BUILT_IN_LEVELS, ...customLevels.filter(l => !BUILT_IN_LEVELS.includes(l))];
+  }
+
+  function populateLevelSelect() {
+    const sel = document.getElementById('gLevel');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— Select level —</option>' +
+      getAllLevels().map(l => `<option value="${l}" ${l===cur?'selected':''}>${l}</option>`).join('');
+  }
+
+  function openLevelsModal() {
+    renderLevelsList();
+    openModal('levelsModal');
+  }
+
+  function renderLevelsList() {
+    const all = getAllLevels();
+    document.getElementById('levelsList').innerHTML = all.map(l => {
+      const isBuiltIn = BUILT_IN_LEVELS.includes(l);
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="font-weight:600;font-size:14px">${l} ${isBuiltIn?'<span style="font-size:10px;color:var(--muted);font-weight:400">(built-in)</span>':''}</div>
+        ${!isBuiltIn?`<button class="btn btn-danger btn-sm" onclick="deleteLevel('${l}')">🗑</button>`:''}
+      </div>`;
+    }).join('');
+  }
+
+  async function addLevel() {
+    const val = document.getElementById('newLevelInput').value.trim();
+    if (!val) return;
+    if (getAllLevels().includes(val)) { showToast('Level already exists.','error'); return; }
+    await apiPost('/api/levels', { level: val });
+    customLevels.push(val);
+    document.getElementById('newLevelInput').value = '';
+    renderLevelsList();
+    showToast(`Level "${val}" added!`);
+  }
+
+  async function deleteLevel(level) {
+    if (!confirm(`Delete level "${level}"?`)) return;
+    await apiDelete('/api/levels/'+encodeURIComponent(level));
+    customLevels = customLevels.filter(l => l !== level);
+    renderLevelsList();
+    showToast('Level deleted.','error');
   }
 
   load();
