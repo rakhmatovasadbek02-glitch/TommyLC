@@ -252,6 +252,7 @@
   async function openAdd() {
     clearForm();
     await populateSelects();
+    await loadPricing();
     populateLevelSelect();
     document.getElementById('gDate').value=new Date().toISOString().split('T')[0];
     document.getElementById('groupModalTitle').textContent='Add Group';
@@ -262,6 +263,7 @@
     const g=groups.find(g=>g.id===id); if(!g) return;
     clearForm();
     await populateSelects();
+    await loadPricing();
     populateLevelSelect();
     document.getElementById('editGroupId').value=id;
     document.getElementById('gCode').value=g.name;
