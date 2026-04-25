@@ -141,7 +141,7 @@
         <div class="form-group">
           <label>Monthly Price (UZS)</label>
           <input type="number" id="gPrice" placeholder="0" min="0" step="1000"
-            style="-moz-appearance:textfield" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            style="-moz-appearance:textfield;-webkit-appearance:none">
         </div>
       </div>
     </div>
@@ -258,22 +258,12 @@
           </div>
         </div>
         <div class="group-card-body">
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
             <span class="badge badge-red">${SCHED_LABEL[g.schedType]||'—'}${daysLabel?' · '+daysLabel:''}</span>
             ${g.level?`<span class="badge badge-blue">${g.level}</span>`:''}
             <span class="badge badge-grey">${enrolled} student${enrolled!==1?'s':''}</span>
+            ${g.price?`<span class="badge" style="background:#E8F5E9;color:#2E7D32">${Number(g.price).toLocaleString()} UZS</span>`:''}
           </div>
-          ${enrolled?`<div>${(g.studentIds||[]).slice(0,4).map(sid=>{
-            const s=students.find(s=>s.id===sid); if(!s)return '';
-            const n=s.firstName+' '+s.lastName;
-            const isTrial=(window._leads||[]).some(l=>l.id===sid&&l.isTrial&&l.status==='Trial');
-            return `<div class="group-student-row">
-              <div class="avatar" style="background:${avatarColor(n)};width:24px;height:24px;font-size:9px">${initials(n)}</div>
-              <div class="group-student-name">${n}</div>
-              ${isTrial?'<span style="background:#FFF8E1;color:#A05C00;font-size:9px;font-weight:700;padding:1px 6px;border-radius:100px;border:1px solid #FFE082">🆕</span>':''}
-            </div>`;
-          }).join('')}${enrolled>4?`<div style="font-size:12px;color:var(--muted);padding-top:4px">+${enrolled-4} more</div>`:''}</div>`
-          :`<div style="padding:8px 0;color:var(--muted);font-size:13px;font-style:italic">No students yet.</div>`}
         </div>
         <div class="group-card-footer">
           <a href="group.html?id=${g.id}" class="btn btn-ghost btn-sm">📋 Open Group</a>

@@ -384,7 +384,7 @@
 
     const visibleClasses = classes.filter(classVisible);
 
-    /* ── Build time range ──
+    /* Fix duration default to 90 */
        Default 09:00–18:00 in 30-min steps.
        Expand if any group starts earlier or ends later. */
     function timeToMin(t) {
@@ -403,7 +403,7 @@
     const significantMins = new Set();
     visibleClasses.forEach(cls => {
       const start = timeToMin(cls.time);
-      const end   = start + Number(cls.duration || 60);
+      const end   = start + Number(cls.duration || 90);
       significantMins.add(start);
       significantMins.add(end);
       // Expand range if needed
@@ -422,7 +422,7 @@
       return visibleClasses.some(cls => {
         if (roomName && cls.room !== roomName) return false;
         const start = timeToMin(cls.time);
-        const end   = start + Number(cls.duration || 60);
+        const end   = start + Number(cls.duration || 90);
         return slotMin >= start && slotMin < end;
       });
     }
@@ -432,7 +432,7 @@
       const set = new Set();
       visibleClasses.filter(c => c.room === roomName).forEach(cls => {
         const start = timeToMin(cls.time);
-        const end   = start + Number(cls.duration || 60);
+        const end   = start + Number(cls.duration || 90);
         slots.forEach(s => { if (s >= start && s < end) set.add(s); });
       });
       return set;
@@ -464,8 +464,13 @@
       }).join('')}
     </div>`;
 
+    /* ── Add virtual room for groups with no matching classroom ── */
+    const roomNames = rooms.map(r => r.name);
+    const unassignedGroups = visibleClasses.filter(c => !roomNames.includes(c.room));
+    const allRooms = [...rooms, ...(unassignedGroups.length ? [{ name: 'Unassigned', id: '_unassigned' }] : [])];
+
     /* ── Room rows ── */
-    rooms.forEach(room => {
+    allRooms.forEach(room => {
       const roomClasses = visibleClasses.filter(c => c.room === room.name);
 
       html += `<div style="display:flex;border-bottom:1px solid var(--border);">
