@@ -10,9 +10,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-/* ══════════════════════════════════════
-   DB INIT — create all tables on startup
-══════════════════════════════════════ */
 async function initDB() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
@@ -48,12 +45,6 @@ async function initDB() {
       status      TEXT DEFAULT 'Active',
       created_at  TIMESTAMPTZ DEFAULT NOW()
     );
-    ALTER TABLE teachers ADD COLUMN IF NOT EXISTS password TEXT;
-    ALTER TABLE teachers DROP COLUMN IF EXISTS email;
-    ALTER TABLE teachers DROP COLUMN IF EXISTS rate;
-    ALTER TABLE teachers DROP COLUMN IF EXISTS specs;
-    ALTER TABLE teachers DROP COLUMN IF EXISTS levels;
-    ALTER TABLE teachers DROP COLUMN IF EXISTS bio;
 
     CREATE TABLE IF NOT EXISTS classrooms (
       id          TEXT PRIMARY KEY,
@@ -78,13 +69,10 @@ async function initDB() {
       notes        TEXT,
       student_ids  JSONB DEFAULT '[]',
       current_unit TEXT DEFAULT '1A',
+      price        NUMERIC DEFAULT 0,
       created_at   TIMESTAMPTZ DEFAULT NOW()
     );
-    ALTER TABLE groups ADD COLUMN IF NOT EXISTS lang         TEXT DEFAULT 'UZ';
-    ALTER TABLE groups ADD COLUMN IF NOT EXISTS current_unit TEXT DEFAULT '1A';
-    ALTER TABLE groups ADD COLUMN IF NOT EXISTS price        NUMERIC DEFAULT 0;
 
-    -- Custom levels table
     CREATE TABLE IF NOT EXISTS custom_levels (
       level TEXT PRIMARY KEY,
       created_at TIMESTAMPTZ DEFAULT NOW()
@@ -96,7 +84,6 @@ async function initDB() {
       updated_at  TIMESTAMPTZ DEFAULT NOW()
     );
 
-    -- Seed default pricing if empty
     INSERT INTO pricing (level, price) VALUES
       ('RoundUp', 0),('Beginner', 0),('Elementary', 0),
       ('Pre-Intermediate', 0),('Intermediate', 0),('CEFR', 0),('IELTS', 0)
@@ -117,11 +104,6 @@ async function initDB() {
       notes        TEXT,
       created_at   TIMESTAMPTZ DEFAULT NOW()
     );
-    ALTER TABLE invoices ADD COLUMN IF NOT EXISTS group_id     TEXT;
-    ALTER TABLE invoices ADD COLUMN IF NOT EXISTS level        TEXT;
-    ALTER TABLE invoices ADD COLUMN IF NOT EXISTS month        TEXT;
-    ALTER TABLE invoices ADD COLUMN IF NOT EXISTS payment_type TEXT DEFAULT 'Cash';
-    ALTER TABLE invoices DROP COLUMN IF EXISTS items;
 
     CREATE TABLE IF NOT EXISTS attendance (
       id          SERIAL PRIMARY KEY,
@@ -160,7 +142,21 @@ async function initDB() {
     );
   `);
 
-  // Seed default CEO if no users exist
+  // Safe ALTER TABLE calls — only add missing columns
+  const alters = [
+    `ALTER TABLE groups ADD COLUMN IF NOT EXISTS lang         TEXT DEFAULT 'UZ'`,
+    `ALTER TABLE groups ADD COLUMN IF NOT EXISTS current_unit TEXT DEFAULT '1A'`,
+    `ALTER TABLE groups ADD COLUMN IF NOT EXISTS price        NUMERIC DEFAULT 0`,
+    `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS group_id     TEXT`,
+    `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS level        TEXT`,
+    `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS month        TEXT`,
+    `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS payment_type TEXT DEFAULT 'Cash'`,
+    `ALTER TABLE teachers ADD COLUMN IF NOT EXISTS password TEXT`,
+  ];
+  for (const sql of alters) {
+    await pool.query(sql).catch(() => {});
+  }
+
   const { rows } = await pool.query('SELECT COUNT(*) FROM users');
   if (parseInt(rows[0].count) === 0) {
     await pool.query(`
@@ -174,105 +170,111 @@ async function initDB() {
   console.log('Database ready');
 }
 
-/* ══════════════════════════════════════
-   AUTH
-══════════════════════════════════════ */
+/* AUTH */
 app.post('/api/auth/login', async (req, res) => {
-  const { phone, password } = req.body;
-  const { rows } = await pool.query(
-    'SELECT * FROM users WHERE REPLACE(phone,\' \',\'\')=$1 AND password=$2',
-    [phone.replace(/\s/g,''), password]
-  );
-  if (!rows.length) return res.status(401).json({ error: 'Invalid credentials' });
-  const u = rows[0];
-  res.json({
-    id: u.id, name: u.first_name+' '+u.last_name,
-    role: u.role, avatar: u.avatar, phone: u.phone
-  });
+  try {
+    const { phone, password } = req.body;
+    const { rows } = await pool.query(
+      `SELECT * FROM users WHERE REPLACE(phone,' ','')=$1 AND password=$2`,
+      [phone.replace(/\s/g,''), password]
+    );
+    if (!rows.length) return res.status(401).json({ error: 'Invalid credentials' });
+    const u = rows[0];
+    res.json({ id: u.id, name: u.first_name+' '+u.last_name, role: u.role, avatar: u.avatar, phone: u.phone });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-/* ══════════════════════════════════════
-   USERS
-══════════════════════════════════════ */
+/* USERS */
 app.get('/api/users', async (req, res) => {
-  const { rows } = await pool.query('SELECT * FROM users ORDER BY created_at');
-  res.json(rows.map(u => ({
-    id: u.id, firstName: u.first_name, lastName: u.last_name,
-    name: u.first_name+' '+u.last_name, phone: u.phone,
-    role: u.role, avatar: u.avatar
-  })));
+  try {
+    const { rows } = await pool.query('SELECT * FROM users ORDER BY created_at');
+    res.json(rows.map(u => ({
+      id: u.id, firstName: u.first_name, lastName: u.last_name,
+      name: u.first_name+' '+u.last_name, phone: u.phone, role: u.role, avatar: u.avatar
+    })));
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/users', async (req, res) => {
-  const { id, firstName, lastName, phone, password, role } = req.body;
-  const avatar = (firstName[0]+(lastName[0]||'')).toUpperCase();
-  await pool.query(
-    'INSERT INTO users(id,first_name,last_name,phone,password,role,avatar) VALUES($1,$2,$3,$4,$5,$6,$7)',
-    [id, firstName, lastName, phone, password, role, avatar]
-  );
-  res.json({ ok: true });
+  try {
+    const { id, firstName, lastName, phone, password, role } = req.body;
+    const avatar = (firstName[0]+(lastName[0]||'')).toUpperCase();
+    await pool.query(
+      'INSERT INTO users(id,first_name,last_name,phone,password,role,avatar) VALUES($1,$2,$3,$4,$5,$6,$7)',
+      [id, firstName, lastName, phone, password, role, avatar]
+    );
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.put('/api/users/:id', async (req, res) => {
-  const { firstName, lastName, phone, password, role } = req.body;
-  const avatar = (firstName[0]+(lastName[0]||'')).toUpperCase();
-  if (password) {
-    await pool.query(
-      'UPDATE users SET first_name=$1,last_name=$2,phone=$3,password=$4,role=$5,avatar=$6 WHERE id=$7',
-      [firstName, lastName, phone, password, role, avatar, req.params.id]
-    );
-  } else {
-    await pool.query(
-      'UPDATE users SET first_name=$1,last_name=$2,phone=$3,role=$4,avatar=$5 WHERE id=$6',
-      [firstName, lastName, phone, role, avatar, req.params.id]
-    );
-  }
-  res.json({ ok: true });
+  try {
+    const { firstName, lastName, phone, password, role } = req.body;
+    const avatar = (firstName[0]+(lastName[0]||'')).toUpperCase();
+    if (password) {
+      await pool.query(
+        'UPDATE users SET first_name=$1,last_name=$2,phone=$3,password=$4,role=$5,avatar=$6 WHERE id=$7',
+        [firstName, lastName, phone, password, role, avatar, req.params.id]
+      );
+    } else {
+      await pool.query(
+        'UPDATE users SET first_name=$1,last_name=$2,phone=$3,role=$4,avatar=$5 WHERE id=$6',
+        [firstName, lastName, phone, role, avatar, req.params.id]
+      );
+    }
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.delete('/api/users/:id', async (req, res) => {
-  await pool.query('DELETE FROM users WHERE id=$1', [req.params.id]);
-  res.json({ ok: true });
+  try {
+    await pool.query('DELETE FROM users WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-/* ══════════════════════════════════════
-   STUDENTS
-══════════════════════════════════════ */
+/* STUDENTS */
 app.get('/api/students', async (req, res) => {
-  const { rows } = await pool.query('SELECT * FROM students ORDER BY created_at DESC');
-  res.json(rows.map(s => ({
-    id: s.id, firstName: s.first_name, lastName: s.last_name,
-    phone: s.phone, level: s.level, status: s.status,
-    exam: s.exam, examDate: s.exam_date, notes: s.notes, createdAt: s.created_at
-  })));
+  try {
+    const { rows } = await pool.query('SELECT * FROM students ORDER BY created_at DESC');
+    res.json(rows.map(s => ({
+      id: s.id, firstName: s.first_name, lastName: s.last_name,
+      phone: s.phone, level: s.level, status: s.status,
+      exam: s.exam, examDate: s.exam_date, notes: s.notes, createdAt: s.created_at
+    })));
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/students', async (req, res) => {
-  const { id, firstName, lastName, phone, level, status, exam, examDate, notes } = req.body;
-  await pool.query(
-    'INSERT INTO students(id,first_name,last_name,phone,level,status,exam,exam_date,notes) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)',
-    [id, firstName, lastName, phone||null, level||null, status||'Active', exam||null, examDate||null, notes||null]
-  );
-  res.json({ ok: true });
+  try {
+    const { id, firstName, lastName, phone, level, status, exam, examDate, notes } = req.body;
+    await pool.query(
+      'INSERT INTO students(id,first_name,last_name,phone,level,status,exam,exam_date,notes) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)',
+      [id, firstName, lastName, phone||null, level||null, status||'Active', exam||null, examDate||null, notes||null]
+    );
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.put('/api/students/:id', async (req, res) => {
-  const { firstName, lastName, phone, level, status, exam, examDate, notes } = req.body;
-  await pool.query(
-    'UPDATE students SET first_name=$1,last_name=$2,phone=$3,level=$4,status=$5,exam=$6,exam_date=$7,notes=$8 WHERE id=$9',
-    [firstName, lastName, phone||null, level||null, status||'Active', exam||null, examDate||null, notes||null, req.params.id]
-  );
-  res.json({ ok: true });
+  try {
+    const { firstName, lastName, phone, level, status, exam, examDate, notes } = req.body;
+    await pool.query(
+      'UPDATE students SET first_name=$1,last_name=$2,phone=$3,level=$4,status=$5,exam=$6,exam_date=$7,notes=$8 WHERE id=$9',
+      [firstName, lastName, phone||null, level||null, status||'Active', exam||null, examDate||null, notes||null, req.params.id]
+    );
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.delete('/api/students/:id', async (req, res) => {
-  await pool.query('DELETE FROM students WHERE id=$1', [req.params.id]);
-  res.json({ ok: true });
+  try {
+    await pool.query('DELETE FROM students WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-/* ══════════════════════════════════════
-   TEACHERS
-══════════════════════════════════════ */
+/* TEACHERS */
 app.get('/api/teachers', async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT id,first_name,last_name,phone,status,created_at FROM teachers ORDER BY created_at DESC');
@@ -284,23 +286,22 @@ app.get('/api/teachers', async (req, res) => {
 });
 
 app.post('/api/teachers', async (req, res) => {
-  const { id, firstName, lastName, phone, password, status } = req.body;
-  await pool.query(
-    'INSERT INTO teachers(id,first_name,last_name,phone,password,status) VALUES($1,$2,$3,$4,$5,$6)',
-    [id, firstName, lastName, phone||null, password||null, status||'Active']
-  );
-  res.json({ ok: true });
+  try {
+    const { id, firstName, lastName, phone, password, status } = req.body;
+    await pool.query(
+      'INSERT INTO teachers(id,first_name,last_name,phone,password,status) VALUES($1,$2,$3,$4,$5,$6)',
+      [id, firstName, lastName, phone||null, password||null, status||'Active']
+    );
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.put('/api/teachers/:id', async (req, res) => {
   try {
     const { firstName, lastName, phone, password, status } = req.body;
     const newName = `${firstName} ${lastName}`;
-
-    // Get old name for cascade
     const old = await pool.query('SELECT first_name, last_name FROM teachers WHERE id=$1', [req.params.id]);
     const oldName = old.rows[0] ? `${old.rows[0].first_name} ${old.rows[0].last_name}` : null;
-
     if (password) {
       await pool.query(
         'UPDATE teachers SET first_name=$1,last_name=$2,phone=$3,password=$4,status=$5 WHERE id=$6',
@@ -312,54 +313,56 @@ app.put('/api/teachers/:id', async (req, res) => {
         [firstName, lastName, phone||null, status||'Active', req.params.id]
       );
     }
-
-    // Cascade: update all groups referencing the old teacher name
     if (oldName && oldName !== newName) {
       await pool.query('UPDATE groups SET teacher=$1 WHERE teacher=$2', [newName, oldName]);
     }
-
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.delete('/api/teachers/:id', async (req, res) => {
-  await pool.query('DELETE FROM teachers WHERE id=$1', [req.params.id]);
-  res.json({ ok: true });
+  try {
+    await pool.query('DELETE FROM teachers WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-/* ══════════════════════════════════════
-   CLASSROOMS
-══════════════════════════════════════ */
+/* CLASSROOMS */
 app.get('/api/classrooms', async (req, res) => {
-  const { rows } = await pool.query('SELECT * FROM classrooms ORDER BY name');
-  res.json(rows.map(r => ({ id: r.id, name: r.name })));
+  try {
+    const { rows } = await pool.query('SELECT * FROM classrooms ORDER BY name');
+    res.json(rows.map(r => ({ id: r.id, name: r.name })));
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/classrooms', async (req, res) => {
-  const { id, name, capacity } = req.body;
-  await pool.query('INSERT INTO classrooms(id,name) VALUES($1,$2)', [id, name]);
-  res.json({ ok: true });
+  try {
+    const { id, name } = req.body;
+    await pool.query('INSERT INTO classrooms(id,name) VALUES($1,$2)', [id, name]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.put('/api/classrooms/:id', async (req, res) => {
-  const { name, capacity } = req.body;
-  // Also update groups referencing the old name
-  const old = await pool.query('SELECT name FROM classrooms WHERE id=$1', [req.params.id]);
-  if (old.rows[0] && old.rows[0].name !== name) {
-    await pool.query('UPDATE groups SET room=$1 WHERE room=$2', [name, old.rows[0].name]);
-  }
-  await pool.query('UPDATE classrooms SET name=$1 WHERE id=$2', [name, req.params.id]);
-  res.json({ ok: true });
+  try {
+    const { name } = req.body;
+    const old = await pool.query('SELECT name FROM classrooms WHERE id=$1', [req.params.id]);
+    if (old.rows[0] && old.rows[0].name !== name) {
+      await pool.query('UPDATE groups SET room=$1 WHERE room=$2', [name, old.rows[0].name]);
+    }
+    await pool.query('UPDATE classrooms SET name=$1 WHERE id=$2', [name, req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.delete('/api/classrooms/:id', async (req, res) => {
-  await pool.query('DELETE FROM classrooms WHERE id=$1', [req.params.id]);
-  res.json({ ok: true });
+  try {
+    await pool.query('DELETE FROM classrooms WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-/* ══════════════════════════════════════
-   GROUPS
-══════════════════════════════════════ */
+/* GROUPS */
 app.get('/api/groups', async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT * FROM groups ORDER BY created_at DESC');
@@ -373,38 +376,6 @@ app.get('/api/groups', async (req, res) => {
       price: Number(g.price || 0),
       createdAt: g.created_at
     })));
-  } catch(e) { res.status(500).json({ error: e.message }); }
-});
-
-// Custom levels
-app.get('/api/levels', async (req, res) => {
-  try {
-    const { rows } = await pool.query('SELECT level FROM custom_levels ORDER BY created_at');
-    res.json(rows.map(r => r.level));
-  } catch(e) { res.status(500).json({ error: e.message }); }
-});
-
-app.post('/api/levels', async (req, res) => {
-  try {
-    const { level } = req.body;
-    await pool.query('INSERT INTO custom_levels(level) VALUES($1) ON CONFLICT DO NOTHING', [level]);
-    res.json({ ok: true });
-  } catch(e) { res.status(500).json({ error: e.message }); }
-});
-
-app.delete('/api/levels/:level', async (req, res) => {
-  try {
-    await pool.query('DELETE FROM custom_levels WHERE level=$1', [req.params.level]);
-    res.json({ ok: true });
-  } catch(e) { res.status(500).json({ error: e.message }); }
-});
-
-// Update just the current unit
-app.patch('/api/groups/:id/unit', async (req, res) => {
-  try {
-    const { unit } = req.body;
-    await pool.query('UPDATE groups SET current_unit=$1 WHERE id=$2', [unit, req.params.id]);
-    res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -431,13 +402,44 @@ app.put('/api/groups/:id', async (req, res) => {
 });
 
 app.delete('/api/groups/:id', async (req, res) => {
-  await pool.query('DELETE FROM groups WHERE id=$1', [req.params.id]);
-  res.json({ ok: true });
+  try {
+    await pool.query('DELETE FROM groups WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-/* ══════════════════════════════════════
-   PRICING
-══════════════════════════════════════ */
+app.patch('/api/groups/:id/unit', async (req, res) => {
+  try {
+    const { unit } = req.body;
+    await pool.query('UPDATE groups SET current_unit=$1 WHERE id=$2', [unit, req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+/* CUSTOM LEVELS */
+app.get('/api/levels', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT level FROM custom_levels ORDER BY created_at');
+    res.json(rows.map(r => r.level));
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/levels', async (req, res) => {
+  try {
+    const { level } = req.body;
+    await pool.query('INSERT INTO custom_levels(level) VALUES($1) ON CONFLICT DO NOTHING', [level]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/levels/:level', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM custom_levels WHERE level=$1', [req.params.level]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+/* PRICING */
 app.get('/api/pricing', async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT * FROM pricing ORDER BY level');
@@ -456,9 +458,7 @@ app.put('/api/pricing/:level', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-/* ══════════════════════════════════════
-   INVOICES
-══════════════════════════════════════ */
+/* INVOICES */
 app.get('/api/invoices', async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT * FROM invoices ORDER BY created_at DESC');
@@ -500,7 +500,6 @@ app.put('/api/invoices/:id', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Quick status update
 app.patch('/api/invoices/:id/status', async (req, res) => {
   try {
     const { status, paymentType } = req.body;
@@ -516,33 +515,32 @@ app.delete('/api/invoices/:id', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-/* ══════════════════════════════════════
-   ATTENDANCE
-══════════════════════════════════════ */
+/* ATTENDANCE */
 app.get('/api/attendance/:groupId/:date', async (req, res) => {
-  const { rows } = await pool.query(
-    'SELECT student_id, status FROM attendance WHERE group_id=$1 AND date=$2',
-    [req.params.groupId, req.params.date]
-  );
-  res.json(rows.map(r => ({ studentId: r.student_id, status: r.status })));
+  try {
+    const { rows } = await pool.query(
+      'SELECT student_id, status FROM attendance WHERE group_id=$1 AND date=$2',
+      [req.params.groupId, req.params.date]
+    );
+    res.json(rows.map(r => ({ studentId: r.student_id, status: r.status })));
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/attendance/:groupId/:date', async (req, res) => {
-  const { records } = req.body; // [{studentId, status}]
-  // Delete existing for this session then re-insert
-  await pool.query('DELETE FROM attendance WHERE group_id=$1 AND date=$2', [req.params.groupId, req.params.date]);
-  for (const r of records) {
-    await pool.query(
-      'INSERT INTO attendance(group_id,date,student_id,status) VALUES($1,$2,$3,$4)',
-      [req.params.groupId, req.params.date, r.studentId, r.status]
-    );
-  }
-  res.json({ ok: true });
+  try {
+    const { records } = req.body;
+    await pool.query('DELETE FROM attendance WHERE group_id=$1 AND date=$2', [req.params.groupId, req.params.date]);
+    for (const r of records) {
+      await pool.query(
+        'INSERT INTO attendance(group_id,date,student_id,status) VALUES($1,$2,$3,$4)',
+        [req.params.groupId, req.params.date, r.studentId, r.status]
+      );
+    }
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-/* ══════════════════════════════════════
-   LEADS
-══════════════════════════════════════ */
+/* LEADS */
 app.get('/api/leads', async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT * FROM leads ORDER BY created_at DESC');
@@ -582,31 +580,27 @@ app.put('/api/leads/:id', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Move lead to Trial — assign group
+// FIX: to-trial now generates a new student ID so group student_ids stays consistent
 app.post('/api/leads/:id/to-trial', async (req, res) => {
   try {
     const { groupId } = req.body;
+    const leadId = req.params.id;
     await pool.query(
       `UPDATE leads SET status='Trial', group_id=$1, is_trial=TRUE WHERE id=$2`,
-      [groupId, req.params.id]
+      [groupId, leadId]
     );
-    // Add to group's student_ids
-    const lead = await pool.query('SELECT * FROM leads WHERE id=$1', [req.params.id]);
-    if (lead.rows[0]) {
-      const grp = await pool.query('SELECT student_ids FROM groups WHERE id=$1', [groupId]);
-      if (grp.rows[0]) {
-        const ids = grp.rows[0].student_ids || [];
-        if (!ids.includes(req.params.id)) {
-          ids.push(req.params.id);
-          await pool.query('UPDATE groups SET student_ids=$1 WHERE id=$2', [JSON.stringify(ids), groupId]);
-        }
+    const grp = await pool.query('SELECT student_ids FROM groups WHERE id=$1', [groupId]);
+    if (grp.rows[0]) {
+      const ids = grp.rows[0].student_ids || [];
+      if (!ids.includes(leadId)) {
+        ids.push(leadId);
+        await pool.query('UPDATE groups SET student_ids=$1 WHERE id=$2', [JSON.stringify(ids), groupId]);
       }
     }
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Move lead to Payment (after trial)
 app.post('/api/leads/:id/to-payment', async (req, res) => {
   try {
     await pool.query(`UPDATE leads SET status='Payment' WHERE id=$1`, [req.params.id]);
@@ -614,19 +608,19 @@ app.post('/api/leads/:id/to-payment', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Convert lead to permanent student
+// FIX: convert uses ON CONFLICT to safely upsert student
 app.post('/api/leads/:id/convert', async (req, res) => {
   try {
     const lead = await pool.query('SELECT * FROM leads WHERE id=$1', [req.params.id]);
     if (!lead.rows[0]) return res.status(404).json({ error: 'Lead not found' });
     const l = lead.rows[0];
-    // Insert into students
+    const phone = l.phone_student || l.phone_father || l.phone_mother || l.phone_other || null;
     await pool.query(
       `INSERT INTO students(id,first_name,last_name,phone,level,status)
-       VALUES($1,$2,$3,$4,$5,'Active') ON CONFLICT(id) DO UPDATE SET status='Active'`,
-      [l.id, l.first_name, l.last_name, l.phone_student||l.phone_father||l.phone_mother||l.phone_other, l.current_level]
+       VALUES($1,$2,$3,$4,$5,'Active')
+       ON CONFLICT(id) DO UPDATE SET first_name=$2,last_name=$3,phone=$4,level=$5,status='Active'`,
+      [l.id, l.first_name, l.last_name, phone, l.current_level]
     );
-    // Update lead status
     await pool.query(`UPDATE leads SET status='Student' WHERE id=$1`, [req.params.id]);
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -639,29 +633,29 @@ app.delete('/api/leads/:id', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-/* ══════════════════════════════════════
-   ACTIVITY LOG
-══════════════════════════════════════ */
+/* ACTIVITY */
 app.get('/api/activity', async (req, res) => {
-  const { rows } = await pool.query('SELECT * FROM activity ORDER BY created_at DESC LIMIT 50');
-  res.json(rows.map(a => ({
-    text: a.text, color: a.color, actor: a.actor, role: a.role,
-    time: new Date(a.created_at).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' })
-  })));
+  try {
+    const { rows } = await pool.query('SELECT * FROM activity ORDER BY created_at DESC LIMIT 50');
+    res.json(rows.map(a => ({
+      text: a.text, color: a.color, actor: a.actor, role: a.role,
+      time: new Date(a.created_at).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' })
+    })));
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/activity', async (req, res) => {
-  const { text, color, actor, role } = req.body;
-  await pool.query('INSERT INTO activity(text,color,actor,role) VALUES($1,$2,$3,$4)', [text, color||null, actor||null, role||null]);
-  res.json({ ok: true });
+  try {
+    const { text, color, actor, role } = req.body;
+    await pool.query('INSERT INTO activity(text,color,actor,role) VALUES($1,$2,$3,$4)', [text, color||null, actor||null, role||null]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-/* ── Catch-all → serve index ── */
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-// Global unhandled route errors
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({ error: err.message || 'Server error' });

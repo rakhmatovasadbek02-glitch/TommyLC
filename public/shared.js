@@ -2,10 +2,8 @@
 //  TommyLC CRM — Shared Utilities (PostgreSQL)
 // ══════════════════════════════════════════
 
-/* ── API base ── */
-const API = '';  // same origin — Railway serves both
+const API = '';
 
-/* ── Generic fetch helpers ── */
 async function apiGet(path) {
   const r = await fetch(API + path);
   if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || r.statusText); }
@@ -32,19 +30,16 @@ async function apiDelete(path) {
   return r.json();
 }
 
-/* ── ID generator ── */
 function genId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
-/* ── Format helpers ── */
 function formatCurrency(n) { return '$' + Number(n || 0).toFixed(2); }
 function formatDate(iso) {
   if (!iso) return '—';
   return new Date(iso).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 }
 
-/* ── Avatar ── */
 const AVATAR_COLORS = ['#FF0000','#1D4ED8','#1E6B45','#7C3AED','#A05C00','#0891B2','#BE185D','#D97706'];
 function avatarColor(name) {
   let h = 0;
@@ -80,7 +75,7 @@ function getRole() { const s = getSession(); return s ? s.role : null; }
 function can(feature) {
   const role = getRole();
   if (!role) return false;
-  if (role === 'CEO') return true;  // CEO sees everything
+  if (role === 'CEO') return true;
   const perms = ROLE_PERMISSIONS[role];
   return Array.isArray(perms) && perms.includes(feature);
 }
@@ -99,7 +94,6 @@ function logout() {
   window.location.replace('login.html');
 }
 
-// ── Activity log (fire-and-forget) ──
 function logActivity(text, color) {
   const session = getSession();
   apiPost('/api/activity', {
@@ -109,7 +103,6 @@ function logActivity(text, color) {
   }).catch(() => {});
 }
 
-// ── Toast ──
 function showToast(message, type) {
   const container = document.getElementById('toastContainer');
   if (!container) return;
@@ -120,23 +113,22 @@ function showToast(message, type) {
   setTimeout(() => toast.remove(), 3500);
 }
 
+// FIX: now callable from any page, not just index.html
 function checkAccessDeniedMessage() {
   const denied = sessionStorage.getItem('lc_access_denied');
   if (denied) {
     sessionStorage.removeItem('lc_access_denied');
-    const labels = { payments:'Payments', teachers:'Teachers', settings:'Users', groups:'Groups', classrooms:'Classrooms' };
+    const labels = { payments:'Payments', teachers:'Teachers', settings:'Users', groups:'Groups', classrooms:'Classrooms', leads:'Leads', students:'Students' };
     showToast(`Your role does not have access to ${labels[denied]||denied}.`, 'error');
   }
 }
 
-// ── Modal helpers ──
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.addEventListener('click', e => {
   if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open');
 });
 
-// ── Sidebar ──
 function renderSidebar(activePage) {
   const session = getSession();
   if (!session) return;
@@ -152,7 +144,7 @@ function renderSidebar(activePage) {
     { feature:'settings',   href:'users.html',      icon:'🔧', label:'Users'      },
   ];
 
-  const meta = ROLE_META[session.role] || ROLE_META['Admin'];
+  const meta = ROLE_META[session.role] || ROLE_META['CEO'];
   const navHTML = NAV_ITEMS
     .filter(item => can(item.feature))
     .map(item => {
@@ -202,6 +194,9 @@ function renderSidebar(activePage) {
     overlay.onclick = closeSidebar;
     document.body.appendChild(overlay);
   }
+
+  // FIX: show access denied message on every page after redirect
+  checkAccessDeniedMessage();
 }
 
 function toggleSidebar() {

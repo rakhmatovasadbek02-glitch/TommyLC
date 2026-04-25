@@ -6,7 +6,6 @@
   <title>Dashboard — TommyLC CRM</title>
   <link rel="stylesheet" href="shared.css">
   <style>
-    /* ── Welcome banner ── */
     .welcome-banner {
       background: linear-gradient(135deg, #990000 0%, #CC0000 100%);
       border-radius: var(--radius);
@@ -35,101 +34,50 @@
       padding: 6px 14px; border-radius: 100px;
       font-size: 13px; font-weight: 500; white-space: nowrap;
     }
-
-    /* ── Stat boxes ── */
-    .stat-row {
-      display: flex;
-      gap: 16px;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-    }
+    .stat-row { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
     .stat-box {
-      background: white;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      padding: 20px 24px;
-      flex: 1;
-      min-width: 140px;
-      position: relative;
-      overflow: hidden;
-      cursor: default;
+      background: white; border-radius: var(--radius);
+      border: 1px solid var(--border); padding: 20px 24px;
+      flex: 1; min-width: 140px; position: relative;
+      overflow: hidden; cursor: default;
       transition: box-shadow 0.16s, transform 0.16s;
     }
     .stat-box:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
     .stat-box::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
       background: var(--crimson);
     }
     .stat-box.green::before  { background: var(--green); }
     .stat-box.blue::before   { background: var(--blue); }
     .stat-box.amber::before  { background: var(--amber); }
     .stat-box.purple::before { background: #7C3AED; }
-
-    .stat-box-icon {
-      position: absolute; top: 16px; right: 16px;
-      font-size: 26px; opacity: 0.11;
-    }
-    .stat-box-label {
-      font-size: 10px; font-weight: 700;
-      letter-spacing: 1.5px; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 6px;
-    }
-    .stat-box-value {
-      font-family: 'Playfair Display', serif;
-      font-size: 36px; color: var(--text); line-height: 1;
-    }
+    .stat-box-icon { position: absolute; top: 16px; right: 16px; font-size: 26px; opacity: 0.11; }
+    .stat-box-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .stat-box-value { font-family: 'Playfair Display', serif; font-size: 36px; color: var(--text); line-height: 1; }
     .stat-box-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
-
-    /* ── Timetable ── */
-    .timetable-header {
-      display: flex; align-items: center;
-      justify-content: space-between; margin-bottom: 16px;
-    }
-    .timetable-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 20px; font-weight: 900; color: var(--text);
-    }
-
-    /* Day type tabs */
+    .timetable-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .timetable-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 900; color: var(--text); }
     .day-tabs { display:flex; gap:4px; }
     .day-tab {
-      padding: 7px 16px; border-radius: 8px;
-      font-size: 13px; font-weight: 600;
-      border: 1.5px solid var(--border);
-      background: white; color: var(--muted);
-      cursor: pointer; transition: all 0.14s;
-      font-family: 'DM Sans', sans-serif;
+      padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+      border: 1.5px solid var(--border); background: white; color: var(--muted);
+      cursor: pointer; transition: all 0.14s; font-family: 'DM Sans', sans-serif;
     }
     .day-tab:hover { border-color: var(--crimson); color: var(--crimson); }
     .day-tab.active { background: var(--crimson); color: white; border-color: var(--crimson); }
-
-    /* Custom day picker chips — radio, single select */
-    .custom-day-row {
-      display: none; gap: 6px; flex-wrap: wrap;
-      margin-bottom: 16px; align-items: center;
-    }
+    .custom-day-row { display: none; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
     .custom-day-row.show { display: flex; }
-    .cday-chip input[type="radio"],
-    .cday-chip input[type="checkbox"] { display:none; }
+    .cday-chip input[type="radio"], .cday-chip input[type="checkbox"] { display:none; }
     .cday-chip span {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 44px; height: 34px;
-      border: 1.5px solid var(--border); border-radius: 7px;
+      width: 44px; height: 34px; border: 1.5px solid var(--border); border-radius: 7px;
       font-size: 12px; font-weight: 700; cursor: pointer;
       transition: all 0.14s; background: white; color: var(--muted);
     }
     .cday-chip input:checked + span { background: var(--crimson); color: white; border-color: var(--crimson); }
     .cday-chip span:hover { border-color: var(--crimson); color: var(--crimson); }
     .cday-chip input:checked + span:hover { color: white; }
-
-    .timetable-wrap {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: auto;
-      box-shadow: var(--shadow);
-    }
+    .timetable-wrap { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: auto; box-shadow: var(--shadow); }
   </style>
 </head>
 <body>
@@ -146,7 +94,6 @@
 
   <div class="page-content">
 
-    <!-- Welcome -->
     <div class="welcome-banner">
       <div>
         <h2 id="welcomeMsg">Good morning 👋</h2>
@@ -155,10 +102,8 @@
       <div class="date-chip" id="dateBadge"></div>
     </div>
 
-    <!-- Role-filtered stat boxes -->
     <div class="stat-row" id="statRow"></div>
 
-    <!-- Timetable -->
     <div class="timetable-header">
       <div class="timetable-title">Timetable</div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
@@ -171,7 +116,6 @@
       </div>
     </div>
 
-    <!-- Custom day picker (radio = one day at a time) -->
     <div class="custom-day-row" id="customDayRow">
       <span style="font-size:12px;font-weight:700;color:var(--muted);margin-right:4px">Day:</span>
       <label class="cday-chip"><input type="radio" name="customDay" value="1" onchange="renderTimetable()"><span>Mon</span></label>
@@ -190,7 +134,6 @@
   </div>
 </div>
 
-<!-- Class detail popup (click on timetable block) -->
 <div class="modal-overlay" id="classDetailModal">
   <div class="modal" style="width:420px">
     <div class="modal-header">
@@ -200,7 +143,7 @@
     <div class="modal-body" id="cdBody"></div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('classDetailModal')">Close</button>
-      <button class="btn btn-primary" id="cdGoBtn" onclick="window.location.href='groups.html'">👥 Open Group →</button>
+      <button class="btn btn-primary" id="cdGoBtn">👥 Open Group →</button>
     </div>
   </div>
 </div>
@@ -210,75 +153,30 @@
 <script>
   requireAuth('dashboard');
   renderSidebar('dashboard');
-  checkAccessDeniedMessage();
 
   const session = getSession();
   const role    = getRole();
   const now     = new Date();
 
-  /* ── Date header ── */
   document.getElementById('currentDate').textContent =
     now.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
   document.getElementById('dateBadge').textContent =
     now.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 
-  /* ── Welcome greeting ── */
   const firstName = session ? session.name.split(' ')[0] : 'there';
   const hour = now.getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   document.getElementById('welcomeMsg').textContent = `${greeting}, ${firstName} 👋`;
 
-  /* ══════════════════════════════════
-     ROLE-FILTERED STAT BOXES
-  ══════════════════════════════════ */
   const STAT_DEFS = [
-    {
-      id: 'statActive', label: 'Active Students', icon: '👤',
-      color: '',
-      roles: ['CEO'],
-      calc: () => (window._students || []).filter(s => s.status === 'Active').length,
-      sub: 'currently enrolled'
-    },
-    {
-      id: 'statDebtors', label: 'Debtors', icon: '⚠️',
-      color: 'red',
-      roles: ['CEO'],
-      calc: () => {
-        const inv = window._invoices || [];
-        const ids = new Set(inv.filter(i => i.status === 'Pending' || i.status === 'Overdue').map(i => i.studentId));
-        return ids.size;
-      },
-      sub: 'unpaid invoices'
-    },
-    {
-      id: 'statPaid', label: 'Paid', icon: '✅',
-      color: 'green',
-      roles: ['CEO'],
-      calc: () => (window._invoices || []).filter(i => i.status === 'Paid').length,
-      sub: 'invoices settled'
-    },
-    {
-      id: 'statLead', label: 'Leads', icon: '🎯',
-      color: 'purple',
-      roles: ['CEO'],
-      calc: () => (window._students || []).filter(s => s.status === 'Lead').length,
-      sub: 'potential students'
-    },
-    {
-      id: 'statTrial', label: 'Trial', icon: '🔬',
-      color: 'amber',
-      roles: ['CEO'],
-      calc: () => (window._students || []).filter(s => s.status === 'Trial').length,
-      sub: 'on trial period'
-    },
-    {
-      id: 'statAbsent', label: 'Absent Today', icon: '🚫',
-      color: 'red',
-      roles: ['CEO'],
-      calc: () => window._absentToday || 0,
-      sub: 'not in class today'
-    },
+    { id:'statActive',  label:'Active Students', icon:'👤', color:'',       roles:['CEO'], calc:()=>(window._students||[]).filter(s=>s.status==='Active').length,  sub:'currently enrolled' },
+    { id:'statDebtors', label:'Debtors',         icon:'⚠️', color:'red',    roles:['CEO'], calc:()=>{ const ids=new Set((window._invoices||[]).filter(i=>i.status==='Pending'||i.status==='Overdue').map(i=>i.studentId)); return ids.size; }, sub:'unpaid invoices' },
+    { id:'statPaid',    label:'Paid',            icon:'✅', color:'green',  roles:['CEO'], calc:()=>(window._invoices||[]).filter(i=>i.status==='Paid').length,     sub:'invoices settled' },
+    { id:'statLead',    label:'Leads',           icon:'🎯', color:'purple', roles:['CEO'], calc:()=>(window._students||[]).filter(s=>s.status==='Lead').length,     sub:'potential students' },
+    { id:'statTrial',   label:'Trial',           icon:'🔬', color:'amber',  roles:['CEO'], calc:()=>(window._students||[]).filter(s=>s.status==='Trial').length,    sub:'on trial period' },
+    { id:'statAbsent',  label:'Absent Today',    icon:'🚫', color:'red',    roles:['CEO'], calc:()=>window._absentToday||0,                                         sub:'not in class today' },
   ];
+
   function renderStats() {
     const row = document.getElementById('statRow');
     row.innerHTML = STAT_DEFS
@@ -289,50 +187,26 @@
           <div class="stat-box-label">${s.label}</div>
           <div class="stat-box-value" id="${s.id}">—</div>
           <div class="stat-box-sub">${s.sub}</div>
-        </div>
-      `).join('');
-
+        </div>`).join('');
     STAT_DEFS.filter(s => s.roles.includes(role)).forEach(s => {
       const el = document.getElementById(s.id);
       if (el) el.textContent = s.calc();
     });
   }
 
-  /* ══════════════════════════════════
-     TIMETABLE — Classrooms × Time slots
-     Columns = time slots (08:00–20:00)
-     Rows    = classrooms
-     Filter  = odd / even / custom (single day)
-     Auto-detect today's type on load
-  ══════════════════════════════════ */
   const LEVEL_COLORS = {
-    'RoundUp':          '#FB8C00',
-    'Beginner':         '#43A047',
-    'Elementary':       '#E53935',
-    'Pre-Intermediate': '#1E88E5',
-    'Intermediate':     '#F9A825',
-    'CEFR':             '#8E24AA',
-    'IELTS':            '#00897B',
+    'RoundUp':'#FB8C00','Beginner':'#43A047','Elementary':'#E53935',
+    'Pre-Intermediate':'#1E88E5','Intermediate':'#F9A825','CEFR':'#8E24AA','IELTS':'#00897B',
   };
-  const LEVEL_TEXT_DARK = ['Intermediate'];
   const LEVEL_DEFAULT = '#546E7A';
   let dayFilter = 'odd';
 
-  function classColor(cls) {
-    return LEVEL_COLORS[cls.level] || LEVEL_DEFAULT;
-  }
-  function classTextColor(cls) {
-    return LEVEL_TEXT_DARK.includes(cls.level) ? '#1a1a1a' : 'white';
-  }
+  function classColor(cls) { return LEVEL_COLORS[cls.level] || LEVEL_DEFAULT; }
+  function classTextColor(cls) { return cls.level === 'Intermediate' ? '#1a1a1a' : 'white'; }
 
-  /* Auto-detect: day of week → odd or even
-     Odd  days = Mon (1), Wed (3), Fri (5)
-     Even days = Tue (2), Thu (4), Sat (6)
-     Sun (0)   → fallback to odd */
   function autoDetectTab() {
-    const dow = now.getDay(); // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
-    const evenDays = [2, 4, 6]; // Tue, Thu, Sat
-    return evenDays.includes(dow) ? 'even' : 'odd';
+    const dow = now.getDay();
+    return [2,4,6].includes(dow) ? 'even' : 'odd';
   }
 
   function setDayTab(type, btn) {
@@ -343,15 +217,11 @@
     renderTimetable();
   }
 
-  /* For custom: returns the single selected DOW (0-6), or null */
   function getCustomDow() {
     const r = document.querySelector('input[name="customDay"]:checked');
     return r ? Number(r.value) : null;
   }
 
-  /* Does a class appear in the current view?
-     For odd/even: match by schedType
-     For custom:   match by schedType=custom AND customDays includes selected DOW */
   function classVisible(cls) {
     if (dayFilter === 'odd')    return cls.schedType === 'odd';
     if (dayFilter === 'even')   return cls.schedType === 'even';
@@ -363,8 +233,8 @@
   }
 
   function renderTimetable() {
-    const rooms   = window._classrooms|| [];
-    const classes = window._groups    || [];
+    const rooms   = window._classrooms || [];
+    const classes = window._groups     || [];
     const grid    = document.getElementById('ttGrid');
 
     if (!rooms.length) {
@@ -376,17 +246,14 @@
       return;
     }
     if (dayFilter === 'custom' && getCustomDow() === null) {
-      grid.innerHTML = `<div style="padding:40px;text-align:center;color:var(--muted)">
-        <p>Select a day above to view the groups.</p>
-      </div>`;
+      grid.innerHTML = `<div style="padding:40px;text-align:center;color:var(--muted)"><p>Select a day above to view the groups.</p></div>`;
       return;
     }
 
     const visibleClasses = classes.filter(classVisible);
 
-    /* Fix duration default to 90 */
-       Default 09:00–18:00 in 30-min steps.
-       Expand if any group starts earlier or ends later. */
+    /* FIX: restored the broken comment block — was causing JS syntax error */
+    /* Default 09:00-18:00 in 30-min steps. Expand if any group starts earlier or ends later. */
     function timeToMin(t) {
       if (!t) return 0;
       const [h, m] = t.split(':').map(Number);
@@ -396,55 +263,22 @@
       return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
     }
 
-    let rangeStart = 9 * 60;   // 09:00
-    let rangeEnd   = 18 * 60;  // 18:00
+    let rangeStart = 9 * 60;
+    let rangeEnd   = 18 * 60;
 
-    // Collect all significant times (starts and ends of groups)
-    const significantMins = new Set();
     visibleClasses.forEach(cls => {
       const start = timeToMin(cls.time);
       const end   = start + Number(cls.duration || 90);
-      significantMins.add(start);
-      significantMins.add(end);
-      // Expand range if needed
-      const slotStart = Math.floor(start / 60) * 60; // round to hour
-      const slotEnd   = Math.ceil(end / 60) * 60;
       if (start < rangeStart) rangeStart = Math.floor(start / 60) * 60;
       if (end   > rangeEnd)   rangeEnd   = Math.ceil(end / 60) * 60;
     });
 
-    // Build slots: every 30 minutes within the range
     const slots = [];
     for (let m = rangeStart; m < rangeEnd; m += 30) slots.push(m);
 
-    /* ── Determine which slots are "active" (have a group starting or spanning) ── */
-    function slotHasClass(slotMin, roomName) {
-      return visibleClasses.some(cls => {
-        if (roomName && cls.room !== roomName) return false;
-        const start = timeToMin(cls.time);
-        const end   = start + Number(cls.duration || 90);
-        return slotMin >= start && slotMin < end;
-      });
-    }
-
-    // Per-room: which slots are occupied
-    function slotsOccupied(roomName) {
-      const set = new Set();
-      visibleClasses.filter(c => c.room === roomName).forEach(cls => {
-        const start = timeToMin(cls.time);
-        const end   = start + Number(cls.duration || 90);
-        slots.forEach(s => { if (s >= start && s < end) set.add(s); });
-      });
-      return set;
-    }
-
-    /* Column widths: ALL same size — no more wide/narrow distinction */
-    const COL_W  = 60;   // px per 30-min slot — same whether busy or empty
+    const COL_W  = 60;
     const ROOM_W = 130;
 
-    function colW() { return COL_W; }
-
-    /* ── Header ── */
     let html = `<div style="display:flex;position:sticky;top:0;z-index:5;">
       <div style="width:${ROOM_W}px;flex-shrink:0;background:var(--crimson);padding:12px 16px;
         font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
@@ -455,21 +289,17 @@
         const label  = minToTime(s);
         const isHour = s % 60 === 0;
         return `<div style="width:${COL_W}px;flex-shrink:0;background:var(--crimson);
-          padding:10px 4px;text-align:center;
-          border-right:1px solid rgba(255,255,255,0.12);overflow:hidden;">
+          padding:10px 4px;text-align:center;border-right:1px solid rgba(255,255,255,0.12);overflow:hidden;">
           <div style="font-size:${isHour?12:10}px;font-weight:${isHour?700:400};
-            color:${isHour?'#fff':'rgba(255,255,255,0.55)'};
-            white-space:nowrap;overflow:hidden;text-overflow:clip;">${label}</div>
+            color:${isHour?'#fff':'rgba(255,255,255,0.55)'};white-space:nowrap;">${label}</div>
         </div>`;
       }).join('')}
     </div>`;
 
-    /* ── Add virtual room for groups with no matching classroom ── */
     const roomNames = rooms.map(r => r.name);
     const unassignedGroups = visibleClasses.filter(c => !roomNames.includes(c.room));
-    const allRooms = [...rooms, ...(unassignedGroups.length ? [{ name: 'Unassigned', id: '_unassigned' }] : [])];
+    const allRooms = [...rooms, ...(unassignedGroups.length ? [{ name:'Unassigned', id:'_unassigned' }] : [])];
 
-    /* ── Room rows ── */
     allRooms.forEach(room => {
       const roomClasses = visibleClasses.filter(c => c.room === room.name);
 
@@ -479,7 +309,7 @@
           display:flex;flex-direction:column;justify-content:center;">
           <div style="font-weight:700;font-size:14px;color:var(--crimson)">${room.name}</div>
         </div>
-        ${slots.map((s, si) => {
+        ${slots.map(s => {
           const startingHere = roomClasses.filter(cls => timeToMin(cls.time) === s);
           const coveredByEarlier = roomClasses.some(cls => {
             const cStart = timeToMin(cls.time);
@@ -491,55 +321,39 @@
             return `<div style="width:${COL_W}px;flex-shrink:0;border-right:1px solid var(--border);min-height:90px;pointer-events:none;"></div>`;
           }
 
-          return `<div style="width:${COL_W}px;flex-shrink:0;border-right:1px solid var(--border);
-            min-height:90px;position:relative;">
-            ${startingHere.length === 0 ? '' : ''}
+          return `<div style="width:${COL_W}px;flex-shrink:0;border-right:1px solid var(--border);min-height:90px;position:relative;">
             ${startingHere.map(cls => {
-              const c      = classColor(cls);
+              const c       = classColor(cls);
               const textCol = classTextColor(cls);
-              const dur    = Number(cls.duration || 90);
-              const cStart = timeToMin(cls.time);
-              const cEnd   = cStart + dur;
-              // Width = number of slots this class covers × COL_W, minus a little padding
+              const dur     = Number(cls.duration || 90);
+              const cStart  = timeToMin(cls.time);
+              const cEnd    = cStart + dur;
               const spanSlots = slots.filter(s2 => s2 >= cStart && s2 < cEnd).length;
-              const blockW    = spanSlots * COL_W - 4; // 2px offset left + 2px right
+              const blockW    = spanSlots * COL_W - 4;
               const endT      = minToTime(cEnd);
               const enrolled  = (cls.studentIds || []).length;
 
               return `<div onclick="window.location.href='group.html?id=${cls.id}'"
-                style="position:absolute;top:2px;left:2px;
-                  width:${blockW}px;bottom:2px;
-                  background:${c};border-radius:6px;
-                  padding:5px 8px;cursor:pointer;overflow:hidden;z-index:3;box-sizing:border-box;
-                  display:grid;grid-template-columns:1fr auto;grid-template-rows:auto 1fr auto;gap:1px 4px;"
+                style="position:absolute;top:2px;left:2px;width:${blockW}px;bottom:2px;
+                  background:${c};border-radius:6px;padding:5px 8px;cursor:pointer;overflow:hidden;z-index:3;
+                  box-sizing:border-box;display:grid;grid-template-columns:1fr auto;grid-template-rows:auto 1fr auto;gap:1px 4px;"
                 onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
-
-                <!-- Top left: group code + level -->
                 <div style="grid-column:1;grid-row:1;overflow:hidden">
                   <span style="font-weight:800;font-size:11px;color:${textCol};white-space:nowrap">${cls.name}</span>
                   ${cls.level ? `<span style="font-size:10px;color:${textCol};opacity:0.85;margin-left:4px;white-space:nowrap">${cls.level}</span>` : ''}
                 </div>
-
-                <!-- Top right: current unit -->
                 <div style="grid-column:2;grid-row:1;text-align:right;flex-shrink:0">
                   ${cls.currentUnit ? `<span style="font-size:9px;font-weight:700;color:${c};background:${textCol};padding:1px 5px;border-radius:3px;white-space:nowrap">${cls.currentUnit}</span>` : ''}
                 </div>
-
-                <!-- Middle left: teacher -->
                 <div style="grid-column:1/3;grid-row:2;display:flex;align-items:center;overflow:hidden">
                   ${cls.teacher ? `<span style="font-size:10px;color:${textCol};opacity:0.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 ${cls.teacher}</span>` : ''}
                 </div>
-
-                <!-- Bottom left: time -->
                 <div style="grid-column:1;grid-row:3">
                   <span style="font-size:9px;color:${textCol};opacity:0.85;white-space:nowrap">🕐 ${cls.time}–${endT}</span>
                 </div>
-
-                <!-- Bottom right: students -->
                 <div style="grid-column:2;grid-row:3;text-align:right">
                   ${enrolled ? `<span style="font-size:9px;color:${textCol};opacity:0.85;white-space:nowrap">👥 ${enrolled}</span>` : ''}
                 </div>
-
               </div>`;
             }).join('')}
           </div>`;
@@ -550,42 +364,6 @@
     grid.innerHTML = `<div style="overflow-x:auto;min-width:100%;">${html}</div>`;
   }
 
-  function goToGroups() { window.location.href = 'groups.html'; }
-
-  function showClassDetail(id) {
-    const c = (window._groups || []).find(c => c.id === id);
-    if (!c) return;
-    const SCHED = { odd:'Odd days', even:'Even days', custom:'Custom' };
-    const LANG  = { UZ:'🇺🇿 Uzbek', RU:'🇷🇺 Russian' };
-    const enrolled = (c.studentIds || []).length;
-
-    // Calculate end time
-    const endTime = (() => {
-      if (!c.time) return '';
-      const [h,m] = c.time.split(':').map(Number);
-      const e = h*60+(m||0)+(c.duration||90);
-      return `${String(Math.floor(e/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`;
-    })();
-
-    document.getElementById('cdTitle').textContent = c.name;
-    document.getElementById('cdBody').innerHTML = `
-      <div class="grid-2">
-        <div class="form-group"><label>Schedule</label><div style="font-weight:600">${SCHED[c.schedType]||'—'}</div></div>
-        <div class="form-group"><label>Time</label><div style="font-weight:600">${c.time||'—'}${endTime?' – '+endTime:''}</div></div>
-        <div class="form-group"><label>Teacher</label><div style="font-weight:600">${c.teacher||'—'}</div></div>
-        <div class="form-group"><label>Room</label><div style="font-weight:600">${c.room||'—'}</div></div>
-        <div class="form-group"><label>Level</label><div style="font-weight:600">${c.level||'—'}</div></div>
-        <div class="form-group"><label>Language</label><div style="font-weight:600">${LANG[c.lang]||'—'}</div></div>
-        <div class="form-group"><label>Students</label><div style="font-weight:600">${enrolled}</div></div>
-        <div class="form-group"><label>Since</label><div style="font-weight:600">${formatDate(c.startDate)}</div></div>
-      </div>
-    `;
-    // Update footer button to go directly to groups page
-    document.getElementById('cdGoBtn').onclick = () => window.location.href = 'groups.html';
-    openModal('classDetailModal');
-  }
-
-  /* ── Init ── */
   async function init() {
     try {
       const [groups, classrooms, students, invoices] = await Promise.all([
@@ -597,7 +375,6 @@
       window._students   = students;
       window._invoices   = invoices;
 
-      // Fetch today's attendance for all groups and count unique absent students
       const today = new Date().toISOString().split('T')[0];
       const attResults = await Promise.all(
         groups.map(g => apiGet(`/api/attendance/${g.id}/${today}`).catch(() => []))
@@ -607,7 +384,6 @@
         records.filter(r => r.status === 'absent').forEach(r => absentIds.add(r.studentId));
       });
       window._absentToday = absentIds.size;
-
     } catch(e) {
       window._groups = []; window._classrooms = [];
       window._students = []; window._invoices = [];
