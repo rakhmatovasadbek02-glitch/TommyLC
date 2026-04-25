@@ -138,6 +138,11 @@
           <input type="date" id="gDate">
           <div style="font-size:11px;color:var(--muted);margin-top:4px">Repeats until deleted.</div>
         </div>
+        <div class="form-group">
+          <label>Monthly Price (UZS)</label>
+          <input type="number" id="gPrice" placeholder="0" min="0" step="1000"
+            style="-moz-appearance:textfield" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -314,6 +319,7 @@
     document.getElementById('gDate').value=g.startDate?g.startDate.split('T')[0]:'';
     document.getElementById('gTeacher').value=g.teacher||'';
     document.getElementById('gRoom').value=g.room||'';
+    document.getElementById('gPrice').value=g.price||0;
     selectLang(g.lang||'UZ');
     const r=document.querySelector(`input[name="gSched"][value="${g.schedType||'odd'}"]`);
     if(r)r.checked=true;
@@ -344,6 +350,7 @@
     const data={name:code,level,teacher,room,time,lang,startDate:date,duration:90,
       schedType:type,customDays:type==='custom'?days:[],
       studentIds:id?(groups.find(g=>g.id===id)?.studentIds||[]):[],
+      price: Number(document.getElementById('gPrice').value)||0,
       maxStudents:null,notes:''};
     try {
       if(id){await apiPut('/api/groups/'+id,data);logActivity(`Updated group: ${code}`,'');}
