@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign In — TommyLC</title>
+  <title>Sign In — Tommy LC</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,7 +35,6 @@
       font-family: 'Playfair Display', serif;
       font-size: 24px; font-weight: 900; color: #fff; letter-spacing: 0.5px; line-height: 1;
     }
-    .brand-sub { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-top: 4px; }
     .login-card {
       background: #fff; border-radius: 20px; padding: 48px 44px 44px;
       width: 420px; max-width: 95vw;
@@ -99,8 +98,7 @@
 <div class="bg-glow"></div>
 <div class="bg-grid"></div>
 <div class="brand-corner">
-  <div class="brand-name">TommyLC</div>
-  <div class="brand-sub">Admin Portal</div>
+  <div class="brand-name">Tommy LC</div>
 </div>
 <div class="login-card">
   <h2>Welcome back</h2>
@@ -136,22 +134,15 @@
     input.value = o;
   }
 
-  // If already logged in, go to dashboard
   const existing = JSON.parse(sessionStorage.getItem('lc_session')||localStorage.getItem('lc_session')||'null');
   if (existing) window.location.replace('index.html');
 
-  // Load users for quick access buttons
   async function loadQuickAccess() {
     try {
       const users = await fetch('/api/users').then(r=>r.json());
       const grid  = document.getElementById('roleGrid');
-      const ICONS = { CEO:'👑', Manager:'🏢', 'Head Admin':'📋', Admin:'🗂' };
-      const shown = [];
-      const roles = ['CEO'];
-      roles.forEach(role => {
-        const u = users.find(u => u.role === role);
-        if (u) shown.push(u);
-      });
+      const ICONS = { CEO:'👑' };
+      const shown = users.filter(u => u.role === 'CEO');
       if (!shown.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#994444;font-size:13px;padding:10px">No accounts yet.</div>'; return; }
       grid.innerHTML = shown.map(u => `
         <button class="role-quick-btn" onclick="quickLogin('${u.id}')">

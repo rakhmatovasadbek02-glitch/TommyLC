@@ -13,9 +13,6 @@
     .group-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:900;color:var(--text);margin-bottom:6px;margin-top:6px}
     .group-meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
     .group-card-body{padding:14px 20px}
-    .group-student-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
-    .group-student-row:last-child{border-bottom:none}
-    .group-student-name{flex:1;font-weight:500}
     .group-card-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--surface)}
     .sched-opt input[type="radio"]{display:none}
     .sched-box{border:1.5px solid var(--border);border-radius:10px;padding:12px 10px;text-align:center;cursor:pointer;transition:all 0.15s;background:white}
@@ -31,14 +28,6 @@
     .student-check-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer}
     .student-check-row:last-child{border-bottom:none}
     .student-check-row input{accent-color:var(--crimson);width:16px;height:16px;cursor:pointer}
-    .att-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
-    .att-row:last-child{border-bottom:none}
-    .att-name{flex:1;font-size:14px}
-    .att-toggle{display:flex;gap:6px}
-    .att-btn{padding:5px 12px;border-radius:6px;border:1.5px solid var(--border);background:white;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s}
-    .att-btn.present{background:var(--green);color:white;border-color:var(--green)}
-    .att-btn.absent{background:var(--crimson);color:white;border-color:var(--crimson)}
-    .att-btn.late{background:#FF9999;color:#990000;border-color:#FF9999}
   </style>
 </head>
 <body>
@@ -110,16 +99,12 @@
         <label>Native Language *</label>
         <div style="display:flex;gap:10px;margin-top:4px">
           <div onclick="selectLang('UZ')" id="langUZ"
-            style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1;
-              border:2px solid var(--crimson);background:var(--crimson-soft);
-              border-radius:10px;padding:12px 16px;transition:all 0.15s;user-select:none">
+            style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1;border:2px solid var(--crimson);background:var(--crimson-soft);border-radius:10px;padding:12px 16px;transition:all 0.15s;user-select:none">
             <span style="font-size:24px">🇺🇿</span>
             <div><div style="font-weight:700;font-size:14px">Uzbek</div><div style="font-size:11px;color:var(--muted)">O'zbek tili</div></div>
           </div>
           <div onclick="selectLang('RU')" id="langRU"
-            style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1;
-              border:2px solid var(--border);background:white;
-              border-radius:10px;padding:12px 16px;transition:all 0.15s;user-select:none">
+            style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1;border:2px solid var(--border);background:white;border-radius:10px;padding:12px 16px;transition:all 0.15s;user-select:none">
             <span style="font-size:24px">🇷🇺</span>
             <div><div style="font-weight:700;font-size:14px">Russian</div><div style="font-size:11px;color:var(--muted)">Русский язык</div></div>
           </div>
@@ -138,30 +123,11 @@
           <input type="date" id="gDate">
           <div style="font-size:11px;color:var(--muted);margin-top:4px">Repeats until deleted.</div>
         </div>
-        <div class="form-group">
-          <label>Monthly Price (UZS)</label>
-          <input type="number" id="gPrice" placeholder="0" min="0" step="1000"
-            style="-moz-appearance:textfield;-webkit-appearance:none">
-        </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('groupModal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveGroup()">Save Group</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="attendanceModal">
-  <div class="modal">
-    <div class="modal-header"><div class="modal-title">✅ Attendance</div><button class="modal-close" onclick="closeModal('attendanceModal')">✕</button></div>
-    <div class="modal-body">
-      <div id="attInfo" style="margin-bottom:16px;padding:12px;background:var(--crimson-soft);border-radius:8px;font-size:13px;font-weight:600;color:#CC0000"></div>
-      <div id="attList"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('attendanceModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveAtt()">Save</button>
     </div>
   </div>
 </div>
@@ -174,7 +140,6 @@
       <button class="modal-close" onclick="closeModal('levelsModal')">✕</button>
     </div>
     <div class="modal-body">
-      <!-- Add new level -->
       <div style="display:grid;grid-template-columns:1fr 140px auto;gap:10px;align-items:end;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)">
         <div class="form-group" style="margin:0">
           <label>Level Name</label>
@@ -183,11 +148,10 @@
         <div class="form-group" style="margin:0">
           <label>Price (UZS)</label>
           <input type="number" id="newLevelPrice" placeholder="0" min="0" step="1000"
-            style="-moz-appearance:textfield;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;width:100%;outline:none;font-family:'DM Sans',sans-serif">
+            style="padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;width:100%;outline:none;font-family:'DM Sans',sans-serif">
         </div>
         <button class="btn btn-primary" onclick="addLevel()" style="height:40px">Add</button>
       </div>
-      <!-- Level list -->
       <div id="levelsList"></div>
     </div>
     <div class="modal-footer">
@@ -203,20 +167,18 @@
   requireAuth('groups');
   renderSidebar('groups');
 
-  const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const SCHED_LABEL = { odd:'Odd days (Mon·Wed·Fri)', even:'Even days (Tue·Thu·Sat)', custom:'Custom' };
-  const PALETTE = ['#FF0000','#1D4ED8','#1E6B45','#7C3AED','#A05C00','#0891B2','#BE185D'];
+  const DAY_NAMES  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const PALETTE    = ['#FF0000','#1D4ED8','#1E6B45','#7C3AED','#A05C00','#0891B2','#BE185D'];
   let groups=[], students=[], teachers=[], classrooms=[], leadsData=[], customLevels=[];
-  let attGroupId=null, attDate=null;
 
   function groupColor(id){let h=0;for(let c of(id||'?'))h=(h<<5)-h+c.charCodeAt(0);return PALETTE[Math.abs(h)%PALETTE.length];}
 
   async function load() {
     [groups,students,teachers,classrooms,leadsData,customLevels] = await Promise.all([
       apiGet('/api/groups'), apiGet('/api/students'),
-      apiGet('/api/teachers'), apiGet('/api/classrooms'), apiGet('/api/leads').catch(()=>[]), apiGet('/api/levels').catch(()=>[])
+      apiGet('/api/teachers'), apiGet('/api/classrooms'),
+      apiGet('/api/leads').catch(()=>[]), apiGet('/api/levels').catch(()=>[])
     ]);
-    window._leads = leadsData;
     renderGroups();
   }
 
@@ -227,9 +189,8 @@
       (!q||g.name.toLowerCase().includes(q)||(g.teacher||'').toLowerCase().includes(q)||(g.level||'').toLowerCase().includes(q))
       &&(!fs||g.schedType===fs));
     document.getElementById('groupCount').textContent=`${filtered.length} group${filtered.length!==1?'s':''}`;
-    const canManage=can('settings') || getRole()==='CEO';
+    const canManage=can('settings')||getRole()==='CEO';
     const grid=document.getElementById('groupsGrid');
-    const today=new Date().toISOString().split('T')[0];
     const LANG_FLAG={UZ:'🇺🇿',RU:'🇷🇺'};
     const SCHED_LABEL={odd:'Odd days',even:'Even days',custom:'Custom'};
     if(!filtered.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">👥</div><p>No groups yet. Click "+ Add Group" to create one.</p></div>';return;}
@@ -280,11 +241,11 @@
   }
 
   function selectLang(val) {
-    document.getElementById('gLang').value = val;
-    ['UZ','RU'].forEach(l => {
-      const el = document.getElementById('lang'+l);
-      el.style.borderColor = l===val ? 'var(--crimson)' : 'var(--border)';
-      el.style.background  = l===val ? 'var(--crimson-soft)' : 'white';
+    document.getElementById('gLang').value=val;
+    ['UZ','RU'].forEach(l=>{
+      const el=document.getElementById('lang'+l);
+      el.style.borderColor=l===val?'var(--crimson)':'var(--border)';
+      el.style.background =l===val?'var(--crimson-soft)':'white';
     });
   }
 
@@ -309,7 +270,6 @@
     document.getElementById('gDate').value=g.startDate?g.startDate.split('T')[0]:'';
     document.getElementById('gTeacher').value=g.teacher||'';
     document.getElementById('gRoom').value=g.room||'';
-    document.getElementById('gPrice').value=g.price||0;
     selectLang(g.lang||'UZ');
     const r=document.querySelector(`input[name="gSched"][value="${g.schedType||'odd'}"]`);
     if(r)r.checked=true;
@@ -337,16 +297,18 @@
     if(!date)   {showToast('Start date is required.','error');  return;}
     if(type==='custom'&&!days.length){showToast('Select at least one day.','error');return;}
     const id=document.getElementById('editGroupId').value;
-    const data={name:code,level,teacher,room,time,lang,startDate:date,duration:90,
-      schedType:type,customDays:type==='custom'?days:[],
+    const data={
+      name:code, level, teacher, room, time, lang, startDate:date, duration:90,
+      schedType:type, customDays:type==='custom'?days:[],
       studentIds:id?(groups.find(g=>g.id===id)?.studentIds||[]):[],
-      price: Number(document.getElementById('gPrice').value)||0,
-      maxStudents:null,notes:''};
+      price: levelPrices[level] || 0,
+      maxStudents:null, notes:''
+    };
     try {
       if(id){await apiPut('/api/groups/'+id,data);logActivity(`Updated group: ${code}`,'');}
       else{data.id=genId();await apiPost('/api/groups',data);logActivity(`Added group: ${code}`,'green');}
       closeModal('groupModal'); await load(); showToast(id?'Group updated!':'Group created!');
-    } catch(e){showToast('Error: '+e.message,'error');console.error(e);}
+    } catch(e){showToast('Error: '+e.message,'error');}
   }
 
   async function deleteGroup(id) {
@@ -361,12 +323,12 @@
     const tSel=document.getElementById('gTeacher');
     tSel.innerHTML='<option value="">— Select teacher —</option>'+teachers.map(t=>`<option value="${t.firstName} ${t.lastName}">${t.firstName} ${t.lastName}</option>`).join('');
     const rSel=document.getElementById('gRoom');
-    if(!classrooms.length){rSel.innerHTML='<option value="">No classrooms yet — add first</option>';rSel.disabled=true;}
+    if(!classrooms.length){rSel.innerHTML='<option value="">No classrooms yet</option>';rSel.disabled=true;}
     else{rSel.disabled=false;rSel.innerHTML='<option value="">— Select room —</option>'+classrooms.map(r=>`<option value="${r.name}">${r.name}</option>`).join('');}
   }
 
   function clearForm(){
-    ['editGroupId','gCode','gLevel','gTime','gDate','gPrice'].forEach(id=>document.getElementById(id).value='');
+    ['editGroupId','gCode','gLevel','gTime','gDate'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('gTeacher').value='';
     document.getElementById('gRoom').value='';
     document.querySelectorAll('input[name="gSched"]')[0].checked=true;
@@ -375,67 +337,28 @@
     selectLang('UZ');
   }
 
-  // Attendance
-  async function openAtt(groupId, date, name, time) {
-    attGroupId=groupId; attDate=date;
-    const g=groups.find(g=>g.id===groupId);
-    const enrolled=(g?.studentIds||[]).map(id=>students.find(s=>s.id===id)).filter(Boolean);
-    const existing=await apiGet(`/api/attendance/${groupId}/${date}`).catch(()=>[]);
-    document.getElementById('attInfo').textContent=`${name} · ${formatDate(date)} at ${time}`;
-    document.getElementById('attList').innerHTML=enrolled.length
-      ?enrolled.map(s=>{
-          const n=s.firstName+' '+s.lastName;
-          const prev=existing.find(a=>a.studentId===s.id);
-          const st=prev?.status||'';
-          return `<div class="att-row">
-            <div class="avatar" style="background:${avatarColor(n)};width:30px;height:30px;font-size:11px">${initials(n)}</div>
-            <div class="att-name">${n}</div>
-            <div class="att-toggle">
-              <button class="att-btn${st==='present'?' present':''}" data-sid="${s.id}" data-status="present" onclick="togAtt(this)">✓</button>
-              <button class="att-btn${st==='late'?' late':''}"    data-sid="${s.id}" data-status="late"    onclick="togAtt(this)">⏱</button>
-              <button class="att-btn${st==='absent'?' absent':''}" data-sid="${s.id}" data-status="absent"  onclick="togAtt(this)">✕</button>
-            </div>
-          </div>`;
-        }).join('')
-      :'<p class="text-muted">No students enrolled.</p>';
-    openModal('attendanceModal');
-  }
-  function togAtt(btn){btn.closest('.att-toggle').querySelectorAll('.att-btn').forEach(b=>b.classList.remove('present','late','absent'));btn.classList.add(btn.dataset.status);}
-  async function saveAtt(){
-    const records=[];
-    document.querySelectorAll('.att-toggle').forEach(row=>{
-      const a=row.querySelector('.att-btn.present,.att-btn.late,.att-btn.absent');
-      if(a)records.push({studentId:a.dataset.sid,status:a.dataset.status});
-    });
-    await apiPost(`/api/attendance/${attGroupId}/${attDate}`,{records});
-    logActivity('Recorded attendance','');
-    closeModal('attendanceModal'); showToast('Attendance saved!');
-  }
-
-  // ── All levels (built-in + custom) ──
-  const BUILT_IN_LEVELS = ['RoundUp','Beginner','Elementary','Pre-Intermediate','Intermediate','CEFR','IELTS'];
-  const LEVEL_COLORS = {
+  // ── Levels ──
+  const BUILT_IN_LEVELS=['RoundUp','Beginner','Elementary','Pre-Intermediate','Intermediate','CEFR','IELTS'];
+  const LEVEL_COLORS={
     'RoundUp':'#FB8C00','Beginner':'#43A047','Elementary':'#E53935',
     'Pre-Intermediate':'#1E88E5','Intermediate':'#F9A825','CEFR':'#8E24AA','IELTS':'#00897B'
   };
-  let levelPrices = {};
+  let levelPrices={};
 
   async function loadPricing() {
     try {
-      const arr = await apiGet('/api/pricing');
-      arr.forEach(p => levelPrices[p.level] = p.price);
-    } catch(e) {}
+      const arr=await apiGet('/api/pricing');
+      arr.forEach(p=>levelPrices[p.level]=p.price);
+    } catch(e){}
   }
 
-  function getAllLevels() {
-    return [...BUILT_IN_LEVELS, ...customLevels.filter(l => !BUILT_IN_LEVELS.includes(l))];
-  }
+  function getAllLevels(){ return [...BUILT_IN_LEVELS,...customLevels.filter(l=>!BUILT_IN_LEVELS.includes(l))]; }
 
   function populateLevelSelect() {
-    const sel = document.getElementById('gLevel');
-    const cur = sel.value;
-    sel.innerHTML = '<option value="">— Select level —</option>' +
-      getAllLevels().map(l => `<option value="${l}" ${l===cur?'selected':''}>${l}</option>`).join('');
+    const sel=document.getElementById('gLevel');
+    const cur=sel.value;
+    sel.innerHTML='<option value="">— Select level —</option>'+
+      getAllLevels().map(l=>`<option value="${l}" ${l===cur?'selected':''}>${l}</option>`).join('');
   }
 
   async function openLevelsModal() {
@@ -445,63 +368,58 @@
   }
 
   function renderLevelsList() {
-    const all = getAllLevels();
-    document.getElementById('levelsList').innerHTML = all.map(l => {
-      const isBuiltIn = BUILT_IN_LEVELS.includes(l);
-      const col   = LEVEL_COLORS[l] || '#546E7A';
-      const price = levelPrices[l] || 0;
-      const key   = l.replace(/[^a-z0-9]/gi,'_');
+    const all=getAllLevels();
+    document.getElementById('levelsList').innerHTML=all.map(l=>{
+      const isBuiltIn=BUILT_IN_LEVELS.includes(l);
+      const col=LEVEL_COLORS[l]||'#546E7A';
+      const price=levelPrices[l]||0;
+      const key=l.replace(/[^a-z0-9]/gi,'_');
       return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)">
         <div style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0"></div>
-        <div style="flex:1;font-weight:600;font-size:14px">${l}
-          ${isBuiltIn ? '<span style="font-size:10px;color:var(--muted);font-weight:400;margin-left:4px">built-in</span>' : ''}
-        </div>
+        <div style="flex:1;font-weight:600;font-size:14px">${l}${isBuiltIn?'<span style="font-size:10px;color:var(--muted);font-weight:400;margin-left:4px">built-in</span>':''}</div>
         <div style="display:flex;align-items:center;gap:6px">
           <span style="font-size:12px;font-weight:700;color:var(--muted)">UZS</span>
           <input type="number" id="lp_${key}" value="${price}" min="0" step="1000"
-            style="-moz-appearance:textfield;width:130px;padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;outline:none;text-align:right"
+            style="width:130px;padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;outline:none;text-align:right"
             onfocus="this.style.borderColor='var(--crimson)'" onblur="this.style.borderColor='var(--border)'">
         </div>
-        ${!isBuiltIn ? `<button class="btn btn-danger btn-sm" onclick="deleteLevel('${l}')">🗑</button>` : '<div style="width:52px"></div>'}
+        ${!isBuiltIn?`<button class="btn btn-danger btn-sm" onclick="deleteLevel('${l}')">🗑</button>`:'<div style="width:52px"></div>'}
       </div>`;
     }).join('');
   }
 
   async function saveAllPrices() {
     try {
-      const all = getAllLevels();
-      await Promise.all(all.map(l => {
-        const key = l.replace(/[^a-z0-9]/gi,'_');
-        const val = Number(document.getElementById('lp_'+key)?.value || 0);
-        levelPrices[l] = val;
-        return apiPut('/api/pricing/'+encodeURIComponent(l), { price: val });
+      const all=getAllLevels();
+      await Promise.all(all.map(l=>{
+        const key=l.replace(/[^a-z0-9]/gi,'_');
+        const val=Number(document.getElementById('lp_'+key)?.value||0);
+        levelPrices[l]=val;
+        return apiPut('/api/pricing/'+encodeURIComponent(l),{price:val});
       }));
       showToast('Prices saved!');
-    } catch(e) { showToast('Error: '+e.message,'error'); }
+    } catch(e){showToast('Error: '+e.message,'error');}
   }
 
   async function addLevel() {
-    const val   = document.getElementById('newLevelInput').value.trim();
-    const price = Number(document.getElementById('newLevelPrice').value) || 0;
-    if (!val) { showToast('Enter a level name.','error'); return; }
-    if (getAllLevels().includes(val)) { showToast('Level already exists.','error'); return; }
-    await apiPost('/api/levels', { level: val });
-    if (price > 0) {
-      await apiPut('/api/pricing/'+encodeURIComponent(val), { price });
-      levelPrices[val] = price;
-    }
+    const val=document.getElementById('newLevelInput').value.trim();
+    const price=Number(document.getElementById('newLevelPrice').value)||0;
+    if(!val){showToast('Enter a level name.','error');return;}
+    if(getAllLevels().includes(val)){showToast('Level already exists.','error');return;}
+    await apiPost('/api/levels',{level:val});
+    if(price>0){await apiPut('/api/pricing/'+encodeURIComponent(val),{price});levelPrices[val]=price;}
     customLevels.push(val);
-    document.getElementById('newLevelInput').value  = '';
-    document.getElementById('newLevelPrice').value  = '';
+    document.getElementById('newLevelInput').value='';
+    document.getElementById('newLevelPrice').value='';
     renderLevelsList();
     populateLevelSelect();
     showToast(`Level "${val}" added!`);
   }
 
   async function deleteLevel(level) {
-    if (!confirm(`Delete level "${level}"?`)) return;
+    if(!confirm(`Delete level "${level}"?`))return;
     await apiDelete('/api/levels/'+encodeURIComponent(level));
-    customLevels = customLevels.filter(l => l !== level);
+    customLevels=customLevels.filter(l=>l!==level);
     delete levelPrices[level];
     renderLevelsList();
     populateLevelSelect();

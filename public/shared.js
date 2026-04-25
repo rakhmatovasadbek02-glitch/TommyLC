@@ -1,5 +1,5 @@
 // ══════════════════════════════════════════
-//  TommyLC CRM — Shared Utilities (PostgreSQL)
+//  Tommy LC CRM — Shared Utilities (PostgreSQL)
 // ══════════════════════════════════════════
 
 const API = '';
@@ -50,17 +50,8 @@ function initials(name) {
   return (name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
 }
 
-// ══════════════════════════════════════════
-//  AUTH & ROLES
-// ══════════════════════════════════════════
-
-const ROLE_PERMISSIONS = {
-  'CEO': '*',
-};
-
-const ROLE_META = {
-  'CEO': { color:'#FF0000', badge:'badge-red', label:'CEO' },
-};
+const ROLE_PERMISSIONS = { 'CEO': '*' };
+const ROLE_META = { 'CEO': { color:'#FF0000', badge:'badge-red', label:'CEO' } };
 
 function getSession() {
   try { return JSON.parse(sessionStorage.getItem('lc_session') || localStorage.getItem('lc_session') || 'null'); }
@@ -113,7 +104,6 @@ function showToast(message, type) {
   setTimeout(() => toast.remove(), 3500);
 }
 
-// FIX: now callable from any page, not just index.html
 function checkAccessDeniedMessage() {
   const denied = sessionStorage.getItem('lc_access_denied');
   if (denied) {
@@ -154,8 +144,7 @@ function renderSidebar(activePage) {
 
   const sidebarHTML = `
     <a href="index.html" class="sidebar-brand" style="text-decoration:none;display:block;">
-      <div class="brand-name">TommyLC</div>
-      <div class="brand-sub">Admin Portal</div>
+      <div class="brand-name">Tommy LC</div>
     </a>
     <div class="nav-section">
       <div class="nav-label">Main</div>
@@ -177,7 +166,6 @@ function renderSidebar(activePage) {
   const sidebar = document.querySelector('.sidebar');
   if (sidebar) sidebar.innerHTML = sidebarHTML;
 
-  // Mobile hamburger
   const topbar = document.querySelector('.topbar');
   if (topbar && !document.getElementById('menuToggle')) {
     const toggle = document.createElement('button');
@@ -195,7 +183,6 @@ function renderSidebar(activePage) {
     document.body.appendChild(overlay);
   }
 
-  // FIX: show access denied message on every page after redirect
   checkAccessDeniedMessage();
 }
 
