@@ -1,560 +1,495 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Group — Tommy LC</title>
-  <link rel="stylesheet" href="shared.css">
-  <style>
-    .group-layout { display: grid; grid-template-columns: 340px 1fr; gap: 20px; align-items: start; }
-
-    /* LEFT PANEL */
-    .left-panel { background: white; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; position: sticky; top: 84px; }
-
-    .group-info-block { padding: 20px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; align-items: flex-start; }
-    .group-info-text { flex: 1; }
-    .gi-row { font-size: 13px; color: var(--text); margin-bottom: 5px; display: flex; gap: 6px; }
-    .gi-label { color: var(--muted); font-size: 12px; min-width: 64px; flex-shrink: 0; }
-    .gi-val { font-weight: 600; }
-
-    /* Unit badge top-right */
-    .unit-badge {
-      background: var(--crimson); color: white;
-      border-radius: 10px; padding: 8px 14px;
-      font-family: 'Playfair Display', serif;
-      font-size: 22px; font-weight: 900;
-      text-align: center; cursor: pointer;
-      transition: background 0.15s; flex-shrink: 0;
-      min-width: 56px;
-    }
-    .unit-badge:hover { background: var(--crimson-dark); }
-    .unit-badge-label { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.7); display: block; margin-bottom: 2px; }
-
-    .sort-bar { padding: 10px 16px; border-bottom: 1px solid var(--border); }
-    .sort-bar select { width: 100%; padding: 7px 10px; font-size: 13px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'DM Sans', sans-serif; color: var(--text); background: white; outline: none; }
-
-    .student-list { max-height: 380px; overflow-y: auto; }
-    .student-list-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 13px; transition: background 0.1s; }
-    .student-list-item:last-child { border-bottom: none; }
-    .student-list-item:hover { background: var(--crimson-soft); }
-    .student-num { font-size: 11px; color: var(--muted); min-width: 18px; }
-    .student-dot { width: 8px; height: 8px; border-radius: 50%; background: #1E6B45; flex-shrink: 0; }
-    .student-list-name { flex: 1; font-weight: 500; }
-    .student-phone { font-size: 11px; color: var(--muted); }
-
-    .archive-btn { margin: 12px 16px 0; width: calc(100% - 32px); padding: 8px; background: var(--crimson); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background 0.15s; }
-    .archive-btn:hover { background: var(--crimson-dark); }
-
-    /* Bottom action bar — horizontal */
-    .left-action-bar {
-      display: flex; gap: 8px; padding: 12px 16px;
-      border-top: 1px solid var(--border);
-      justify-content: center;
-    }
-    .icon-btn {
-      width: 36px; height: 36px; border-radius: 50%;
-      border: 1.5px solid var(--border); background: white;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; font-size: 16px; transition: all 0.15s; flex-shrink: 0;
-    }
-    .icon-btn:hover { border-color: var(--crimson); background: var(--crimson-soft); }
-    .icon-btn.green { border-color: #1E6B45; color: #1E6B45; }
-    .icon-btn.green:hover { background: #E8F5E9; border-color: #1E6B45; }
-    .icon-btn.red   { border-color: var(--crimson); color: var(--crimson); }
-    .icon-btn.red:hover { background: var(--crimson); color: white; }
-
-    /* RIGHT PANEL */
-    .right-panel { background: white; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
-
-    .tab-nav { display: flex; border-bottom: 2px solid var(--border); padding: 0 20px; overflow-x: auto; }
-    .tab-nav-btn { padding: 14px 16px; font-size: 13px; font-weight: 600; color: var(--muted); background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; white-space: nowrap; }
-    .tab-nav-btn:hover { color: var(--text); }
-    .tab-nav-btn.active { color: var(--crimson); border-bottom-color: var(--crimson); }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    /* Attendance */
-    .att-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
-    .att-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 900; color: var(--text); }
-    .month-nav { display: flex; align-items: center; gap: 6px; }
-    .month-btn { width: 28px; height: 28px; border-radius: 6px; border: 1.5px solid var(--border); background: white; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.14s; }
-    .month-btn:hover { border-color: var(--crimson); color: var(--crimson); }
-    .month-btn.today-btn { padding: 0 10px; width: auto; font-weight: 600; font-size: 12px; }
-    .month-label { font-weight: 700; font-size: 14px; color: var(--text); min-width: 110px; text-align: center; }
-
-    .att-table-wrap { overflow-x: auto; }
-    .att-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .att-table th { padding: 10px 8px; text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; background: white; }
-    .att-table th.name-col { text-align: left; padding-left: 16px; min-width: 160px; }
-    .att-table th.today-col { color: var(--text); font-weight: 900; }
-    .att-table td { padding: 8px; text-align: center; border-bottom: 1px solid var(--border); vertical-align: middle; }
-    .att-table td.name-col { text-align: left; padding-left: 16px; }
-    .att-table tr:hover td { background: var(--crimson-soft); }
-    .att-table tr:last-child td { border-bottom: none; }
-
-    .att-name-cell { display: flex; align-items: center; gap: 10px; }
-    .att-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: white; flex-shrink: 0; }
-
-    .chip { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 26px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; border: none; }
-    .chip-present { background: #1E6B45; color: white; }
-    .chip-absent  { background: var(--crimson); color: white; }
-    .chip-empty   { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--border); background: white; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s; }
-    .chip-empty:hover { border-color: var(--crimson); }
-
-    .att-save-row { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; }
-
-    /* Note bar */
-    .note-bar { position: fixed; bottom: 0; left: var(--nav-w); right: 0; background: white; border-top: 1px solid var(--border); padding: 10px 24px; display: flex; align-items: center; gap: 10px; z-index: 40; }
-    .note-bar input { flex: 1; border: none; outline: none; font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text); }
-    .note-send-btn { width: 34px; height: 34px; border-radius: 50%; background: var(--crimson-soft); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--crimson); font-size: 16px; transition: all 0.15s; }
-    .note-send-btn:hover { background: var(--crimson); color: white; }
-    .page-content { padding-bottom: 70px; }
-
-    .student-search-result { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; border-radius: 8px; transition: background 0.1s; font-size: 13px; }
-    .student-search-result:hover { background: var(--crimson-soft); }
-    .student-search-result.already { opacity: 0.4; cursor: default; }
-
-    /* Unit select modal */
-    .unit-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 8px; }
-    .unit-opt { padding: 10px; text-align: center; border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; transition: all 0.15s; }
-    .unit-opt:hover { border-color: var(--crimson); background: var(--crimson-soft); color: var(--crimson); }
-    .unit-opt.active { background: var(--crimson); color: white; border-color: var(--crimson); }
-  </style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Group — Tommy LC</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+.group-layout { display: grid; grid-template-columns: 340px 1fr; gap: 20px; align-items: start; }
+/* LEFT PANEL */
+.left-panel { background: white; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; position: sticky; top: 84px; }
+.group-info-block { padding: 20px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; align-items: flex-start; }
+.group-info-text { flex: 1; }
+.gi-row { font-size: 13px; color: var(--text); margin-bottom: 5px; display: flex; gap: 6px; }
+.gi-label { color: var(--muted); font-size: 12px; min-width: 64px; flex-shrink: 0; }
+.gi-val { font-weight: 600; }
+/* Unit badge top-right */
+.unit-badge {
+background: var(--crimson); color: white;
+border-radius: 10px; padding: 8px 14px;
+font-family: 'Inter', sans-serif;
+font-size: 22px; font-weight: 900;
+text-align: center; cursor: pointer;
+transition: background 0.15s; flex-shrink: 0;
+min-width: 56px;
+}
+.unit-badge:hover { background: var(--crimson-dark); }
+.unit-badge-label { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.7); display: block; margin-bottom: 2px; }
+.sort-bar { padding: 10px 16px; border-bottom: 1px solid var(--border); }
+.sort-bar select { width: 100%; padding: 7px 10px; font-size: 13px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Inter', sans-serif; color: var(--text); background: white; outline: none; }
+.student-list { max-height: 380px; overflow-y: auto; }
+.student-list-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 13px; transition: background 0.1s; }
+.student-list-item:last-child { border-bottom: none; }
+.student-list-item:hover { background: var(--crimson-soft); }
+.student-num { font-size: 11px; color: var(--muted); min-width: 18px; }
+.student-dot { width: 8px; height: 8px; border-radius: 50%; background: #1E6B45; flex-shrink: 0; }
+.student-list-name { flex: 1; font-weight: 500; }
+.student-phone { font-size: 11px; color: var(--muted); }
+.archive-btn { margin: 12px 16px 0; width: calc(100% - 32px); padding: 8px; background: var(--crimson); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.15s; }
+.archive-btn:hover { background: var(--crimson-dark); }
+/* Bottom action bar — horizontal */
+.left-action-bar {
+display: flex; gap: 8px; padding: 12px 16px;
+border-top: 1px solid var(--border);
+justify-content: center;
+}
+.icon-btn {
+width: 36px; height: 36px; border-radius: 50%;
+border: 1.5px solid var(--border); background: white;
+display: flex; align-items: center; justify-content: center;
+cursor: pointer; font-size: 16px; transition: all 0.15s; flex-shrink: 0;
+}
+.icon-btn:hover { border-color: var(--crimson); background: var(--crimson-soft); }
+.icon-btn.green { border-color: #1E6B45; color: #1E6B45; }
+.icon-btn.green:hover { background: #E8F5E9; border-color: #1E6B45; }
+.icon-btn.red { border-color: var(--crimson); color: var(--crimson); }
+.icon-btn.red:hover { background: var(--crimson); color: white; }
+/* RIGHT PANEL */
+.right-panel { background: white; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.tab-nav { display: flex; border-bottom: 2px solid var(--border); padding: 0 20px; overflow-x: auto; }
+.tab-nav-btn { padding: 14px 16px; font-size: 13px; font-weight: 600; color: var(--muted); background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s; white-space: nowrap; }
+.tab-nav-btn:hover { color: var(--text); }
+.tab-nav-btn.active { color: var(--crimson); border-bottom-color: var(--crimson); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+/* Attendance */
+.att-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
+.att-title { font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 900; color: var(--text); }
+.month-nav { display: flex; align-items: center; gap: 6px; }
+.month-btn { width: 28px; height: 28px; border-radius: 6px; border: 1.5px solid var(--border); background: white; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.14s; }
+.month-btn:hover { border-color: var(--crimson); color: var(--crimson); }
+.month-btn.today-btn { padding: 0 10px; width: auto; font-weight: 600; font-size: 12px; }
+.month-label { font-weight: 700; font-size: 14px; color: var(--text); min-width: 110px; text-align: center; }
+.att-table-wrap { overflow-x: auto; }
+.att-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.att-table th { padding: 10px 8px; text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; background: white; }
+.att-table th.name-col { text-align: left; padding-left: 16px; min-width: 160px; }
+.att-table th.today-col { color: var(--text); font-weight: 900; }
+.att-table td { padding: 8px; text-align: center; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.att-table td.name-col { text-align: left; padding-left: 16px; }
+.att-table tr:hover td { background: var(--crimson-soft); }
+.att-table tr:last-child td { border-bottom: none; }
+.att-name-cell { display: flex; align-items: center; gap: 10px; }
+.att-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: white; flex-shrink: 0; }
+.chip { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 26px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; border: none; }
+.chip-present { background: #1E6B45; color: white; }
+.chip-absent { background: var(--crimson); color: white; }
+.chip-empty { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--border); background: white; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.chip-empty:hover { border-color: var(--crimson); }
+.att-save-row { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; }
+/* Note bar */
+.note-bar { position: fixed; bottom: 0; left: var(--nav-w); right: 0; background: white; border-top: 1px solid var(--border); padding: 10px 24px; display: flex; align-items: center; gap: 10px; z-index: 40; }
+.note-bar input { flex: 1; border: none; outline: none; font-size: 14px; font-family: 'Inter', sans-serif; color: var(--text); }
+.note-send-btn { width: 34px; height: 34px; border-radius: 50%; background: var(--crimson-soft); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--crimson); font-size: 16px; transition: all 0.15s; }
+.note-send-btn:hover { background: var(--crimson); color: white; }
+.page-content { padding-bottom: 70px; }
+.student-search-result { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; border-radius: 8px; transition: background 0.1s; font-size: 13px; }
+.student-search-result:hover { background: var(--crimson-soft); }
+.student-search-result.already { opacity: 0.4; cursor: default; }
+/* Unit select modal */
+.unit-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 8px; }
+.unit-opt { padding: 10px; text-align: center; border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; transition: all 0.15s; }
+.unit-opt:hover { border-color: var(--crimson); background: var(--crimson-soft); color: var(--crimson); }
+.unit-opt.active { background: var(--crimson); color: white; border-color: var(--crimson); }
+</style>
 </head>
 <body>
 <nav class="sidebar"></nav>
 <div class="main">
-  <div class="topbar">
-    <div style="display:flex;align-items:center;gap:12px">
-      <a href="groups.html" class="btn btn-ghost btn-sm">← Back</a>
-      <div class="page-title" id="pageTitle">Group</div>
-    </div>
-    <div class="topbar-right"></div>
-  </div>
-
-  <div class="page-content">
-    <div class="group-layout" id="groupLayout" style="display:none">
-
-      <!-- LEFT PANEL -->
-      <div>
-        <div class="left-panel">
-
-          <!-- Info block: text left, unit badge right -->
-          <div class="group-info-block">
-            <div class="group-info-text" id="groupInfoText"></div>
-            <div class="unit-badge" onclick="openUnitModal()" title="Change current unit">
-              <span class="unit-badge-label">Unit</span>
-              <span id="unitBadgeVal">1A</span>
-            </div>
-          </div>
-
-          <!-- Sort -->
-          <div class="sort-bar">
-            <select id="sortSelect" onchange="renderStudentList();renderAttendance()">
-              <option value="az">A → Z</option>
-              <option value="za">Z → A</option>
-            </select>
-          </div>
-
-          <!-- Student list -->
-          <div class="student-list" id="studentList"></div>
-
-          <!-- Archive -->
-          <button class="archive-btn">Show archived students</button>
-
-          <!-- Bottom action bar: horizontal buttons -->
-          <div class="left-action-bar">
-            <button class="icon-btn" title="Edit group" onclick="goEdit()">✏️</button>
-            <button class="icon-btn red" title="Delete group" onclick="doDeleteGroup()">🗑</button>
-            <button class="icon-btn green" title="Add student" onclick="openAddStudent()">➕</button>
-            <button class="icon-btn" title="Download list" style="border-color:#1D4ED8;color:#1D4ED8">⬇</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- RIGHT PANEL -->
-      <div class="right-panel">
-        <div class="tab-nav">
-          <button class="tab-nav-btn active" onclick="setTab('attendance',this)">Attendance</button>
-          <button class="tab-nav-btn" onclick="setTab('grades',this)">Grades</button>
-          <button class="tab-nav-btn" onclick="setTab('materials',this)">Materials</button>
-          <button class="tab-nav-btn" onclick="setTab('prices',this)">Prices</button>
-          <button class="tab-nav-btn" onclick="setTab('exams',this)">Exams</button>
-          <button class="tab-nav-btn" onclick="setTab('history',this)">History</button>
-        </div>
-
-        <div class="tab-content active" id="tab-attendance">
-          <div class="att-header">
-            <div class="att-title">Attendance</div>
-            <div class="month-nav">
-              <button class="month-btn today-btn" onclick="goToday()">Current</button>
-              <button class="month-btn" onclick="changeMonth(-1)">‹</button>
-              <div class="month-label" id="monthLabel"></div>
-              <button class="month-btn" onclick="changeMonth(1)">›</button>
-              <button class="month-btn" onclick="loadMonthAttendance().then(renderAttendance)" title="Refresh">↻</button>
-            </div>
-          </div>
-          <div class="att-table-wrap">
-            <table class="att-table" id="attTable"></table>
-          </div>
-          <div class="att-save-row">
-            <button class="btn btn-primary" onclick="saveAttendance()">💾 Save Attendance</button>
-          </div>
-        </div>
-
-        <div class="tab-content" id="tab-grades"><div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">📝</div><p>Grades coming soon.</p></div></div>
-        <div class="tab-content" id="tab-materials"><div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">📚</div><p>Materials coming soon.</p></div></div>
-        <div class="tab-content" id="tab-prices"><div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">💳</div><p>Prices coming soon.</p></div></div>
-        <div class="tab-content" id="tab-exams"><div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">🎓</div><p>Exams coming soon.</p></div></div>
-        <div class="tab-content" id="tab-history"><div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">🕐</div><p>History coming soon.</p></div></div>
-      </div>
-    </div>
-
-    <div id="loadingState" style="text-align:center;padding:60px;color:var(--muted)">Loading…</div>
-  </div>
+<div class="topbar">
+<div style="display:flex;align-items:center;gap:12px">
+<a href="groups.html" class="btn btn-ghost btn-sm">← Back</a>
+<div class="page-title" id="pageTitle">Group</div>
 </div>
-
+<div class="topbar-right"></div>
+</div>
+<div class="page-content">
+<div class="group-layout" id="groupLayout" style="display:none">
+<!-- LEFT PANEL -->
+<div>
+<div class="left-panel">
+<!-- Info block: text left, unit badge right -->
+<div class="group-info-block">
+<div class="group-info-text" id="groupInfoText"></div>
+<div class="unit-badge" onclick="openUnitModal()" title="Change current unit">
+<span class="unit-badge-label">Unit</span>
+<span id="unitBadgeVal">1A</span>
+</div>
+</div>
+<!-- Sort -->
+<div class="sort-bar">
+<select id="sortSelect" onchange="renderStudentList();renderAttendance()">
+<option value="az">A → Z</option>
+<option value="za">Z → A</option>
+</select>
+</div>
+<!-- Student list -->
+<div class="student-list" id="studentList"></div>
+<!-- Archive -->
+<button class="archive-btn">Show archived students</button>
+<!-- Bottom action bar: horizontal buttons -->
+<div class="left-action-bar">
+<button class="icon-btn" title="Edit group" onclick="goEdit()">️</button>
+<button class="icon-btn red" title="Delete group" onclick="doDeleteGroup()"></button>
+<button class="icon-btn green" title="Add student" onclick="openAddStudent()"></button>
+<button class="icon-btn" title="Download list" style="border-color:#1D4ED8;color:#1D4ED8"></button>
+</div>
+</div>
+</div>
+<!-- RIGHT PANEL -->
+<div class="right-panel">
+<div class="tab-nav">
+<button class="tab-nav-btn active" onclick="setTab('attendance',this)">Attendance</button>
+<button class="tab-nav-btn" onclick="setTab('grades',this)">Grades</button>
+<button class="tab-nav-btn" onclick="setTab('materials',this)">Materials</button>
+<button class="tab-nav-btn" onclick="setTab('prices',this)">Prices</button>
+<button class="tab-nav-btn" onclick="setTab('exams',this)">Exams</button>
+<button class="tab-nav-btn" onclick="setTab('history',this)">History</button>
+</div>
+<div class="tab-content active" id="tab-attendance">
+<div class="att-header">
+<div class="att-title">Attendance</div>
+<div class="month-nav">
+<button class="month-btn today-btn" onclick="goToday()">Current</button>
+<button class="month-btn" onclick="changeMonth(-1)">‹</button>
+<div class="month-label" id="monthLabel"></div>
+<button class="month-btn" onclick="changeMonth(1)">›</button>
+<button class="month-btn" onclick="loadMonthAttendance().then(renderAttendance)" title="Refresh">↻</button>
+</div>
+</div>
+<div class="att-table-wrap">
+<table class="att-table" id="attTable"></table>
+</div>
+<div class="att-save-row">
+<button class="btn btn-primary" onclick="saveAttendance()"> Save Attendance</button>
+</div>
+</div>
+<div class="tab-content" id="tab-grades"><div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px"></div><p>Grades coming soon.</p></div></div>
+<div class="tab-content" id="tab-materials"><div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px"></div><p>Materials coming soon.</p></div></div>
+<div class="tab-content" id="tab-prices"><div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px"></div><p>Prices coming soon.</p></div></div>
+<div class="tab-content" id="tab-exams"><div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px"></div><p>Exams coming soon.</p></div></div>
+<div class="tab-content" id="tab-history"><div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px"></div><p>History coming soon.</p></div></div>
+</div>
+</div>
+<div id="loadingState" style="text-align:center;padding:60px;color:var(--muted)">Loading…</div>
+</div>
+</div>
 <!-- Note bar -->
 <div class="note-bar">
-  <input type="text" placeholder="Note" id="noteInput">
-  <button class="note-send-btn">✉</button>
+<input type="text" placeholder="Note" id="noteInput">
+<button class="note-send-btn"></button>
 </div>
-
 <!-- ADD STUDENT MODAL -->
 <div class="modal-overlay" id="addStudentModal">
-  <div class="modal" style="width:480px">
-    <div class="modal-header">
-      <div class="modal-title">➕ Add Student to Group</div>
-      <button class="modal-close" onclick="closeModal('addStudentModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-group" style="margin-bottom:12px">
-        <input type="text" id="studentSearchInput" placeholder="Search by name or phone…" oninput="filterStudentSearch()">
-      </div>
-      <div id="studentSearchResults" style="max-height:320px;overflow-y:auto;"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('addStudentModal')">Close</button>
-    </div>
-  </div>
+<div class="modal" style="width:480px">
+<div class="modal-header">
+<div class="modal-title"> Add Student to Group</div>
+<button class="modal-close" onclick="closeModal('addStudentModal')"></button>
 </div>
-
+<div class="modal-body">
+<div class="form-group" style="margin-bottom:12px">
+<input type="text" id="studentSearchInput" placeholder="Search by name or phone…" oninput="filterStudentSearch()">
+</div>
+<div id="studentSearchResults" style="max-height:320px;overflow-y:auto;"></div>
+</div>
+<div class="modal-footer">
+<button class="btn btn-outline" onclick="closeModal('addStudentModal')">Close</button>
+</div>
+</div>
+</div>
 <!-- UNIT MODAL -->
 <div class="modal-overlay" id="unitModal">
-  <div class="modal" style="width:420px">
-    <div class="modal-header">
-      <div class="modal-title">📖 Current Unit</div>
-      <button class="modal-close" onclick="closeModal('unitModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="unit-grid" id="unitGrid"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('unitModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveUnit()">Save</button>
-    </div>
-  </div>
+<div class="modal" style="width:420px">
+<div class="modal-header">
+<div class="modal-title"> Current Unit</div>
+<button class="modal-close" onclick="closeModal('unitModal')"></button>
 </div>
-
+<div class="modal-body">
+<div class="unit-grid" id="unitGrid"></div>
+</div>
+<div class="modal-footer">
+<button class="btn btn-outline" onclick="closeModal('unitModal')">Cancel</button>
+<button class="btn btn-primary" onclick="saveUnit()">Save</button>
+</div>
+</div>
+</div>
 <div class="toast-container" id="toastContainer"></div>
 <script src="shared.js"></script>
 <script>
-  requireAuth('groups');
-  renderSidebar('groups');
-
-  const params  = new URLSearchParams(window.location.search);
-  const groupId = params.get('id');
-  if (!groupId) window.location.replace('groups.html');
-
-  let group = null, students = [], allStudents = [];
-  let currentMonth = new Date();
-  let attData = {};
-  let selectedUnit = '1A';
-
-  const MONTH_FULL  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-  // All units 1A-12C
-  const UNITS = [];
-  for (let u = 1; u <= 12; u++) ['A','B','C'].forEach(s => UNITS.push(`${u}${s}`));
-
-  async function load() {
-    try {
-      const [groups, studs] = await Promise.all([apiGet('/api/groups'), apiGet('/api/students')]);
-      group       = groups.find(g => g.id === groupId);
-      allStudents = studs;
-      if (!group) { window.location.replace('groups.html'); return; }
-
-      if (!group.price || group.price === 0) {
-        try {
-          const pricing = await apiGet('/api/pricing');
-          const match   = pricing.find(p => p.level === group.level);
-          if (match) group.price = match.price;
-        } catch(e) {}
-      }
-
-      students = (group.studentIds||[]).map(id => studs.find(s=>s.id===id)).filter(Boolean);
-      selectedUnit = group.currentUnit || '1A';
-
-      document.getElementById('pageTitle').textContent =
-        [group.name, group.level, group.teacher].filter(Boolean).join(' · ');
-      document.getElementById('unitBadgeVal').textContent = selectedUnit;
-      document.getElementById('loadingState').style.display = 'none';
-      document.getElementById('groupLayout').style.display  = 'grid';
-      renderGroupInfo();
-      renderStudentList();
-      await loadMonthAttendance();
-      renderAttendance();
-    } catch(e) {
-      document.getElementById('loadingState').textContent = 'Error loading group.';
-    }
-  }
-
-  function renderGroupInfo() {
-    const SCHED = { odd:'Odd days', even:'Even days', custom:'Custom' };
-    const endTime = (() => {
-      if (!group.time) return '';
-      const [h,m] = group.time.split(':').map(Number);
-      const e = h*60+(m||0)+90;
-      return `${String(Math.floor(e/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`;
-    })();
-    const price = group.price ? Number(group.price).toLocaleString('uz-UZ')+' UZS' : '—';
-    document.getElementById('groupInfoText').innerHTML = `
-      <div class="gi-row"><span class="gi-label">Course:</span><span class="gi-val">${group.level||'—'}</span></div>
-      <div class="gi-row"><span class="gi-label">Teacher:</span><span class="gi-val">${group.teacher||'—'}</span></div>
-      <div class="gi-row"><span class="gi-label">Price:</span><span class="gi-val" style="color:var(--green)">${price}</span></div>
-      <div class="gi-row"><span class="gi-label">Schedule:</span><span class="gi-val">${SCHED[group.schedType]||'—'}</span></div>
-      <div class="gi-row"><span class="gi-label">Time:</span><span class="gi-val">${group.time||'—'}${endTime?' – '+endTime:''}</span></div>
-      <div class="gi-row"><span class="gi-label">Room:</span><span class="gi-val">${group.room||'—'}</span></div>
-      <div class="gi-row" style="margin-top:4px"><span style="color:var(--muted);font-size:11px">id: ${group.id}</span></div>
-    `;
-  }
-
-  function renderStudentList() {
-    const sort   = document.getElementById('sortSelect').value;
-    const sorted = [...students].sort((a,b) => {
-      const na = (a.firstName+' '+a.lastName).toLowerCase();
-      const nb = (b.firstName+' '+b.lastName).toLowerCase();
-      return sort==='az' ? na.localeCompare(nb) : nb.localeCompare(na);
-    });
-    const el = document.getElementById('studentList');
-    if (!sorted.length) {
-      el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">No students enrolled.</div>';
-      return;
-    }
-    el.innerHTML = sorted.map((s,i) => `
-      <div class="student-list-item">
-        <span class="student-num">${i+1}.</span>
-        <span class="student-dot"></span>
-        <span class="student-list-name">${s.firstName} ${s.lastName}</span>
-        <span class="student-phone">${s.phone||''}</span>
-      </div>`).join('');
-  }
-
-  function setTab(name, btn) {
-    document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-    document.querySelectorAll('.tab-nav-btn').forEach(b=>b.classList.remove('active'));
-    document.getElementById('tab-'+name).classList.add('active');
-    btn.classList.add('active');
-  }
-
-  // ── UNIT MODAL ──
-  function openUnitModal() {
-    document.getElementById('unitGrid').innerHTML = UNITS.map(u =>
-      `<div class="unit-opt ${u===selectedUnit?'active':''}" onclick="selectUnit('${u}')">${u}</div>`
-    ).join('');
-    openModal('unitModal');
-  }
-
-  function selectUnit(u) {
-    selectedUnit = u;
-    document.querySelectorAll('.unit-opt').forEach(el => {
-      el.classList.toggle('active', el.textContent === u);
-    });
-  }
-
-  async function saveUnit() {
-    try {
-      await apiPatch('/api/groups/'+groupId+'/unit', { unit: selectedUnit });
-      group.currentUnit = selectedUnit;
-      document.getElementById('unitBadgeVal').textContent = selectedUnit;
-      closeModal('unitModal');
-      showToast(`Unit updated to ${selectedUnit}!`);
-    } catch(e) { showToast('Error: '+e.message, 'error'); }
-  }
-
-  // ── ATTENDANCE ──
-  function changeMonth(delta) {
-    currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth()+delta, 1);
-    loadMonthAttendance().then(renderAttendance);
-  }
-  function goToday() { currentMonth = new Date(); loadMonthAttendance().then(renderAttendance); }
-
-  async function loadMonthAttendance() {
-    const year  = currentMonth.getFullYear();
-    const month = currentMonth.getMonth();
-    const days  = getClassDays(year, month);
-    attData = {};
-    await Promise.all(days.map(async d => {
-      const ds = toDateStr(year, month, d);
-      try {
-        const records = await apiGet(`/api/attendance/${groupId}/${ds}`);
-        attData[ds] = {};
-        records.forEach(r => attData[ds][r.studentId] = r.status);
-      } catch(e) { attData[ds] = {}; }
-    }));
-  }
-
-  function toDateStr(y, m, d) {
-    return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-  }
-
-  function getClassDays(year, month) {
-    const days = [], total = new Date(year, month+1, 0).getDate();
-    for (let d = 1; d <= total; d++) {
-      const dow = new Date(year, month, d).getDay();
-      if      (group.schedType==='odd'    && [1,3,5].includes(dow)) days.push(d);
-      else if (group.schedType==='even'   && [2,4,6].includes(dow)) days.push(d);
-      else if (group.schedType==='custom' && (group.customDays||[]).includes(dow)) days.push(d);
-    }
-    return days;
-  }
-
-  function renderAttendance() {
-    const year  = currentMonth.getFullYear();
-    const month = currentMonth.getMonth();
-    const today = new Date(); today.setHours(0,0,0,0);
-    const days  = getClassDays(year, month);
-
-    document.getElementById('monthLabel').textContent = MONTH_FULL[month]+' '+year;
-
-    const sort   = document.getElementById('sortSelect').value;
-    const sorted = [...students].sort((a,b) => {
-      const na = (a.firstName+' '+a.lastName).toLowerCase();
-      const nb = (b.firstName+' '+b.lastName).toLowerCase();
-      return sort==='az' ? na.localeCompare(nb) : nb.localeCompare(na);
-    });
-
-    if (!sorted.length) {
-      document.getElementById('attTable').innerHTML = `<tr><td style="padding:40px;text-align:center;color:var(--muted)">No students enrolled.</td></tr>`;
-      return;
-    }
-
-    // Header: just the day number, no month text repeated
-    let thead = `<thead><tr>
-      <th class="name-col">Name</th>
-      ${days.map(d => {
-        const date = new Date(year, month, d); date.setHours(0,0,0,0);
-        const isToday = date.getTime() === today.getTime();
-        return `<th class="${isToday?'today-col':''}" style="min-width:46px">${d}</th>`;
-      }).join('')}
-    </tr></thead>`;
-
-    let tbody = '<tbody>';
-    sorted.forEach(s => {
-      const name = s.firstName+' '+s.lastName;
-      tbody += `<tr>
-        <td class="name-col">
-          <div class="att-name-cell">
-            <div class="att-avatar" style="background:${avatarColor(name)}">${initials(name)}</div>
-            <span>${name}</span>
-          </div>
-        </td>
-        ${days.map(d => {
-          const ds     = toDateStr(year, month, d);
-          const status = attData[ds]?.[s.id] || '';
-          const date   = new Date(year, month, d); date.setHours(0,0,0,0);
-          const isFuture = date > today;
-          if (isFuture) return `<td><span class="chip-empty"></span></td>`;
-          if (status==='present') return `<td><button class="chip chip-present" data-sid="${s.id}" data-date="${ds}" onclick="cycleAtt(this)">✓</button></td>`;
-          if (status==='absent')  return `<td><button class="chip chip-absent"  data-sid="${s.id}" data-date="${ds}" onclick="cycleAtt(this)">✗</button></td>`;
-          return `<td><span class="chip-empty" data-sid="${s.id}" data-date="${ds}" onclick="cycleAtt(this)"></span></td>`;
-        }).join('')}
-      </tr>`;
-    });
-    tbody += '</tbody>';
-
-    document.getElementById('attTable').innerHTML = thead + tbody;
-  }
-
-  function cycleAtt(el) {
-    const sid  = el.dataset.sid;
-    const date = el.dataset.date;
-    const cur  = attData[date]?.[sid] || '';
-    const next = cur==='' ? 'present' : cur==='present' ? 'absent' : '';
-    if (!attData[date]) attData[date] = {};
-    attData[date][sid] = next;
-    const td = el.parentElement;
-    if (next==='present') td.innerHTML = `<button class="chip chip-present" data-sid="${sid}" data-date="${date}" onclick="cycleAtt(this)">✓</button>`;
-    else if (next==='absent') td.innerHTML = `<button class="chip chip-absent" data-sid="${sid}" data-date="${date}" onclick="cycleAtt(this)">✗</button>`;
-    else td.innerHTML = `<span class="chip-empty" data-sid="${sid}" data-date="${date}" onclick="cycleAtt(this)"></span>`;
-  }
-
-  async function saveAttendance() {
-    try {
-      await Promise.all(Object.entries(attData).map(([date, records]) => {
-        const arr = Object.entries(records).filter(([,s])=>s!=='').map(([studentId,status])=>({studentId,status}));
-        return apiPost(`/api/attendance/${groupId}/${date}`, { records: arr });
-      }));
-      logActivity(`Attendance saved for ${group.name}`, '');
-      showToast('Attendance saved!');
-    } catch(e) { showToast('Error: '+e.message, 'error'); }
-  }
-
-  function goEdit() { window.location.href = `groups.html?edit=${groupId}`; }
-
-  async function doDeleteGroup() {
-    if (!confirm(`Delete group "${group.name}"?`)) return;
-    await apiDelete('/api/groups/'+groupId);
-    window.location.replace('groups.html');
-  }
-
-  function openAddStudent() {
-    document.getElementById('studentSearchInput').value = '';
-    filterStudentSearch();
-    openModal('addStudentModal');
-  }
-
-  function filterStudentSearch() {
-    const q       = document.getElementById('studentSearchInput').value.toLowerCase();
-    const enrolled = new Set(group.studentIds||[]);
-    const results  = allStudents.filter(s =>
-      !q || (s.firstName+' '+s.lastName).toLowerCase().includes(q) || (s.phone||'').includes(q)
-    );
-    const el = document.getElementById('studentSearchResults');
-    if (!results.length) {
-      el.innerHTML = '<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px">No students found.</div>';
-      return;
-    }
-    el.innerHTML = results.map(s => {
-      const name    = s.firstName+' '+s.lastName;
-      const already = enrolled.has(s.id);
-      return `<div class="student-search-result ${already?'already':''}" onclick="${already?'':'addStudentToGroup(\''+s.id+'\')'}">
-        <div style="width:32px;height:32px;border-radius:50%;background:${avatarColor(name)};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0">${initials(name)}</div>
-        <div style="flex:1">
-          <div style="font-weight:600;font-size:13px">${name}</div>
-          <div style="font-size:11px;color:var(--muted)">${s.phone||''}${s.level?' · '+s.level:''}</div>
-        </div>
-        ${already ? '<span style="font-size:11px;color:var(--muted)">Already enrolled</span>' : '<span style="font-size:11px;color:var(--green);font-weight:700">+ Add</span>'}
-      </div>`;
-    }).join('');
-  }
-
-  async function addStudentToGroup(studentId) {
-    try {
-      const ids = [...new Set([...(group.studentIds||[]), studentId])];
-      await apiPatch('/api/groups/'+groupId+'/students', { studentIds: ids });
-      group.studentIds = ids;
-      const s = allStudents.find(s=>s.id===studentId);
-      if (s && !students.find(x=>x.id===studentId)) students.push(s);
-      renderStudentList();
-      renderAttendance();
-      filterStudentSearch();
-      logActivity(`Added student to ${group.name}`, 'green');
-      showToast('Student added!');
-    } catch(e) { showToast('Error: '+e.message, 'error'); }
-  }
-
-  load();
+requireAuth('groups');
+renderSidebar('groups');
+const params = new URLSearchParams(window.location.search);
+const groupId = params.get('id');
+if (!groupId) window.location.replace('groups.html');
+let group = null, students = [], allStudents = [];
+let currentMonth = new Date();
+let attData = {};
+let selectedUnit = '1A';
+const MONTH_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+// All units 1A-12C
+const UNITS = [];
+for (let u = 1; u <= 12; u++) ['A','B','C'].forEach(s => UNITS.push(`${u}${s}`));
+async function load() {
+try {
+const [groups, studs] = await Promise.all([apiGet('/api/groups'), apiGet('/api/students')]);
+group = groups.find(g => g.id === groupId);
+allStudents = studs;
+if (!group) { window.location.replace('groups.html'); return; }
+if (!group.price || group.price === 0) {
+try {
+const pricing = await apiGet('/api/pricing');
+const match = pricing.find(p => p.level === group.level);
+if (match) group.price = match.price;
+} catch(e) {}
+}
+students = (group.studentIds||[]).map(id => studs.find(s=>s.id===id)).filter(Boolean);
+selectedUnit = group.currentUnit || '1A';
+document.getElementById('pageTitle').textContent =
+[group.name, group.level, group.teacher].filter(Boolean).join(' · ');
+document.getElementById('unitBadgeVal').textContent = selectedUnit;
+document.getElementById('loadingState').style.display = 'none';
+document.getElementById('groupLayout').style.display = 'grid';
+renderGroupInfo();
+renderStudentList();
+await loadMonthAttendance();
+renderAttendance();
+} catch(e) {
+document.getElementById('loadingState').textContent = 'Error loading group.';
+}
+}
+function renderGroupInfo() {
+const SCHED = { odd:'Odd days', even:'Even days', custom:'Custom' };
+const endTime = (() => {
+if (!group.time) return '';
+const [h,m] = group.time.split(':').map(Number);
+const e = h*60+(m||0)+90;
+return `${String(Math.floor(e/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`;
+})();
+const price = group.price ? Number(group.price).toLocaleString('uz-UZ')+' UZS' : '—';
+document.getElementById('groupInfoText').innerHTML = `
+<div class="gi-row"><span class="gi-label">Course:</span><span class="gi-val">${group.level||'—'}</span></div>
+<div class="gi-row"><span class="gi-label">Teacher:</span><span class="gi-val">${group.teacher||'—'}</span></div>
+<div class="gi-row"><span class="gi-label">Price:</span><span class="gi-val" style="color:var(--green)">${price}</span></div>
+<div class="gi-row"><span class="gi-label">Schedule:</span><span class="gi-val">${SCHED[group.schedType]||'—'}</span></div>
+<div class="gi-row"><span class="gi-label">Time:</span><span class="gi-val">${group.time||'—'}${endTime?' – '+endTime:''}</span></div>
+<div class="gi-row"><span class="gi-label">Room:</span><span class="gi-val">${group.room||'—'}</span></div>
+<div class="gi-row" style="margin-top:4px"><span style="color:var(--muted);font-size:11px">id: ${group.id}</span></div>
+`;
+}
+function renderStudentList() {
+const sort = document.getElementById('sortSelect').value;
+const sorted = [...students].sort((a,b) => {
+const na = (a.firstName+' '+a.lastName).toLowerCase();
+const nb = (b.firstName+' '+b.lastName).toLowerCase();
+return sort==='az' ? na.localeCompare(nb) : nb.localeCompare(na);
+});
+const el = document.getElementById('studentList');
+if (!sorted.length) {
+el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">No students enrolled.</div>';
+return;
+}
+el.innerHTML = sorted.map((s,i) => `
+<div class="student-list-item">
+<span class="student-num">${i+1}.</span>
+<span class="student-dot"></span>
+<span class="student-list-name">${s.firstName} ${s.lastName}</span>
+<span class="student-phone">${s.phone||''}</span>
+</div>`).join('');
+}
+function setTab(name, btn) {
+document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+document.querySelectorAll('.tab-nav-btn').forEach(b=>b.classList.remove('active'));
+document.getElementById('tab-'+name).classList.add('active');
+btn.classList.add('active');
+}
+// ── UNIT MODAL ──
+function openUnitModal() {
+document.getElementById('unitGrid').innerHTML = UNITS.map(u =>
+`<div class="unit-opt ${u===selectedUnit?'active':''}" onclick="selectUnit('${u}')">${u}</div>`
+).join('');
+openModal('unitModal');
+}
+function selectUnit(u) {
+selectedUnit = u;
+document.querySelectorAll('.unit-opt').forEach(el => {
+el.classList.toggle('active', el.textContent === u);
+});
+}
+async function saveUnit() {
+try {
+await apiPatch('/api/groups/'+groupId+'/unit', { unit: selectedUnit });
+group.currentUnit = selectedUnit;
+document.getElementById('unitBadgeVal').textContent = selectedUnit;
+closeModal('unitModal');
+showToast(`Unit updated to ${selectedUnit}!`);
+} catch(e) { showToast('Error: '+e.message, 'error'); }
+}
+// ── ATTENDANCE ──
+function changeMonth(delta) {
+currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth()+delta, 1);
+loadMonthAttendance().then(renderAttendance);
+}
+function goToday() { currentMonth = new Date(); loadMonthAttendance().then(renderAttendance); }
+async function loadMonthAttendance() {
+const year = currentMonth.getFullYear();
+const month = currentMonth.getMonth();
+const days = getClassDays(year, month);
+attData = {};
+await Promise.all(days.map(async d => {
+const ds = toDateStr(year, month, d);
+try {
+const records = await apiGet(`/api/attendance/${groupId}/${ds}`);
+attData[ds] = {};
+records.forEach(r => attData[ds][r.studentId] = r.status);
+} catch(e) { attData[ds] = {}; }
+}));
+}
+function toDateStr(y, m, d) {
+return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+function getClassDays(year, month) {
+const days = [], total = new Date(year, month+1, 0).getDate();
+for (let d = 1; d <= total; d++) {
+const dow = new Date(year, month, d).getDay();
+if (group.schedType==='odd' && [1,3,5].includes(dow)) days.push(d);
+else if (group.schedType==='even' && [2,4,6].includes(dow)) days.push(d);
+else if (group.schedType==='custom' && (group.customDays||[]).includes(dow)) days.push(d);
+}
+return days;
+}
+function renderAttendance() {
+const year = currentMonth.getFullYear();
+const month = currentMonth.getMonth();
+const today = new Date(); today.setHours(0,0,0,0);
+const days = getClassDays(year, month);
+document.getElementById('monthLabel').textContent = MONTH_FULL[month]+' '+year;
+const sort = document.getElementById('sortSelect').value;
+const sorted = [...students].sort((a,b) => {
+const na = (a.firstName+' '+a.lastName).toLowerCase();
+const nb = (b.firstName+' '+b.lastName).toLowerCase();
+return sort==='az' ? na.localeCompare(nb) : nb.localeCompare(na);
+});
+if (!sorted.length) {
+document.getElementById('attTable').innerHTML = `<tr><td style="padding:40px;text-align:center;color:var(--muted)">No students enrolled.</td></tr>`;
+return;
+}
+// Header: just the day number, no month text repeated
+let thead = `<thead><tr>
+<th class="name-col">Name</th>
+${days.map(d => {
+const date = new Date(year, month, d); date.setHours(0,0,0,0);
+const isToday = date.getTime() === today.getTime();
+return `<th class="${isToday?'today-col':''}" style="min-width:46px">${d}</th>`;
+}).join('')}
+</tr></thead>`;
+let tbody = '<tbody>';
+sorted.forEach(s => {
+const name = s.firstName+' '+s.lastName;
+tbody += `<tr>
+<td class="name-col">
+<div class="att-name-cell">
+<div class="att-avatar" style="background:${avatarColor(name)}">${initials(name)}</div>
+<span>${name}</span>
+</div>
+</td>
+${days.map(d => {
+const ds = toDateStr(year, month, d);
+const status = attData[ds]?.[s.id] || '';
+const date = new Date(year, month, d); date.setHours(0,0,0,0);
+const isFuture = date > today;
+if (isFuture) return `<td><span class="chip-empty"></span></td>`;
+if (status==='present') return `<td><button class="chip chip-present" data-sid="${s.id}" data-date="${ds}" onclick="cycleAtt(this)"></button></td>`;
+if (status==='absent') return `<td><button class="chip chip-absent" data-sid="${s.id}" data-date="${ds}" onclick="cycleAtt(this)"></button></td>`;
+return `<td><span class="chip-empty" data-sid="${s.id}" data-date="${ds}" onclick="cycleAtt(this)"></span></td>`;
+}).join('')}
+</tr>`;
+});
+tbody += '</tbody>';
+document.getElementById('attTable').innerHTML = thead + tbody;
+}
+function cycleAtt(el) {
+const sid = el.dataset.sid;
+const date = el.dataset.date;
+const cur = attData[date]?.[sid] || '';
+const next = cur==='' ? 'present' : cur==='present' ? 'absent' : '';
+if (!attData[date]) attData[date] = {};
+attData[date][sid] = next;
+const td = el.parentElement;
+if (next==='present') td.innerHTML = `<button class="chip chip-present" data-sid="${sid}" data-date="${date}" onclick="cycleAtt(this)"></button>`;
+else if (next==='absent') td.innerHTML = `<button class="chip chip-absent" data-sid="${sid}" data-date="${date}" onclick="cycleAtt(this)"></button>`;
+else td.innerHTML = `<span class="chip-empty" data-sid="${sid}" data-date="${date}" onclick="cycleAtt(this)"></span>`;
+}
+async function saveAttendance() {
+try {
+await Promise.all(Object.entries(attData).map(([date, records]) => {
+const arr = Object.entries(records).filter(([,s])=>s!=='').map(([studentId,status])=>({studentId,status}));
+return apiPost(`/api/attendance/${groupId}/${date}`, { records: arr });
+}));
+logActivity(`Attendance saved for ${group.name}`, '');
+showToast('Attendance saved!');
+} catch(e) { showToast('Error: '+e.message, 'error'); }
+}
+function goEdit() { window.location.href = `groups.html?edit=${groupId}`; }
+async function doDeleteGroup() {
+if (!confirm(`Delete group "${group.name}"?`)) return;
+await apiDelete('/api/groups/'+groupId);
+window.location.replace('groups.html');
+}
+function openAddStudent() {
+document.getElementById('studentSearchInput').value = '';
+filterStudentSearch();
+openModal('addStudentModal');
+}
+function filterStudentSearch() {
+const q = document.getElementById('studentSearchInput').value.toLowerCase();
+const enrolled = new Set(group.studentIds||[]);
+const results = allStudents.filter(s =>
+!q || (s.firstName+' '+s.lastName).toLowerCase().includes(q) || (s.phone||'').includes(q)
+);
+const el = document.getElementById('studentSearchResults');
+if (!results.length) {
+el.innerHTML = '<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px">No students found.</div>';
+return;
+}
+el.innerHTML = results.map(s => {
+const name = s.firstName+' '+s.lastName;
+const already = enrolled.has(s.id);
+return `<div class="student-search-result ${already?'already':''}" onclick="${already?'':'addStudentToGroup(\''+s.id+'\')'}">
+<div style="width:32px;height:32px;border-radius:50%;background:${avatarColor(name)};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0">${initials(name)}</div>
+<div style="flex:1">
+<div style="font-weight:600;font-size:13px">${name}</div>
+<div style="font-size:11px;color:var(--muted)">${s.phone||''}${s.level?' · '+s.level:''}</div>
+</div>
+${already ? '<span style="font-size:11px;color:var(--muted)">Already enrolled</span>' : '<span style="font-size:11px;color:var(--green);font-weight:700">+ Add</span>'}
+</div>`;
+}).join('');
+}
+async function addStudentToGroup(studentId) {
+try {
+const ids = [...new Set([...(group.studentIds||[]), studentId])];
+await apiPatch('/api/groups/'+groupId+'/students', { studentIds: ids });
+group.studentIds = ids;
+const s = allStudents.find(s=>s.id===studentId);
+if (s && !students.find(x=>x.id===studentId)) students.push(s);
+renderStudentList();
+renderAttendance();
+filterStudentSearch();
+logActivity(`Added student to ${group.name}`, 'green');
+showToast('Student added!');
+} catch(e) { showToast('Error: '+e.message, 'error'); }
+}
+load();
 </script>
 </body>
 </html>

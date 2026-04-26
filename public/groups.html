@@ -1,445 +1,413 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Groups — TommyLC CRM</title>
-  <link rel="stylesheet" href="shared.css">
-  <style>
-    .groups-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
-    .group-card{background:white;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);transition:box-shadow 0.15s,transform 0.15s}
-    .group-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
-    .group-card-top{padding:18px 20px 14px;border-bottom:1px solid var(--border);position:relative}
-    .group-color-bar{position:absolute;top:0;left:0;right:0;height:4px}
-    .group-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:900;color:var(--text);margin-bottom:6px;margin-top:6px}
-    .group-meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
-    .group-card-body{padding:14px 20px}
-    .group-card-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--surface)}
-    .sched-opt input[type="radio"]{display:none}
-    .sched-box{border:1.5px solid var(--border);border-radius:10px;padding:12px 10px;text-align:center;cursor:pointer;transition:all 0.15s;background:white}
-    .sched-opt input:checked+.sched-box{border-color:var(--crimson);background:var(--crimson-soft);box-shadow:0 0 0 3px rgba(255,0,0,0.08)}
-    .sched-box:hover{border-color:var(--crimson)}
-    .sched-icon{font-size:20px;margin-bottom:4px}
-    .sched-name{font-size:13px;font-weight:700;color:var(--text)}
-    .sched-desc{font-size:11px;color:var(--muted);margin-top:2px}
-    .day-chip input[type="checkbox"]{display:none}
-    .day-chip span{display:inline-flex;align-items:center;justify-content:center;width:40px;height:34px;border:1.5px solid var(--border);border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.15s;background:white;color:var(--muted)}
-    .day-chip input:checked+span{background:var(--crimson);color:white;border-color:var(--crimson)}
-    .day-chip span:hover{border-color:var(--crimson);color:var(--crimson)}
-    .student-check-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer}
-    .student-check-row:last-child{border-bottom:none}
-    .student-check-row input{accent-color:var(--crimson);width:16px;height:16px;cursor:pointer}
-  </style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Groups — TommyLC CRM</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+.groups-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+.group-card{background:white;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);transition:box-shadow 0.15s,transform 0.15s}
+.group-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.group-card-top{padding:18px 20px 14px;border-bottom:1px solid var(--border);position:relative}
+.group-color-bar{position:absolute;top:0;left:0;right:0;height:4px}
+.group-name{font-family:'Inter',sans-serif;font-size:17px;font-weight:900;color:var(--text);margin-bottom:6px;margin-top:6px}
+.group-meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.group-card-body{padding:14px 20px}
+.group-card-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--surface)}
+.sched-opt input[type="radio"]{display:none}
+.sched-box{border:1.5px solid var(--border);border-radius:10px;padding:12px 10px;text-align:center;cursor:pointer;transition:all 0.15s;background:white}
+.sched-opt input:checked+.sched-box{border-color:var(--crimson);background:var(--crimson-soft);box-shadow:0 0 0 3px rgba(255,0,0,0.08)}
+.sched-box:hover{border-color:var(--crimson)}
+.sched-icon{font-size:20px;margin-bottom:4px}
+.sched-name{font-size:13px;font-weight:700;color:var(--text)}
+.sched-desc{font-size:11px;color:var(--muted);margin-top:2px}
+.day-chip input[type="checkbox"]{display:none}
+.day-chip span{display:inline-flex;align-items:center;justify-content:center;width:40px;height:34px;border:1.5px solid var(--border);border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.15s;background:white;color:var(--muted)}
+.day-chip input:checked+span{background:var(--crimson);color:white;border-color:var(--crimson)}
+.day-chip span:hover{border-color:var(--crimson);color:var(--crimson)}
+.student-check-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.student-check-row:last-child{border-bottom:none}
+.student-check-row input{accent-color:var(--crimson);width:16px;height:16px;cursor:pointer}
+</style>
 </head>
 <body>
 <nav class="sidebar"></nav>
 <div class="main">
-  <div class="topbar">
-    <div class="page-title">Groups</div>
-    <div class="topbar-right">
-      <button class="btn btn-outline btn-sm" onclick="openLevelsModal()">📚 Levels</button>
-      <button class="btn btn-primary" onclick="openAdd()">➕ Add Group</button>
-    </div>
-  </div>
-  <div class="page-content">
-    <div class="toolbar">
-      <div class="search-bar"><span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" placeholder="Search groups…" oninput="renderGroups()">
-      </div>
-      <select id="filterSched" onchange="renderGroups()" style="width:auto;padding:9px 14px">
-        <option value="">All Schedules</option><option value="odd">Odd Days</option><option value="even">Even Days</option><option value="custom">Custom</option>
-      </select>
-      <span class="text-muted" id="groupCount" style="margin-left:auto"></span>
-    </div>
-    <div class="groups-grid" id="groupsGrid"></div>
-  </div>
+<div class="topbar">
+<div class="page-title">Groups</div>
+<div class="topbar-right">
+<button class="btn btn-outline btn-sm" onclick="openLevelsModal()"> Levels</button>
+<button class="btn btn-primary" onclick="openAdd()"> Add Group</button>
 </div>
-
+</div>
+<div class="page-content">
+<div class="toolbar">
+<div class="search-bar"><span class="search-icon"></span>
+<input type="text" id="searchInput" placeholder="Search groups…" oninput="renderGroups()">
+</div>
+<select id="filterSched" onchange="renderGroups()" style="width:auto;padding:9px 14px">
+<option value="">All Schedules</option><option value="odd">Odd Days</option><option value="even">Even Days</option><option value="custom">Custom</option>
+</select>
+<span class="text-muted" id="groupCount" style="margin-left:auto"></span>
+</div>
+<div class="groups-grid" id="groupsGrid"></div>
+</div>
+</div>
 <div class="modal-overlay" id="groupModal">
-  <div class="modal" style="width:580px">
-    <div class="modal-header">
-      <div class="modal-title" id="groupModalTitle">Add Group</div>
-      <button class="modal-close" onclick="closeModal('groupModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="editGroupId">
-
-      <div class="form-row">
-        <div class="form-group"><label>Group Code *</label><input type="text" id="gCode" placeholder="e.g. INT-A1, BEG-01"></div>
-        <div class="form-group"><label>Level *</label><select id="gLevel"><option value="">— Select level —</option></select></div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group"><label>Teacher *</label><select id="gTeacher"><option value="">— Select —</option></select></div>
-        <div class="form-group"><label>Room *</label><select id="gRoom"><option value="">— Select room —</option></select></div>
-      </div>
-
-      <div class="form-group">
-        <label>Schedule Type *</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px">
-          <label class="sched-opt"><input type="radio" name="gSched" value="odd" onchange="onSched()" checked><div class="sched-box"><div class="sched-icon">📅</div><div class="sched-name">Odd Days</div><div class="sched-desc">Mon·Wed·Fri</div></div></label>
-          <label class="sched-opt"><input type="radio" name="gSched" value="even" onchange="onSched()"><div class="sched-box"><div class="sched-icon">📆</div><div class="sched-name">Even Days</div><div class="sched-desc">Tue·Thu·Sat</div></div></label>
-          <label class="sched-opt"><input type="radio" name="gSched" value="custom" onchange="onSched()"><div class="sched-box"><div class="sched-icon">✏️</div><div class="sched-name">Custom</div><div class="sched-desc">Pick days</div></div></label>
-        </div>
-      </div>
-
-      <div class="form-group" id="customDays" style="display:none">
-        <label>Days *</label>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
-          <label class="day-chip"><input type="checkbox" name="gDay" value="1"><span>Mon</span></label>
-          <label class="day-chip"><input type="checkbox" name="gDay" value="2"><span>Tue</span></label>
-          <label class="day-chip"><input type="checkbox" name="gDay" value="3"><span>Wed</span></label>
-          <label class="day-chip"><input type="checkbox" name="gDay" value="4"><span>Thu</span></label>
-          <label class="day-chip"><input type="checkbox" name="gDay" value="5"><span>Fri</span></label>
-          <label class="day-chip"><input type="checkbox" name="gDay" value="6"><span>Sat</span></label>
-          <label class="day-chip"><input type="checkbox" name="gDay" value="0"><span>Sun</span></label>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Native Language *</label>
-        <div style="display:flex;gap:10px;margin-top:4px">
-          <div onclick="selectLang('UZ')" id="langUZ"
-            style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1;border:2px solid var(--crimson);background:var(--crimson-soft);border-radius:10px;padding:12px 16px;transition:all 0.15s;user-select:none">
-            <span style="font-size:24px">🇺🇿</span>
-            <div><div style="font-weight:700;font-size:14px">Uzbek</div><div style="font-size:11px;color:var(--muted)">O'zbek tili</div></div>
-          </div>
-          <div onclick="selectLang('RU')" id="langRU"
-            style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1;border:2px solid var(--border);background:white;border-radius:10px;padding:12px 16px;transition:all 0.15s;user-select:none">
-            <span style="font-size:24px">🇷🇺</span>
-            <div><div style="font-weight:700;font-size:14px">Russian</div><div style="font-size:11px;color:var(--muted)">Русский язык</div></div>
-          </div>
-        </div>
-        <input type="hidden" id="gLang" value="UZ">
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Start Time *</label>
-          <input type="time" id="gTime">
-          <div style="font-size:11px;color:var(--muted);margin-top:4px">All lessons are 90 minutes.</div>
-        </div>
-        <div class="form-group">
-          <label>Start Date *</label>
-          <input type="date" id="gDate">
-          <div style="font-size:11px;color:var(--muted);margin-top:4px">Repeats until deleted.</div>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('groupModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveGroup()">Save Group</button>
-    </div>
-  </div>
+<div class="modal" style="width:580px">
+<div class="modal-header">
+<div class="modal-title" id="groupModalTitle">Add Group</div>
+<button class="modal-close" onclick="closeModal('groupModal')"></button>
 </div>
-
+<div class="modal-body">
+<input type="hidden" id="editGroupId">
+<div class="form-row">
+<div class="form-group"><label>Group Code *</label><input type="text" id="gCode" placeholder="e.g. INT-A1, BEG-01"></div>
+<div class="form-group"><label>Level *</label><select id="gLevel"><option value="">— Select level —</option></select></div>
+</div>
+<div class="form-row">
+<div class="form-group"><label>Teacher *</label><select id="gTeacher"><option value="">— Select —</option></select></div>
+<div class="form-group"><label>Room *</label><select id="gRoom"><option value="">— Select room —</option></select></div>
+</div>
+<div class="form-group">
+<label>Schedule Type *</label>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px">
+<label class="sched-opt"><input type="radio" name="gSched" value="odd" onchange="onSched()" checked><div class="sched-box"><div class="sched-icon"></div><div class="sched-name">Odd Days</div><div class="sched-desc">Mon·Wed·Fri</div></div></label>
+<label class="sched-opt"><input type="radio" name="gSched" value="even" onchange="onSched()"><div class="sched-box"><div class="sched-icon"></div><div class="sched-name">Even Days</div><div class="sched-desc">Tue·Thu·Sat</div></div></label>
+<label class="sched-opt"><input type="radio" name="gSched" value="custom" onchange="onSched()"><div class="sched-box"><div class="sched-icon">️</div><div class="sched-name">Custom</div><div class="sched-desc">Pick days</div></div></label>
+</div>
+</div>
+<div class="form-group" id="customDays" style="display:none">
+<label>Days *</label>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+<label class="day-chip"><input type="checkbox" name="gDay" value="1"><span>Mon</span></label>
+<label class="day-chip"><input type="checkbox" name="gDay" value="2"><span>Tue</span></label>
+<label class="day-chip"><input type="checkbox" name="gDay" value="3"><span>Wed</span></label>
+<label class="day-chip"><input type="checkbox" name="gDay" value="4"><span>Thu</span></label>
+<label class="day-chip"><input type="checkbox" name="gDay" value="5"><span>Fri</span></label>
+<label class="day-chip"><input type="checkbox" name="gDay" value="6"><span>Sat</span></label>
+<label class="day-chip"><input type="checkbox" name="gDay" value="0"><span>Sun</span></label>
+</div>
+</div>
+<div class="form-group">
+<label>Native Language *</label>
+<div style="display:flex;gap:10px;margin-top:4px">
+<div onclick="selectLang('UZ')" id="langUZ"
+style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1;border:2px solid var(--crimson);background:var(--crimson-soft);border-radius:10px;padding:12px 16px;transition:all 0.15s;user-select:none">
+<span style="font-size:24px"></span>
+<div><div style="font-weight:700;font-size:14px">Uzbek</div><div style="font-size:11px;color:var(--muted)">O'zbek tili</div></div>
+</div>
+<div onclick="selectLang('RU')" id="langRU"
+style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1;border:2px solid var(--border);background:white;border-radius:10px;padding:12px 16px;transition:all 0.15s;user-select:none">
+<span style="font-size:24px"></span>
+<div><div style="font-weight:700;font-size:14px">Russian</div><div style="font-size:11px;color:var(--muted)">Русский язык</div></div>
+</div>
+</div>
+<input type="hidden" id="gLang" value="UZ">
+</div>
+<div class="form-row">
+<div class="form-group">
+<label>Start Time *</label>
+<input type="time" id="gTime">
+<div style="font-size:11px;color:var(--muted);margin-top:4px">All lessons are 90 minutes.</div>
+</div>
+<div class="form-group">
+<label>Start Date *</label>
+<input type="date" id="gDate">
+<div style="font-size:11px;color:var(--muted);margin-top:4px">Repeats until deleted.</div>
+</div>
+</div>
+</div>
+<div class="modal-footer">
+<button class="btn btn-outline" onclick="closeModal('groupModal')">Cancel</button>
+<button class="btn btn-primary" onclick="saveGroup()">Save Group</button>
+</div>
+</div>
+</div>
 <!-- Levels Management Modal -->
 <div class="modal-overlay" id="levelsModal">
-  <div class="modal" style="width:480px">
-    <div class="modal-header">
-      <div class="modal-title">📚 Levels & Pricing</div>
-      <button class="modal-close" onclick="closeModal('levelsModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div style="display:grid;grid-template-columns:1fr 140px auto;gap:10px;align-items:end;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)">
-        <div class="form-group" style="margin:0">
-          <label>Level Name</label>
-          <input type="text" id="newLevelInput" placeholder="e.g. Advanced">
-        </div>
-        <div class="form-group" style="margin:0">
-          <label>Price (UZS)</label>
-          <input type="number" id="newLevelPrice" placeholder="0" min="0" step="1000"
-            style="padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;width:100%;outline:none;font-family:'DM Sans',sans-serif">
-        </div>
-        <button class="btn btn-primary" onclick="addLevel()" style="height:40px">Add</button>
-      </div>
-      <div id="levelsList"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('levelsModal')">Close</button>
-      <button class="btn btn-primary" onclick="saveAllPrices()">💾 Save Prices</button>
-    </div>
-  </div>
+<div class="modal" style="width:480px">
+<div class="modal-header">
+<div class="modal-title"> Levels & Pricing</div>
+<button class="modal-close" onclick="closeModal('levelsModal')"></button>
 </div>
-
+<div class="modal-body">
+<div style="display:grid;grid-template-columns:1fr 140px auto;gap:10px;align-items:end;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)">
+<div class="form-group" style="margin:0">
+<label>Level Name</label>
+<input type="text" id="newLevelInput" placeholder="e.g. Advanced">
+</div>
+<div class="form-group" style="margin:0">
+<label>Price (UZS)</label>
+<input type="number" id="newLevelPrice" placeholder="0" min="0" step="1000"
+style="padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;width:100%;outline:none;font-family:'Inter',sans-serif">
+</div>
+<button class="btn btn-primary" onclick="addLevel()" style="height:40px">Add</button>
+</div>
+<div id="levelsList"></div>
+</div>
+<div class="modal-footer">
+<button class="btn btn-outline" onclick="closeModal('levelsModal')">Close</button>
+<button class="btn btn-primary" onclick="saveAllPrices()"> Save Prices</button>
+</div>
+</div>
+</div>
 <div class="toast-container" id="toastContainer"></div>
 <script src="shared.js"></script>
 <script>
-  requireAuth('groups');
-  renderSidebar('groups');
-
-  const DAY_NAMES  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const PALETTE    = ['#FF0000','#1D4ED8','#1E6B45','#7C3AED','#A05C00','#0891B2','#BE185D'];
-  let groups=[], students=[], teachers=[], classrooms=[], leadsData=[], customLevels=[];
-
-  function groupColor(id){let h=0;for(let c of(id||'?'))h=(h<<5)-h+c.charCodeAt(0);return PALETTE[Math.abs(h)%PALETTE.length];}
-
-  async function load() {
-    [groups,students,teachers,classrooms,leadsData,customLevels] = await Promise.all([
-      apiGet('/api/groups'), apiGet('/api/students'),
-      apiGet('/api/teachers'), apiGet('/api/classrooms'),
-      apiGet('/api/leads').catch(()=>[]), apiGet('/api/levels').catch(()=>[])
-    ]);
-    renderGroups();
-  }
-
-  function renderGroups() {
-    const q=document.getElementById('searchInput').value.toLowerCase();
-    const fs=document.getElementById('filterSched').value;
-    const filtered=groups.filter(g=>
-      (!q||g.name.toLowerCase().includes(q)||(g.teacher||'').toLowerCase().includes(q)||(g.level||'').toLowerCase().includes(q))
-      &&(!fs||g.schedType===fs));
-    document.getElementById('groupCount').textContent=`${filtered.length} group${filtered.length!==1?'s':''}`;
-    const canManage=can('settings')||getRole()==='CEO';
-    const grid=document.getElementById('groupsGrid');
-    const LANG_FLAG={UZ:'🇺🇿',RU:'🇷🇺'};
-    const SCHED_LABEL={odd:'Odd days',even:'Even days',custom:'Custom'};
-    if(!filtered.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">👥</div><p>No groups yet. Click "+ Add Group" to create one.</p></div>';return;}
-    grid.innerHTML=filtered.map(g=>{
-      const col=groupColor(g.id);
-      const enrolled=(g.studentIds||[]).length;
-      const daysLabel=g.schedType==='custom'&&g.customDays?.length?g.customDays.map(d=>DAY_NAMES[d]).join('·'):'';
-      const endTime=(()=>{
-        if(!g.time)return '';
-        const [h,m]=g.time.split(':').map(Number);
-        const e=h*60+(m||0)+90;
-        return `${String(Math.floor(e/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`;
-      })();
-      return `<div class="group-card">
-        <div class="group-card-top">
-          <div class="group-color-bar" style="background:${col}"></div>
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-top:6px">
-            <div class="group-name">${g.name}</div>
-            ${g.lang?`<span style="font-size:20px">${LANG_FLAG[g.lang]||''}</span>`:''}
-          </div>
-          <div class="group-meta">
-            ${g.teacher?`<span>👤 ${g.teacher}</span>`:''}
-            ${g.room?`<span>📍 ${g.room}</span>`:''}
-            ${g.time?`<span>🕐 ${g.time}${endTime?'–'+endTime:''}</span>`:''}
-            <span>📅 From ${formatDate(g.startDate)}</span>
-          </div>
-        </div>
-        <div class="group-card-body">
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <span class="badge badge-red">${SCHED_LABEL[g.schedType]||'—'}${daysLabel?' · '+daysLabel:''}</span>
-            ${g.level?`<span class="badge badge-blue">${g.level}</span>`:''}
-            <span class="badge badge-grey">${enrolled} student${enrolled!==1?'s':''}</span>
-            ${g.price?`<span class="badge" style="background:#E8F5E9;color:#2E7D32">${Number(g.price).toLocaleString()} UZS</span>`:''}
-          </div>
-        </div>
-        <div class="group-card-footer">
-          <a href="group.html?id=${g.id}" class="btn btn-ghost btn-sm">📋 Open Group</a>
-          ${canManage?`<button class="btn btn-ghost btn-sm" onclick="editGroup('${g.id}')">✏️ Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteGroup('${g.id}')">🗑</button>`:''}
-        </div>
-      </div>`;
-    }).join('');
-  }
-
-  function onSched(){
-    const t=document.querySelector('input[name="gSched"]:checked')?.value;
-    document.getElementById('customDays').style.display=t==='custom'?'':'none';
-  }
-
-  function selectLang(val) {
-    document.getElementById('gLang').value=val;
-    ['UZ','RU'].forEach(l=>{
-      const el=document.getElementById('lang'+l);
-      el.style.borderColor=l===val?'var(--crimson)':'var(--border)';
-      el.style.background =l===val?'var(--crimson-soft)':'white';
-    });
-  }
-
-  async function openAdd() {
-    clearForm();
-    await populateSelects();
-    await loadPricing();
-    populateLevelSelect();
-    document.getElementById('gDate').value=new Date().toISOString().split('T')[0];
-    document.getElementById('groupModalTitle').textContent='Add Group';
-    openModal('groupModal');
-  }
-
-  async function editGroup(id) {
-    const g=groups.find(g=>g.id===id); if(!g) return;
-    clearForm();
-    await populateSelects();
-    await loadPricing();
-    populateLevelSelect();
-    document.getElementById('editGroupId').value=id;
-    document.getElementById('gCode').value=g.name;
-    document.getElementById('gLevel').value=g.level||'';
-    document.getElementById('gTime').value=g.time||'';
-    document.getElementById('gDate').value=g.startDate?g.startDate.split('T')[0]:'';
-    document.getElementById('gTeacher').value=g.teacher||'';
-    document.getElementById('gRoom').value=g.room||'';
-    selectLang(g.lang||'UZ');
-    const r=document.querySelector(`input[name="gSched"][value="${g.schedType||'odd'}"]`);
-    if(r)r.checked=true;
-    document.getElementById('customDays').style.display=g.schedType==='custom'?'':'none';
-    document.querySelectorAll('input[name="gDay"]').forEach(cb=>{cb.checked=(g.customDays||[]).includes(Number(cb.value));});
-    document.getElementById('groupModalTitle').textContent='Edit Group';
-    openModal('groupModal');
-  }
-
-  async function saveGroup() {
-    const code   =document.getElementById('gCode').value.trim();
-    const level  =document.getElementById('gLevel').value;
-    const teacher=document.getElementById('gTeacher').value;
-    const room   =document.getElementById('gRoom').value;
-    const time   =document.getElementById('gTime').value;
-    const date   =document.getElementById('gDate').value;
-    const lang   =document.getElementById('gLang').value||'UZ';
-    const type   =document.querySelector('input[name="gSched"]:checked')?.value||'odd';
-    const days   =[...document.querySelectorAll('input[name="gDay"]:checked')].map(c=>Number(c.value));
-    if(!code)   {showToast('Group code is required.','error');  return;}
-    if(!level)  {showToast('Level is required.','error');       return;}
-    if(!teacher){showToast('Teacher is required.','error');     return;}
-    if(!room)   {showToast('Room is required.','error');        return;}
-    if(!time)   {showToast('Start time is required.','error');  return;}
-    if(!date)   {showToast('Start date is required.','error');  return;}
-    if(type==='custom'&&!days.length){showToast('Select at least one day.','error');return;}
-    const id=document.getElementById('editGroupId').value;
-    const data={
-      name:code, level, teacher, room, time, lang, startDate:date, duration:90,
-      schedType:type, customDays:type==='custom'?days:[],
-      studentIds:id?(groups.find(g=>g.id===id)?.studentIds||[]):[],
-      price: levelPrices[level] || 0,
-      maxStudents:null, notes:''
-    };
-    try {
-      if(id){await apiPut('/api/groups/'+id,data);logActivity(`Updated group: ${code}`,'');}
-      else{data.id=genId();await apiPost('/api/groups',data);logActivity(`Added group: ${code}`,'green');}
-      closeModal('groupModal'); await load(); showToast(id?'Group updated!':'Group created!');
-    } catch(e){showToast('Error: '+e.message,'error');}
-  }
-
-  async function deleteGroup(id) {
-    const g=groups.find(g=>g.id===id);
-    if(!confirm(`Delete "${g?.name}"?`))return;
-    await apiDelete('/api/groups/'+id);
-    logActivity(`Deleted group: ${g?.name}`,'red');
-    await load(); showToast('Deleted.','error');
-  }
-
-  async function populateSelects() {
-    const tSel=document.getElementById('gTeacher');
-    tSel.innerHTML='<option value="">— Select teacher —</option>'+teachers.map(t=>`<option value="${t.firstName} ${t.lastName}">${t.firstName} ${t.lastName}</option>`).join('');
-    const rSel=document.getElementById('gRoom');
-    if(!classrooms.length){rSel.innerHTML='<option value="">No classrooms yet</option>';rSel.disabled=true;}
-    else{rSel.disabled=false;rSel.innerHTML='<option value="">— Select room —</option>'+classrooms.map(r=>`<option value="${r.name}">${r.name}</option>`).join('');}
-  }
-
-  function clearForm(){
-    ['editGroupId','gCode','gLevel','gTime','gDate'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('gTeacher').value='';
-    document.getElementById('gRoom').value='';
-    document.querySelectorAll('input[name="gSched"]')[0].checked=true;
-    document.querySelectorAll('input[name="gDay"]').forEach(c=>c.checked=false);
-    document.getElementById('customDays').style.display='none';
-    selectLang('UZ');
-  }
-
-  // ── Levels ──
-  const BUILT_IN_LEVELS=['RoundUp','Beginner','Elementary','Pre-Intermediate','Intermediate','CEFR','IELTS'];
-  const LEVEL_COLORS={
-    'RoundUp':'#FB8C00','Beginner':'#43A047','Elementary':'#E53935',
-    'Pre-Intermediate':'#1E88E5','Intermediate':'#F9A825','CEFR':'#8E24AA','IELTS':'#00897B'
-  };
-  let levelPrices={};
-
-  async function loadPricing() {
-    try {
-      const arr=await apiGet('/api/pricing');
-      arr.forEach(p=>levelPrices[p.level]=p.price);
-    } catch(e){}
-  }
-
-  function getAllLevels(){ return [...BUILT_IN_LEVELS,...customLevels.filter(l=>!BUILT_IN_LEVELS.includes(l))]; }
-
-  function populateLevelSelect() {
-    const sel=document.getElementById('gLevel');
-    const cur=sel.value;
-    sel.innerHTML='<option value="">— Select level —</option>'+
-      getAllLevels().map(l=>`<option value="${l}" ${l===cur?'selected':''}>${l}</option>`).join('');
-  }
-
-  async function openLevelsModal() {
-    await loadPricing();
-    renderLevelsList();
-    openModal('levelsModal');
-  }
-
-  function renderLevelsList() {
-    const all=getAllLevels();
-    document.getElementById('levelsList').innerHTML=all.map(l=>{
-      const isBuiltIn=BUILT_IN_LEVELS.includes(l);
-      const col=LEVEL_COLORS[l]||'#546E7A';
-      const price=levelPrices[l]||0;
-      const key=l.replace(/[^a-z0-9]/gi,'_');
-      return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)">
-        <div style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0"></div>
-        <div style="flex:1;font-weight:600;font-size:14px">${l}${isBuiltIn?'<span style="font-size:10px;color:var(--muted);font-weight:400;margin-left:4px">built-in</span>':''}</div>
-        <div style="display:flex;align-items:center;gap:6px">
-          <span style="font-size:12px;font-weight:700;color:var(--muted)">UZS</span>
-          <input type="number" id="lp_${key}" value="${price}" min="0" step="1000"
-            style="width:130px;padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;outline:none;text-align:right"
-            onfocus="this.style.borderColor='var(--crimson)'" onblur="this.style.borderColor='var(--border)'">
-        </div>
-        ${!isBuiltIn?`<button class="btn btn-danger btn-sm" onclick="deleteLevel('${l}')">🗑</button>`:'<div style="width:52px"></div>'}
-      </div>`;
-    }).join('');
-  }
-
-  async function saveAllPrices() {
-    try {
-      const all=getAllLevels();
-      await Promise.all(all.map(l=>{
-        const key=l.replace(/[^a-z0-9]/gi,'_');
-        const val=Number(document.getElementById('lp_'+key)?.value||0);
-        levelPrices[l]=val;
-        return apiPut('/api/pricing/'+encodeURIComponent(l),{price:val});
-      }));
-      showToast('Prices saved!');
-    } catch(e){showToast('Error: '+e.message,'error');}
-  }
-
-  async function addLevel() {
-    const val=document.getElementById('newLevelInput').value.trim();
-    const price=Number(document.getElementById('newLevelPrice').value)||0;
-    if(!val){showToast('Enter a level name.','error');return;}
-    if(getAllLevels().includes(val)){showToast('Level already exists.','error');return;}
-    await apiPost('/api/levels',{level:val});
-    if(price>0){await apiPut('/api/pricing/'+encodeURIComponent(val),{price});levelPrices[val]=price;}
-    customLevels.push(val);
-    document.getElementById('newLevelInput').value='';
-    document.getElementById('newLevelPrice').value='';
-    renderLevelsList();
-    populateLevelSelect();
-    showToast(`Level "${val}" added!`);
-  }
-
-  async function deleteLevel(level) {
-    if(!confirm(`Delete level "${level}"?`))return;
-    await apiDelete('/api/levels/'+encodeURIComponent(level));
-    customLevels=customLevels.filter(l=>l!==level);
-    delete levelPrices[level];
-    renderLevelsList();
-    populateLevelSelect();
-    showToast('Level deleted.','error');
-  }
-
-  load();
-
-  // Auto-open edit modal if redirected from group page
-  const _editId = new URLSearchParams(window.location.search).get('edit');
-  if (_editId) {
-    load().then(() => {
-      const g = groups.find(g => g.id === _editId);
-      if (g) editGroup(_editId);
-    });
-  } else {
-    load();
-  }
+requireAuth('groups');
+renderSidebar('groups');
+const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const PALETTE = ['#FF0000','#1D4ED8','#1E6B45','#7C3AED','#A05C00','#0891B2','#BE185D'];
+let groups=[], students=[], teachers=[], classrooms=[], leadsData=[], customLevels=[];
+function groupColor(id){let h=0;for(let c of(id||'?'))h=(h<<5)-h+c.charCodeAt(0);return PALETTE[Math.abs(h)%PALETTE.length];}
+async function load() {
+[groups,students,teachers,classrooms,leadsData,customLevels] = await Promise.all([
+apiGet('/api/groups'), apiGet('/api/students'),
+apiGet('/api/teachers'), apiGet('/api/classrooms'),
+apiGet('/api/leads').catch(()=>[]), apiGet('/api/levels').catch(()=>[])
+]);
+renderGroups();
+}
+function renderGroups() {
+const q=document.getElementById('searchInput').value.toLowerCase();
+const fs=document.getElementById('filterSched').value;
+const filtered=groups.filter(g=>
+(!q||g.name.toLowerCase().includes(q)||(g.teacher||'').toLowerCase().includes(q)||(g.level||'').toLowerCase().includes(q))
+&&(!fs||g.schedType===fs));
+document.getElementById('groupCount').textContent=`${filtered.length} group${filtered.length!==1?'s':''}`;
+const canManage=can('settings')||getRole()==='CEO';
+const grid=document.getElementById('groupsGrid');
+const LANG_FLAG={UZ:'',RU:''};
+const SCHED_LABEL={odd:'Odd days',even:'Even days',custom:'Custom'};
+if(!filtered.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon"></div><p>No groups yet. Click "+ Add Group" to create one.</p></div>';return;}
+grid.innerHTML=filtered.map(g=>{
+const col=groupColor(g.id);
+const enrolled=(g.studentIds||[]).length;
+const daysLabel=g.schedType==='custom'&&g.customDays?.length?g.customDays.map(d=>DAY_NAMES[d]).join('·'):'';
+const endTime=(()=>{
+if(!g.time)return '';
+const [h,m]=g.time.split(':').map(Number);
+const e=h*60+(m||0)+90;
+return `${String(Math.floor(e/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`;
+})();
+return `<div class="group-card">
+<div class="group-card-top">
+<div class="group-color-bar" style="background:${col}"></div>
+<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-top:6px">
+<div class="group-name">${g.name}</div>
+${g.lang?`<span style="font-size:20px">${LANG_FLAG[g.lang]||''}</span>`:''}
+</div>
+<div class="group-meta">
+${g.teacher?`<span> ${g.teacher}</span>`:''}
+${g.room?`<span> ${g.room}</span>`:''}
+${g.time?`<span> ${g.time}${endTime?'–'+endTime:''}</span>`:''}
+<span> From ${formatDate(g.startDate)}</span>
+</div>
+</div>
+<div class="group-card-body">
+<div style="display:flex;gap:6px;flex-wrap:wrap">
+<span class="badge badge-red">${SCHED_LABEL[g.schedType]||'—'}${daysLabel?' · '+daysLabel:''}</span>
+${g.level?`<span class="badge badge-blue">${g.level}</span>`:''}
+<span class="badge badge-grey">${enrolled} student${enrolled!==1?'s':''}</span>
+${g.price?`<span class="badge" style="background:#E8F5E9;color:#2E7D32">${Number(g.price).toLocaleString()} UZS</span>`:''}
+</div>
+</div>
+<div class="group-card-footer">
+<a href="group.html?id=${g.id}" class="btn btn-ghost btn-sm"> Open Group</a>
+${canManage?`<button class="btn btn-ghost btn-sm" onclick="editGroup('${g.id}')">️ Edit</button>
+<button class="btn btn-danger btn-sm" onclick="deleteGroup('${g.id}')"></button>`:''}
+</div>
+</div>`;
+}).join('');
+}
+function onSched(){
+const t=document.querySelector('input[name="gSched"]:checked')?.value;
+document.getElementById('customDays').style.display=t==='custom'?'':'none';
+}
+function selectLang(val) {
+document.getElementById('gLang').value=val;
+['UZ','RU'].forEach(l=>{
+const el=document.getElementById('lang'+l);
+el.style.borderColor=l===val?'var(--crimson)':'var(--border)';
+el.style.background =l===val?'var(--crimson-soft)':'white';
+});
+}
+async function openAdd() {
+clearForm();
+await populateSelects();
+await loadPricing();
+populateLevelSelect();
+document.getElementById('gDate').value=new Date().toISOString().split('T')[0];
+document.getElementById('groupModalTitle').textContent='Add Group';
+openModal('groupModal');
+}
+async function editGroup(id) {
+const g=groups.find(g=>g.id===id); if(!g) return;
+clearForm();
+await populateSelects();
+await loadPricing();
+populateLevelSelect();
+document.getElementById('editGroupId').value=id;
+document.getElementById('gCode').value=g.name;
+document.getElementById('gLevel').value=g.level||'';
+document.getElementById('gTime').value=g.time||'';
+document.getElementById('gDate').value=g.startDate?g.startDate.split('T')[0]:'';
+document.getElementById('gTeacher').value=g.teacher||'';
+document.getElementById('gRoom').value=g.room||'';
+selectLang(g.lang||'UZ');
+const r=document.querySelector(`input[name="gSched"][value="${g.schedType||'odd'}"]`);
+if(r)r.checked=true;
+document.getElementById('customDays').style.display=g.schedType==='custom'?'':'none';
+document.querySelectorAll('input[name="gDay"]').forEach(cb=>{cb.checked=(g.customDays||[]).includes(Number(cb.value));});
+document.getElementById('groupModalTitle').textContent='Edit Group';
+openModal('groupModal');
+}
+async function saveGroup() {
+const code =document.getElementById('gCode').value.trim();
+const level =document.getElementById('gLevel').value;
+const teacher=document.getElementById('gTeacher').value;
+const room =document.getElementById('gRoom').value;
+const time =document.getElementById('gTime').value;
+const date =document.getElementById('gDate').value;
+const lang =document.getElementById('gLang').value||'UZ';
+const type =document.querySelector('input[name="gSched"]:checked')?.value||'odd';
+const days =[...document.querySelectorAll('input[name="gDay"]:checked')].map(c=>Number(c.value));
+if(!code) {showToast('Group code is required.','error'); return;}
+if(!level) {showToast('Level is required.','error'); return;}
+if(!teacher){showToast('Teacher is required.','error'); return;}
+if(!room) {showToast('Room is required.','error'); return;}
+if(!time) {showToast('Start time is required.','error'); return;}
+if(!date) {showToast('Start date is required.','error'); return;}
+if(type==='custom'&&!days.length){showToast('Select at least one day.','error');return;}
+const id=document.getElementById('editGroupId').value;
+const data={
+name:code, level, teacher, room, time, lang, startDate:date, duration:90,
+schedType:type, customDays:type==='custom'?days:[],
+studentIds:id?(groups.find(g=>g.id===id)?.studentIds||[]):[],
+price: levelPrices[level] || 0,
+maxStudents:null, notes:''
+};
+try {
+if(id){await apiPut('/api/groups/'+id,data);logActivity(`Updated group: ${code}`,'');}
+else{data.id=genId();await apiPost('/api/groups',data);logActivity(`Added group: ${code}`,'green');}
+closeModal('groupModal'); await load(); showToast(id?'Group updated!':'Group created!');
+} catch(e){showToast('Error: '+e.message,'error');}
+}
+async function deleteGroup(id) {
+const g=groups.find(g=>g.id===id);
+if(!confirm(`Delete "${g?.name}"?`))return;
+await apiDelete('/api/groups/'+id);
+logActivity(`Deleted group: ${g?.name}`,'red');
+await load(); showToast('Deleted.','error');
+}
+async function populateSelects() {
+const tSel=document.getElementById('gTeacher');
+tSel.innerHTML='<option value="">— Select teacher —</option>'+teachers.map(t=>`<option value="${t.firstName} ${t.lastName}">${t.firstName} ${t.lastName}</option>`).join('');
+const rSel=document.getElementById('gRoom');
+if(!classrooms.length){rSel.innerHTML='<option value="">No classrooms yet</option>';rSel.disabled=true;}
+else{rSel.disabled=false;rSel.innerHTML='<option value="">— Select room —</option>'+classrooms.map(r=>`<option value="${r.name}">${r.name}</option>`).join('');}
+}
+function clearForm(){
+['editGroupId','gCode','gLevel','gTime','gDate'].forEach(id=>document.getElementById(id).value='');
+document.getElementById('gTeacher').value='';
+document.getElementById('gRoom').value='';
+document.querySelectorAll('input[name="gSched"]')[0].checked=true;
+document.querySelectorAll('input[name="gDay"]').forEach(c=>c.checked=false);
+document.getElementById('customDays').style.display='none';
+selectLang('UZ');
+}
+// ── Levels ──
+const BUILT_IN_LEVELS=['RoundUp','Beginner','Elementary','Pre-Intermediate','Intermediate','CEFR','IELTS'];
+const LEVEL_COLORS={
+'RoundUp':'#FB8C00','Beginner':'#43A047','Elementary':'#E53935',
+'Pre-Intermediate':'#1E88E5','Intermediate':'#F9A825','CEFR':'#8E24AA','IELTS':'#00897B'
+};
+let levelPrices={};
+async function loadPricing() {
+try {
+const arr=await apiGet('/api/pricing');
+arr.forEach(p=>levelPrices[p.level]=p.price);
+} catch(e){}
+}
+function getAllLevels(){ return [...BUILT_IN_LEVELS,...customLevels.filter(l=>!BUILT_IN_LEVELS.includes(l))]; }
+function populateLevelSelect() {
+const sel=document.getElementById('gLevel');
+const cur=sel.value;
+sel.innerHTML='<option value="">— Select level —</option>'+
+getAllLevels().map(l=>`<option value="${l}" ${l===cur?'selected':''}>${l}</option>`).join('');
+}
+async function openLevelsModal() {
+await loadPricing();
+renderLevelsList();
+openModal('levelsModal');
+}
+function renderLevelsList() {
+const all=getAllLevels();
+document.getElementById('levelsList').innerHTML=all.map(l=>{
+const isBuiltIn=BUILT_IN_LEVELS.includes(l);
+const col=LEVEL_COLORS[l]||'#546E7A';
+const price=levelPrices[l]||0;
+const key=l.replace(/[^a-z0-9]/gi,'_');
+return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)">
+<div style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0"></div>
+<div style="flex:1;font-weight:600;font-size:14px">${l}${isBuiltIn?'<span style="font-size:10px;color:var(--muted);font-weight:400;margin-left:4px">built-in</span>':''}</div>
+<div style="display:flex;align-items:center;gap:6px">
+<span style="font-size:12px;font-weight:700;color:var(--muted)">UZS</span>
+<input type="number" id="lp_${key}" value="${price}" min="0" step="1000"
+style="width:130px;padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-weight:700;font-family:'Inter',sans-serif;outline:none;text-align:right"
+onfocus="this.style.borderColor='var(--crimson)'" onblur="this.style.borderColor='var(--border)'">
+</div>
+${!isBuiltIn?`<button class="btn btn-danger btn-sm" onclick="deleteLevel('${l}')"></button>`:'<div style="width:52px"></div>'}
+</div>`;
+}).join('');
+}
+async function saveAllPrices() {
+try {
+const all=getAllLevels();
+await Promise.all(all.map(l=>{
+const key=l.replace(/[^a-z0-9]/gi,'_');
+const val=Number(document.getElementById('lp_'+key)?.value||0);
+levelPrices[l]=val;
+return apiPut('/api/pricing/'+encodeURIComponent(l),{price:val});
+}));
+showToast('Prices saved!');
+} catch(e){showToast('Error: '+e.message,'error');}
+}
+async function addLevel() {
+const val=document.getElementById('newLevelInput').value.trim();
+const price=Number(document.getElementById('newLevelPrice').value)||0;
+if(!val){showToast('Enter a level name.','error');return;}
+if(getAllLevels().includes(val)){showToast('Level already exists.','error');return;}
+await apiPost('/api/levels',{level:val});
+if(price>0){await apiPut('/api/pricing/'+encodeURIComponent(val),{price});levelPrices[val]=price;}
+customLevels.push(val);
+document.getElementById('newLevelInput').value='';
+document.getElementById('newLevelPrice').value='';
+renderLevelsList();
+populateLevelSelect();
+showToast(`Level "${val}" added!`);
+}
+async function deleteLevel(level) {
+if(!confirm(`Delete level "${level}"?`))return;
+await apiDelete('/api/levels/'+encodeURIComponent(level));
+customLevels=customLevels.filter(l=>l!==level);
+delete levelPrices[level];
+renderLevelsList();
+populateLevelSelect();
+showToast('Level deleted.','error');
+}
+load();
+// Auto-open edit modal if redirected from group page
+const _editId = new URLSearchParams(window.location.search).get('edit');
+if (_editId) {
+load().then(() => {
+const g = groups.find(g => g.id === _editId);
+if (g) editGroup(_editId);
+});
+} else {
+load();
+}
 </script>
 </body>
 </html>

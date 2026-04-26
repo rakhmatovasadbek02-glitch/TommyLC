@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
   --crimson:       #FF0000;
@@ -41,7 +41,7 @@
 html { font-size: 16px; }
 
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   background: var(--surface);
   color: var(--text);
   min-height: 100vh;
@@ -75,7 +75,7 @@ input[type=number] { -moz-appearance: textfield; }
 }
 
 .sidebar-brand .brand-name {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 20px;
   color: var(--white);
   letter-spacing: 0.3px;
@@ -163,7 +163,7 @@ input[type=number] { -moz-appearance: textfield; }
 }
 
 .page-title {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 22px;
   color: var(--text);
   font-weight: 900;
@@ -182,7 +182,7 @@ input[type=number] { -moz-appearance: textfield; }
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   cursor: pointer;
   border: none;
   text-decoration: none;
@@ -213,7 +213,7 @@ input[type=number] { -moz-appearance: textfield; }
 ══════════════════════════════════════ */
 .card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); }
 .card-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-.card-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: var(--text); }
+.card-title { font-family: 'Inter', sans-serif; font-size: 17px; font-weight: 700; color: var(--text); }
 .card-body { padding: 24px; }
 
 /* ══════════════════════════════════════
@@ -231,7 +231,7 @@ input[type=number] { -moz-appearance: textfield; }
 .stat-card.blue::before  { background: var(--blue); }
 
 .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-weight: 600; }
-.stat-value { font-family: 'Playfair Display', serif; font-size: 32px; color: var(--text); line-height: 1; }
+.stat-value { font-family: 'Inter', sans-serif; font-size: 32px; color: var(--text); line-height: 1; }
 .stat-sub   { font-size: 12px; color: var(--muted); }
 .stat-icon  { position: absolute; top: 20px; right: 20px; font-size: 28px; opacity: 0.10; }
 
@@ -277,7 +277,7 @@ label {
 input, select, textarea {
   width: 100%; padding: 10px 14px;
   border: 1.5px solid var(--border); border-radius: 8px;
-  font-size: 14px; font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-family: 'Inter', sans-serif;
   color: var(--text); background: var(--white); outline: none;
   transition: border-color 0.16s, box-shadow 0.16s;
 }
@@ -314,7 +314,7 @@ textarea { resize: vertical; min-height: 90px; }
   display: flex; align-items: center; justify-content: space-between;
   background: var(--crimson-soft); border-radius: 16px 16px 0 0;
 }
-.modal-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 900; color: var(--crimson-dark); }
+.modal-title { font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 900; color: var(--crimson-dark); }
 .modal-close {
   background: var(--crimson-light); border: none; width: 32px; height: 32px;
   border-radius: 50%; cursor: pointer; font-size: 16px;
