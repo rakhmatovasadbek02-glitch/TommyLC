@@ -28,11 +28,29 @@ async function initDB() {
       first_name  TEXT NOT NULL,
       last_name   TEXT NOT NULL,
       phone       TEXT,
+      phone_parent TEXT,
       level       TEXT,
       status      TEXT DEFAULT 'Active',
+      balance     NUMERIC DEFAULT 0,
       exam        TEXT,
       exam_date   DATE,
       notes       TEXT,
+      created_at  TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS student_comments (
+      id          SERIAL PRIMARY KEY,
+      student_id  TEXT NOT NULL,
+      text        TEXT NOT NULL,
+      actor       TEXT,
+      created_at  TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS student_calls (
+      id          SERIAL PRIMARY KEY,
+      student_id  TEXT NOT NULL,
+      note        TEXT NOT NULL,
+      actor       TEXT,
       created_at  TIMESTAMPTZ DEFAULT NOW()
     );
 
@@ -153,6 +171,8 @@ async function initDB() {
     `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS payment_type TEXT DEFAULT 'Cash'`,
     `ALTER TABLE teachers ADD COLUMN IF NOT EXISTS password TEXT`,
     `ALTER TABLE leads ADD COLUMN IF NOT EXISTS sub_container TEXT`,
+    `ALTER TABLE students ADD COLUMN IF NOT EXISTS balance NUMERIC DEFAULT 0`,
+    `ALTER TABLE students ADD COLUMN IF NOT EXISTS phone_parent TEXT`,
   ];
   for (const sql of alters) {
     await pool.query(sql).catch(() => {});
@@ -257,7 +277,9 @@ app.get('/api/students', async (req, res) => {
     const { rows } = await pool.query('SELECT * FROM students ORDER BY created_at DESC');
     res.json(rows.map(s => ({
       id: s.id, firstName: s.first_name, lastName: s.last_name,
-      phone: s.phone, level: s.level, status: s.status,
+      phone: s.phone, phoneParent: s.phone_parent,
+      level: s.level, status: s.status,
+      balance: Number(s.balance || 0),
       exam: s.exam, examDate: s.exam_date, notes: s.notes, createdAt: s.created_at
     })));
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -265,10 +287,10 @@ app.get('/api/students', async (req, res) => {
 
 app.post('/api/students', async (req, res) => {
   try {
-    const { id, firstName, lastName, phone, level, status, exam, examDate, notes } = req.body;
+    const { id, firstName, lastName, phone, phoneParent, level, status, exam, examDate, notes } = req.body;
     await pool.query(
-      'INSERT INTO students(id,first_name,last_name,phone,level,status,exam,exam_date,notes) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)',
-      [id, firstName, lastName, phone||null, level||null, status||'Active', exam||null, examDate||null, notes||null]
+      'INSERT INTO students(id,first_name,last_name,phone,phone_parent,level,status,exam,exam_date,notes) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',
+      [id, firstName, lastName, phone||null, phoneParent||null, level||null, status||'Active', exam||null, examDate||null, notes||null]
     );
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -276,10 +298,10 @@ app.post('/api/students', async (req, res) => {
 
 app.put('/api/students/:id', async (req, res) => {
   try {
-    const { firstName, lastName, phone, level, status, exam, examDate, notes } = req.body;
+    const { firstName, lastName, phone, phoneParent, level, status, exam, examDate, notes } = req.body;
     await pool.query(
-      'UPDATE students SET first_name=$1,last_name=$2,phone=$3,level=$4,status=$5,exam=$6,exam_date=$7,notes=$8 WHERE id=$9',
-      [firstName, lastName, phone||null, level||null, status||'Active', exam||null, examDate||null, notes||null, req.params.id]
+      'UPDATE students SET first_name=$1,last_name=$2,phone=$3,phone_parent=$4,level=$5,status=$6,exam=$7,exam_date=$8,notes=$9 WHERE id=$10',
+      [firstName, lastName, phone||null, phoneParent||null, level||null, status||'Active', exam||null, examDate||null, notes||null, req.params.id]
     );
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -289,6 +311,116 @@ app.delete('/api/students/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM students WHERE id=$1', [req.params.id]);
     res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+
+/* STUDENT DETAIL endpoints */
+app.get('/api/students/:id', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM students WHERE id=$1', [req.params.id]);
+    if (!rows[0]) return res.status(404).json({ error: 'Not found' });
+    const s = rows[0];
+    res.json({ id: s.id, firstName: s.first_name, lastName: s.last_name,
+      phone: s.phone, phoneParent: s.phone_parent,
+      level: s.level, status: s.status, balance: Number(s.balance||0),
+      exam: s.exam, examDate: s.exam_date, notes: s.notes, createdAt: s.created_at });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Adjust balance (add payment)
+app.post('/api/students/:id/payment', async (req, res) => {
+  try {
+    const { amount, paymentType, groupId, desc, notes } = req.body;
+    const num = Number(amount);
+    // Update balance
+    await pool.query('UPDATE students SET balance=balance+$1 WHERE id=$2', [num, req.params.id]);
+    // Create invoice
+    const id = 'inv-' + Date.now();
+    const number = 'INV-' + Date.now().toString().slice(-6);
+    const now = new Date();
+    const month = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+    await pool.query(
+      `INSERT INTO invoices(id,number,student_id,group_id,month,description,total,status,payment_type,notes)
+       VALUES($1,$2,$3,$4,$5,$6,$7,'Paid',$8,$9)`,
+      [id, number, req.params.id, groupId||null, month, desc||'Payment', num, paymentType||'Cash', notes||null]
+    );
+    res.json({ ok: true, newBalance: num });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Comments
+app.get('/api/students/:id/comments', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM student_comments WHERE student_id=$1 ORDER BY created_at DESC', [req.params.id]);
+    res.json(rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/students/:id/comments', async (req, res) => {
+  try {
+    const { text, actor } = req.body;
+    await pool.query('INSERT INTO student_comments(student_id,text,actor) VALUES($1,$2,$3)', [req.params.id, text, actor||null]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+app.delete('/api/students/comments/:commentId', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM student_comments WHERE id=$1', [req.params.commentId]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Call history
+app.get('/api/students/:id/calls', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM student_calls WHERE student_id=$1 ORDER BY created_at DESC', [req.params.id]);
+    res.json(rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/students/:id/calls', async (req, res) => {
+  try {
+    const { note, actor } = req.body;
+    await pool.query('INSERT INTO student_calls(student_id,note,actor) VALUES($1,$2,$3)', [req.params.id, note, actor||null]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+app.delete('/api/students/calls/:callId', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM student_calls WHERE id=$1', [req.params.callId]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Groups this student belongs to
+app.get('/api/students/:id/groups', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT * FROM groups WHERE student_ids @> $1::jsonb ORDER BY created_at DESC`,
+      [JSON.stringify([req.params.id])]
+    );
+    res.json(rows.map(g => ({
+      id: g.id, name: g.name, teacher: g.teacher, room: g.room,
+      level: g.level, schedType: g.sched_type, time: g.time,
+      duration: g.duration, startDate: g.start_date,
+      currentUnit: g.current_unit, price: Number(g.price||0)
+    })));
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Invoices for a student
+app.get('/api/students/:id/invoices', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM invoices WHERE student_id=$1 ORDER BY created_at DESC',
+      [req.params.id]
+    );
+    res.json(rows.map(i => ({
+      id: i.id, number: i.number, groupId: i.group_id,
+      level: i.level, month: i.month, desc: i.description,
+      total: Number(i.total), dueDate: i.due_date,
+      status: i.status, paymentType: i.payment_type,
+      notes: i.notes, createdAt: i.created_at
+    })));
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
