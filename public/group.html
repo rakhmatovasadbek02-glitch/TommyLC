@@ -97,6 +97,16 @@ cursor: pointer; font-size: 16px; transition: all 0.15s; flex-shrink: 0;
 .student-search-result:hover { background: var(--crimson-soft); }
 .student-search-result.already { opacity: 0.4; cursor: default; }
 /* Unit select modal */
+
+/* Trial student styles */
+.student-list-item.trial-student { background: #f8f8f8; }
+.student-dot.trial { background: #bbb; }
+.trial-badge { font-size: 10px; font-weight: 700; color: #888; background: #eee; border-radius: 4px; padding: 1px 5px; margin-left: 4px; }
+.att-trial-row td { background: #f5f5f5; }
+.att-trial-row:hover td { background: #eeeeee !important; }
+.att-trial-name { color: #666; }
+.trial-label { font-size: 10px; font-weight: 700; color: #888; background: #e0e0e0; border-radius: 4px; padding: 1px 5px; margin-left: 6px; }
+
 .unit-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 8px; }
 .unit-opt { padding: 10px; text-align: center; border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; transition: all 0.15s; }
 .unit-opt:hover { border-color: var(--crimson); background: var(--crimson-soft); color: var(--crimson); }
@@ -231,7 +241,7 @@ renderSidebar('groups');
 const params = new URLSearchParams(window.location.search);
 const groupId = params.get('id');
 if (!groupId) window.location.replace('groups.html');
-let group = null, students = [], allStudents = [];
+let group = null, students = [], allStudents = [], trialStudents = [];
 let currentMonth = new Date();
 let attData = {};
 let selectedUnit = '1A';
@@ -254,6 +264,10 @@ if (match) group.price = match.price;
 } catch(e) {}
 }
 students = (group.studentIds||[]).map(id => studs.find(s=>s.id===id)).filter(Boolean);
+// Fetch trial leads for this group
+try {
+  trialStudents = await apiGet('/api/groups/'+groupId+'/trial-leads');
+} catch(e) { trialStudents = []; }
 selectedUnit = group.currentUnit || '1A';
 document.getElementById('pageTitle').textContent =
 [group.name, group.level, group.teacher].filter(Boolean).join(' · ');
@@ -306,6 +320,17 @@ el.innerHTML = sorted.map((s,i) => `
 <span class="student-list-name">${s.firstName} ${s.lastName}</span>
 <span class="student-phone">${s.phone||''}</span>
 </div>`).join('');
+// Render trial students below with grey styling
+if (trialStudents.length) {
+const trialHtml = trialStudents.map((s,i) => `
+<div class="student-list-item trial-student">
+<span class="student-num">${sorted.length+i+1}.</span>
+<span class="student-dot trial"></span>
+<span class="student-list-name" style="color:#777">${s.firstName} ${s.lastName}</span>
+<span class="trial-badge">Trial</span>
+</div>`).join('');
+el.innerHTML += trialHtml;
+}
 }
 function setTab(name, btn) {
 document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
@@ -380,7 +405,7 @@ const na = (a.firstName+' '+a.lastName).toLowerCase();
 const nb = (b.firstName+' '+b.lastName).toLowerCase();
 return sort==='az' ? na.localeCompare(nb) : nb.localeCompare(na);
 });
-if (!sorted.length) {
+if (!sorted.length && !trialStudents.length) {
 document.getElementById('attTable').innerHTML = `<tr><td style="padding:40px;text-align:center;color:var(--muted)">No students enrolled.</td></tr>`;
 return;
 }
@@ -415,6 +440,32 @@ return `<td><span class="chip-empty" data-sid="${s.id}" data-date="${ds}" onclic
 }).join('')}
 </tr>`;
 });
+// Trial students — grey rows, same attendance chips
+if (trialStudents.length) {
+tbody += `<tr><td colspan="${days.length+1}" style="padding:6px 16px;background:#f0f0f0;font-size:11px;font-weight:700;color:#888;letter-spacing:0.5px;text-transform:uppercase;">Trial Students</td></tr>`;
+trialStudents.forEach(s => {
+const name = s.firstName+' '+s.lastName;
+tbody += `<tr class="att-trial-row">
+<td class="name-col">
+<div class="att-name-cell">
+<div class="att-avatar" style="background:#bbb">${initials(name)}</div>
+<span class="att-trial-name">${name}</span>
+<span class="trial-label">Trial</span>
+</div>
+</td>
+${days.map(d => {
+const ds = toDateStr(year, month, d);
+const status = attData[ds]?.[s.id] || '';
+const date = new Date(year, month, d); date.setHours(0,0,0,0);
+const isFuture = date > today;
+if (isFuture) return `<td><span class="chip-empty"></span></td>`;
+if (status==='present') return `<td><button class="chip chip-present" data-sid="${s.id}" data-date="${ds}" onclick="cycleAtt(this)">✓</button></td>`;
+if (status==='absent') return `<td><button class="chip chip-absent" data-sid="${s.id}" data-date="${ds}" onclick="cycleAtt(this)">✗</button></td>`;
+return `<td><span class="chip-empty" data-sid="${s.id}" data-date="${ds}" onclick="cycleAtt(this)"></span></td>`;
+}).join('')}
+</tr>`;
+});
+}
 tbody += '</tbody>';
 document.getElementById('attTable').innerHTML = thead + tbody;
 }

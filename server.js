@@ -594,19 +594,28 @@ app.post('/api/leads/:id/to-trial', async (req, res) => {
   try {
     const { groupId } = req.body;
     const leadId = req.params.id;
+    // Update lead status only — do NOT add to group student_ids (trial != enrolled)
     await pool.query(
       `UPDATE leads SET status='Trial', group_id=$1, is_trial=TRUE WHERE id=$2`,
       [groupId, leadId]
     );
-    const grp = await pool.query('SELECT student_ids FROM groups WHERE id=$1', [groupId]);
-    if (grp.rows[0]) {
-      const ids = grp.rows[0].student_ids || [];
-      if (!ids.includes(leadId)) {
-        ids.push(leadId);
-        await pool.query('UPDATE groups SET student_ids=$1 WHERE id=$2', [JSON.stringify(ids), groupId]);
-      }
-    }
     res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Get trial leads for a group
+app.get('/api/groups/:id/trial-leads', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT * FROM leads WHERE group_id=$1 AND status='Trial' ORDER BY created_at ASC`,
+      [req.params.id]
+    );
+    res.json(rows.map(l => ({
+      id: l.id, firstName: l.first_name, lastName: l.last_name,
+      phoneStudent: l.phone_student, phoneFather: l.phone_father,
+      currentLevel: l.current_level, status: l.status,
+      groupId: l.group_id, isTrial: true
+    })));
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -631,6 +640,17 @@ app.post('/api/leads/:id/convert', async (req, res) => {
       [l.id, l.first_name, l.last_name, phone, l.current_level]
     );
     await pool.query(`UPDATE leads SET status='Student' WHERE id=$1`, [req.params.id]);
+    // Add to group student_ids now that they are a real student
+    if (l.group_id) {
+      const grp = await pool.query('SELECT student_ids FROM groups WHERE id=$1', [l.group_id]);
+      if (grp.rows[0]) {
+        const ids = grp.rows[0].student_ids || [];
+        if (!ids.includes(l.id)) {
+          ids.push(l.id);
+          await pool.query('UPDATE groups SET student_ids=$1 WHERE id=$2', [JSON.stringify(ids), l.group_id]);
+        }
+      }
+    }
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
