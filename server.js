@@ -158,6 +158,23 @@ async function initDB() {
     await pool.query(sql).catch(() => {});
   }
 
+  // Remove trial lead IDs from group student_ids (they should never be in there)
+  try {
+    const trialLeads = await pool.query(`SELECT id FROM leads WHERE status='Trial'`);
+    const trialIds = new Set(trialLeads.rows.map(r => r.id));
+    if (trialIds.size > 0) {
+      const grps = await pool.query('SELECT id, student_ids FROM groups');
+      for (const grp of grps.rows) {
+        const ids = grp.student_ids || [];
+        const cleaned = ids.filter(id => !trialIds.has(id));
+        if (cleaned.length !== ids.length) {
+          await pool.query('UPDATE groups SET student_ids=$1 WHERE id=$2', [JSON.stringify(cleaned), grp.id]);
+          console.log(`Cleaned trial IDs from group ${grp.id}: ${ids.length} -> ${cleaned.length}`);
+        }
+      }
+    }
+  } catch(e) { console.warn('Trial cleanup skipped:', e.message); }
+
   const { rows } = await pool.query('SELECT COUNT(*) FROM users');
   if (parseInt(rows[0].count) === 0) {
     await pool.query(`
@@ -367,12 +384,17 @@ app.delete('/api/classrooms/:id', async (req, res) => {
 app.get('/api/groups', async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT * FROM groups ORDER BY created_at DESC');
+    // Get all trial lead IDs so we can exclude them from student counts
+    const trialRes = await pool.query(`SELECT id FROM leads WHERE status='Trial'`);
+    const trialIdSet = new Set(trialRes.rows.map(r => r.id));
     res.json(rows.map(g => ({
       id: g.id, name: g.name, teacher: g.teacher, room: g.room,
       level: g.level, lang: g.lang, maxStudents: g.max_students,
       schedType: g.sched_type, customDays: g.custom_days,
       time: g.time, duration: g.duration, startDate: g.start_date,
-      notes: g.notes, studentIds: g.student_ids,
+      notes: g.notes,
+      // Exclude trial lead IDs — they are not enrolled students
+      studentIds: (g.student_ids || []).filter(id => !trialIdSet.has(id)),
       currentUnit: g.current_unit || '1A',
       price: Number(g.price || 0),
       createdAt: g.created_at

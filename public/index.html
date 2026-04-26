@@ -144,8 +144,8 @@ const STAT_DEFS = [
 { id:'statActive', label:'Active Students', icon:'', color:'', roles:['CEO'], calc:()=>(window._students||[]).filter(s=>s.status==='Active').length, sub:'currently enrolled' },
 { id:'statDebtors', label:'Debtors', icon:'️', color:'red', roles:['CEO'], calc:()=>{ const ids=new Set((window._invoices||[]).filter(i=>i.status==='Pending'||i.status==='Overdue').map(i=>i.studentId)); return ids.size; }, sub:'unpaid invoices' },
 { id:'statPaid', label:'Paid', icon:'', color:'green', roles:['CEO'], calc:()=>(window._invoices||[]).filter(i=>i.status==='Paid').length, sub:'invoices settled' },
-{ id:'statLead', label:'Leads', icon:'', color:'purple', roles:['CEO'], calc:()=>(window._students||[]).filter(s=>s.status==='Lead').length, sub:'potential students' },
-{ id:'statTrial', label:'Trial', icon:'', color:'amber', roles:['CEO'], calc:()=>(window._students||[]).filter(s=>s.status==='Trial').length, sub:'on trial period' },
+{ id:'statLead', label:'Leads', icon:'', color:'purple', roles:['CEO'], calc:()=>(window._leads||[]).filter(l=>l.status==='Registration'||l.status==='Waitlist').length, sub:'in pipeline' },
+{ id:'statTrial', label:'Trial', icon:'', color:'amber', roles:['CEO'], calc:()=>(window._leads||[]).filter(l=>l.status==='Trial').length, sub:'on trial period' },
 { id:'statAbsent', label:'Absent Today', icon:'', color:'red', roles:['CEO'], calc:()=>window._absentToday||0, sub:'not in class today' },
 ];
 function renderStats() {
@@ -321,12 +321,12 @@ grid.innerHTML = `<div style="overflow-x:auto;min-width:100%;">${html}</div>`;
 }
 async function init() {
 try {
-const [groups, classrooms, students, invoices] = await Promise.all([
+const [groups, classrooms, students, invoices, leads] = await Promise.all([
 apiGet('/api/groups'), apiGet('/api/classrooms'),
-apiGet('/api/students'), apiGet('/api/invoices')
+apiGet('/api/students'), apiGet('/api/invoices'), apiGet('/api/leads')
 ]);
 window._groups = groups; window._classrooms = classrooms;
-window._students = students; window._invoices = invoices;
+window._students = students; window._invoices = invoices; window._leads = leads;
 const today = new Date().toISOString().split('T')[0];
 const attResults = await Promise.all(groups.map(g => apiGet(`/api/attendance/${g.id}/${today}`).catch(()=>[])));
 const absentIds = new Set();
@@ -334,7 +334,7 @@ attResults.forEach(recs => recs.filter(r=>r.status==='absent').forEach(r=>absent
 window._absentToday = absentIds.size;
 } catch(e) {
 window._groups=[]; window._classrooms=[];
-window._students=[]; window._invoices=[];
+window._students=[]; window._invoices=[]; window._leads=[];
 window._absentToday=0;
 }
 renderStats();
