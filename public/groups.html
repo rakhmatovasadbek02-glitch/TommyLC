@@ -429,6 +429,17 @@
   }
 
   load();
+
+  // Auto-open edit modal if redirected from group page
+  const _editId = new URLSearchParams(window.location.search).get('edit');
+  if (_editId) {
+    load().then(() => {
+      const g = groups.find(g => g.id === _editId);
+      if (g) editGroup(_editId);
+    });
+  } else {
+    load();
+  }
 </script>
 </body>
 </html>

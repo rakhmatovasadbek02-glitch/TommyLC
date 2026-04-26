@@ -408,6 +408,14 @@ app.delete('/api/groups/:id', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+app.patch('/api/groups/:id/students', async (req, res) => {
+  try {
+    const { studentIds } = req.body;
+    await pool.query('UPDATE groups SET student_ids=$1 WHERE id=$2', [JSON.stringify(studentIds||[]), req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.patch('/api/groups/:id/unit', async (req, res) => {
   try {
     const { unit } = req.body;
