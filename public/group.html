@@ -2,130 +2,373 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Group — TommyLC CRM</title>
+  <title>Group — Tommy LC</title>
   <link rel="stylesheet" href="shared.css">
   <style>
-    .group-header-card {
-      background: white; border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 24px 28px;
-      box-shadow: var(--shadow); margin-bottom: 24px;
-      border-top: 4px solid var(--crimson);
-      display: flex; align-items: flex-start; gap: 24px; flex-wrap: wrap;
-    }
-    .gh-info { flex: 1; min-width: 0; }
-    .gh-name { font-family:'Playfair Display',serif; font-size:26px; font-weight:900; color:var(--text); }
-    .gh-meta { display:flex; gap:16px; flex-wrap:wrap; margin-top:8px; font-size:13px; color:var(--muted); }
-    .gh-meta span { display:flex; align-items:center; gap:5px; }
-
-    /* Unit tracker */
-    .unit-card {
-      background: white; border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 20px 24px;
-      box-shadow: var(--shadow); margin-bottom: 24px;
-      display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
-    }
-    .unit-label { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-    .unit-select {
-      padding: 10px 16px; border: 2px solid var(--crimson);
-      border-radius: 10px; font-size: 16px; font-weight: 700;
-      color: var(--crimson); background: var(--crimson-soft);
-      cursor: pointer; outline: none; font-family: 'DM Sans', sans-serif;
-    }
-    .unit-badge {
-      background: var(--crimson); color: white;
-      border-radius: 10px; padding: 10px 20px;
-      font-family: 'Playfair Display', serif;
-      font-size: 22px; font-weight: 900;
+    /* ── Two-column layout ── */
+    .group-layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 20px;
+      align-items: start;
     }
 
-    /* Attendance section */
-    .att-section { background: white; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
-    .att-section-header {
-      padding: 18px 24px; border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    /* ── LEFT PANEL ── */
+    .left-panel {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: sticky;
+      top: 84px;
     }
-    .att-section-title { font-family:'Playfair Display',serif; font-size:18px; font-weight:900; color:var(--text); }
-    .att-date-nav { display:flex; align-items:center; gap:10px; }
-    .att-date-btn {
-      width:32px; height:32px; border-radius:50%; border:1.5px solid var(--border);
-      background:white; cursor:pointer; font-size:16px;
-      display:flex; align-items:center; justify-content:center; transition:all 0.14s;
-    }
-    .att-date-btn:hover { border-color:var(--crimson); color:var(--crimson); }
-    .att-date-label { font-weight:700; font-size:14px; color:var(--text); min-width:140px; text-align:center; }
 
-    .att-row { display:flex; align-items:center; gap:14px; padding:13px 24px; border-bottom:1px solid var(--border); }
-    .att-row:last-child { border-bottom:none; }
-    .att-name { flex:1; font-size:14px; font-weight:500; }
-    .att-btns { display:flex; gap:8px; }
-    .att-btn {
-      width:40px; height:40px; border-radius:10px;
-      border:2px solid var(--border); background:white;
-      font-size:18px; cursor:pointer; transition:all 0.15s;
-      display:flex; align-items:center; justify-content:center;
+    .group-info-block {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
     }
-    .att-btn:hover { transform:scale(1.1); }
-    .att-btn.present { background:#E8F5E9; border-color:#2E7D32; }
-    .att-btn.absent  { background:#FFEBEE; border-color:#C62828; }
 
-    /* Summary bar */
-    .att-summary {
-      padding: 12px 24px; background: var(--surface);
-      border-top: 1px solid var(--border); border-radius: 0 0 var(--radius) var(--radius);
-      display: flex; gap: 20px; font-size: 13px;
+    .group-info-text { flex: 1; }
+    .group-info-text .gi-row { font-size: 13px; color: var(--text); margin-bottom: 5px; display: flex; gap: 6px; }
+    .group-info-text .gi-label { color: var(--muted); font-size: 12px; min-width: 60px; flex-shrink: 0; }
+    .group-info-text .gi-val { font-weight: 600; }
+
+    .info-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
-    .att-sum-item { display:flex; align-items:center; gap:6px; font-weight:600; }
+    .icon-btn {
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 1.5px solid var(--border); background: white;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 15px; transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .icon-btn:hover { border-color: var(--crimson); background: var(--crimson-soft); }
+    .icon-btn.green { border-color: #1E6B45; color: #1E6B45; }
+    .icon-btn.red   { border-color: var(--crimson); color: var(--crimson); }
+
+    /* Sort bar */
+    .sort-bar {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sort-bar select {
+      width: 100%; padding: 7px 10px; font-size: 13px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-family: 'DM Sans', sans-serif; color: var(--text);
+      background: white; outline: none;
+    }
+
+    /* Student list */
+    .student-list { max-height: 420px; overflow-y: auto; }
+    .student-list-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px; border-bottom: 1px solid var(--border);
+      font-size: 13px; transition: background 0.1s;
+    }
+    .student-list-item:last-child { border-bottom: none; }
+    .student-list-item:hover { background: var(--crimson-soft); }
+    .student-num { font-size: 11px; color: var(--muted); min-width: 18px; }
+    .student-dot { width: 8px; height: 8px; border-radius: 50%; background: #1E6B45; flex-shrink: 0; }
+    .student-list-name { flex: 1; font-weight: 500; }
+    .student-phone { font-size: 11px; color: var(--muted); }
+    .student-menu { color: var(--muted); cursor: pointer; font-size: 16px; padding: 0 2px; }
+
+    .archive-btn {
+      margin: 12px 16px;
+      width: calc(100% - 32px);
+      padding: 8px;
+      background: var(--crimson);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.15s;
+    }
+    .archive-btn:hover { background: var(--crimson-dark); }
+
+    .download-btn-wrap {
+      display: flex; justify-content: center; padding: 8px 16px 16px;
+    }
+
+    /* ── RIGHT PANEL ── */
+    .right-panel {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    /* Tabs */
+    .tab-nav {
+      display: flex;
+      border-bottom: 2px solid var(--border);
+      padding: 0 20px;
+      gap: 0;
+    }
+    .tab-nav-btn {
+      padding: 14px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .tab-nav-btn:hover { color: var(--text); }
+    .tab-nav-btn.active { color: var(--crimson); border-bottom-color: var(--crimson); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Attendance grid */
+    .att-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px;
+    }
+    .att-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 900; color: var(--text); }
+
+    .month-nav { display: flex; align-items: center; gap: 6px; }
+    .month-btn {
+      width: 28px; height: 28px; border-radius: 6px;
+      border: 1.5px solid var(--border); background: white;
+      cursor: pointer; font-size: 13px; display: flex;
+      align-items: center; justify-content: center; transition: all 0.14s;
+    }
+    .month-btn:hover { border-color: var(--crimson); color: var(--crimson); }
+    .month-btn.today-btn {
+      padding: 0 10px; width: auto; font-weight: 600; font-size: 12px;
+    }
+    .month-label { font-weight: 700; font-size: 14px; color: var(--text); min-width: 80px; text-align: center; }
+
+    /* Scrollable attendance table */
+    .att-table-wrap { overflow-x: auto; }
+    .att-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .att-table th {
+      padding: 10px 8px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      background: white;
+      position: sticky;
+      top: 0;
+    }
+    .att-table th.name-col { text-align: left; padding-left: 16px; min-width: 160px; }
+    .att-table th.today-col { color: var(--text); font-weight: 900; }
+
+    .att-table td {
+      padding: 8px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .att-table td.name-col {
+      text-align: left; padding-left: 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .att-table tr:hover td { background: var(--crimson-soft); }
+    .att-table tr:last-child td { border-bottom: none; }
+
+    .att-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; color: var(--muted); flex-shrink: 0;
+    }
+
+    /* Present / Absent / Empty chips */
+    .chip {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 44px; height: 26px; border-radius: 6px;
+      font-size: 11px; font-weight: 700; cursor: pointer;
+      transition: all 0.15s; border: none;
+    }
+    .chip-present { background: #1E6B45; color: white; }
+    .chip-absent  { background: var(--crimson); color: white; }
+    .chip-empty   {
+      width: 26px; height: 26px; border-radius: 50%;
+      border: 1.5px solid var(--border); background: white; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .chip-empty:hover { border-color: var(--crimson); }
+
+    /* Save row */
+    .att-save-row {
+      padding: 14px 20px; border-top: 1px solid var(--border);
+      display: flex; justify-content: flex-end;
+    }
+
+    /* Note bar at bottom */
+    .note-bar {
+      position: fixed; bottom: 0; left: var(--nav-w); right: 0;
+      background: white; border-top: 1px solid var(--border);
+      padding: 10px 24px; display: flex; align-items: center; gap: 10px; z-index: 40;
+    }
+    .note-bar input {
+      flex: 1; border: none; outline: none; font-size: 14px;
+      font-family: 'DM Sans', sans-serif; color: var(--text);
+    }
+    .note-send-btn {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--crimson-soft); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--crimson); font-size: 16px; transition: all 0.15s;
+    }
+    .note-send-btn:hover { background: var(--crimson); color: white; }
+
+    .page-content { padding-bottom: 70px; }
   </style>
 </head>
 <body>
 <nav class="sidebar"></nav>
 <div class="main">
   <div class="topbar">
-    <div class="page-title" id="pageTitle">Group</div>
-    <div class="topbar-right">
-      <a href="groups.html" class="btn btn-outline btn-sm">← All Groups</a>
+    <div style="display:flex;align-items:center;gap:12px">
+      <a href="groups.html" class="btn btn-ghost btn-sm">←</a>
+      <div class="page-title" id="pageTitle">Group</div>
     </div>
+    <div class="topbar-right"></div>
   </div>
+
   <div class="page-content">
+    <div class="group-layout" id="groupLayout" style="display:none">
 
-    <!-- Group header -->
-    <div class="group-header-card" id="groupHeader">
-      <div style="text-align:center;padding:40px;color:var(--muted);width:100%">Loading…</div>
-    </div>
-
-    <!-- Unit tracker -->
-    <div class="unit-card" id="unitCard" style="display:none">
+      <!-- LEFT PANEL -->
       <div>
-        <div class="unit-label">Current Unit</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">Where the class is up to</div>
-      </div>
-      <div class="unit-badge" id="unitBadge">1A</div>
-      <div style="flex:1"></div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <label class="unit-label" for="unitSelect">Update to:</label>
-        <select class="unit-select" id="unitSelect" onchange="updateUnit()">
-          <!-- populated by JS -->
-        </select>
-      </div>
-    </div>
+        <div class="left-panel">
+          <div class="group-info-block">
+            <div class="group-info-text" id="groupInfoText"></div>
+            <div class="info-actions">
+              <button class="icon-btn" title="Edit" onclick="openEditModal()">✏️</button>
+              <button class="icon-btn red" title="Delete" onclick="deleteGroup()">🗑</button>
+              <button class="icon-btn green" title="Add Student" onclick="openAddStudentModal()">➕</button>
+            </div>
+          </div>
 
-    <!-- Attendance -->
-    <div class="att-section" id="attSection" style="display:none">
-      <div class="att-section-header">
-        <div class="att-section-title">✅ Attendance</div>
-        <div class="att-date-nav">
-          <button class="att-date-btn" onclick="changeDate(-1)">‹</button>
-          <div class="att-date-label" id="attDateLabel"></div>
-          <button class="att-date-btn" onclick="changeDate(1)">›</button>
-          <button class="btn btn-outline btn-sm" onclick="goToday()">Today</button>
+          <div class="sort-bar">
+            <select id="sortSelect" onchange="renderStudentList()">
+              <option value="az">По А-Я</option>
+              <option value="za">По Я-А</option>
+            </select>
+          </div>
+
+          <div class="student-list" id="studentList"></div>
+
+          <button class="archive-btn">Показать архивных студентов</button>
+
+          <div class="download-btn-wrap">
+            <button class="icon-btn" title="Download" style="border-color:#1E6B45;color:#1E6B45">⬇</button>
+          </div>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="saveAttendance()">Save Attendance</button>
       </div>
-      <div id="attList"></div>
-      <div class="att-summary" id="attSummary"></div>
+
+      <!-- RIGHT PANEL -->
+      <div class="right-panel">
+        <div class="tab-nav">
+          <button class="tab-nav-btn active" onclick="setTab('attendance',this)">Посещаемость</button>
+          <button class="tab-nav-btn" onclick="setTab('grades',this)">Оценка</button>
+          <button class="tab-nav-btn" onclick="setTab('materials',this)">Материалы</button>
+          <button class="tab-nav-btn" onclick="setTab('prices',this)">Цены</button>
+          <button class="tab-nav-btn" onclick="setTab('exams',this)">Экзамены</button>
+          <button class="tab-nav-btn" onclick="setTab('history',this)">История</button>
+        </div>
+
+        <!-- ATTENDANCE TAB -->
+        <div class="tab-content active" id="tab-attendance">
+          <div class="att-header">
+            <div class="att-title">Посещаемость</div>
+            <div class="month-nav">
+              <button class="month-btn today-btn" onclick="goToday()">Текущий</button>
+              <button class="month-btn" onclick="changeMonth(-1)">‹‹</button>
+              <button class="month-btn" onclick="changeMonth(-1)">‹</button>
+              <div class="month-label" id="monthLabel"></div>
+              <button class="month-btn" onclick="changeMonth(1)">›</button>
+              <button class="month-btn" onclick="changeMonth(1)">››</button>
+              <button class="month-btn" onclick="renderAttendance()">↻</button>
+            </div>
+          </div>
+          <div class="att-table-wrap">
+            <table class="att-table" id="attTable"></table>
+          </div>
+          <div class="att-save-row">
+            <button class="btn btn-primary" onclick="saveAttendance()">💾 Save Attendance</button>
+          </div>
+        </div>
+
+        <!-- GRADES TAB -->
+        <div class="tab-content" id="tab-grades">
+          <div style="padding:40px;text-align:center;color:var(--muted)">
+            <div style="font-size:32px;margin-bottom:10px">📝</div>
+            <p>Grades coming soon.</p>
+          </div>
+        </div>
+
+        <!-- MATERIALS TAB -->
+        <div class="tab-content" id="tab-materials">
+          <div style="padding:40px;text-align:center;color:var(--muted)">
+            <div style="font-size:32px;margin-bottom:10px">📚</div>
+            <p>Materials coming soon.</p>
+          </div>
+        </div>
+
+        <!-- PRICES TAB -->
+        <div class="tab-content" id="tab-prices">
+          <div style="padding:40px;text-align:center;color:var(--muted)">
+            <div style="font-size:32px;margin-bottom:10px">💳</div>
+            <p>Prices coming soon.</p>
+          </div>
+        </div>
+
+        <!-- EXAMS TAB -->
+        <div class="tab-content" id="tab-exams">
+          <div style="padding:40px;text-align:center;color:var(--muted)">
+            <div style="font-size:32px;margin-bottom:10px">🎓</div>
+            <p>Exams coming soon.</p>
+          </div>
+        </div>
+
+        <!-- HISTORY TAB -->
+        <div class="tab-content" id="tab-history">
+          <div style="padding:40px;text-align:center;color:var(--muted)">
+            <div style="font-size:32px;margin-bottom:10px">🕐</div>
+            <p>History coming soon.</p>
+          </div>
+        </div>
+      </div>
+
     </div>
 
+    <div id="loadingState" style="text-align:center;padding:60px;color:var(--muted)">Loading…</div>
   </div>
+</div>
+
+<!-- Note bar -->
+<div class="note-bar">
+  <input type="text" placeholder="Заметка" id="noteInput">
+  <button class="note-send-btn">✉</button>
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
@@ -134,182 +377,220 @@
   requireAuth('groups');
   renderSidebar('groups');
 
-  // Get group ID from URL: group.html?id=xxx
   const params  = new URLSearchParams(window.location.search);
   const groupId = params.get('id');
   if (!groupId) window.location.replace('groups.html');
 
-  // Generate all units: 1A-12C
-  const UNITS = [];
-  for (let u = 1; u <= 12; u++) ['A','B','C'].forEach(s => UNITS.push(`${u}${s}`));
+  let group = null, students = [], allStudents = [];
+  let currentMonth = new Date();
+  let attData = {}; // { 'YYYY-MM-DD': { studentId: 'present'|'absent' } }
 
-  let group    = null;
-  let students = [];
-  let attDate  = new Date().toISOString().split('T')[0];
-
-  // Populate unit select
-  const sel = document.getElementById('unitSelect');
-  UNITS.forEach(u => {
-    const opt = document.createElement('option');
-    opt.value = opt.textContent = u;
-    sel.appendChild(opt);
-  });
+  // ── MONTHS ──
+  const MONTH_NAMES = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  const MONTH_FULL  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
   async function load() {
-    const [groups, studs] = await Promise.all([apiGet('/api/groups'), apiGet('/api/students')]);
-    group    = groups.find(g => g.id === groupId);
-    students = studs;
-    if (!group) { window.location.replace('groups.html'); return; }
-
-    renderHeader();
-    renderUnitTracker();
-    await renderAttendance();
+    try {
+      const [groups, studs] = await Promise.all([apiGet('/api/groups'), apiGet('/api/students')]);
+      group      = groups.find(g => g.id === groupId);
+      allStudents = studs;
+      if (!group) { window.location.replace('groups.html'); return; }
+      students = (group.studentIds||[]).map(id => studs.find(s=>s.id===id)).filter(Boolean);
+      document.getElementById('pageTitle').textContent =
+        `${group.name}${group.level?' · '+group.level:''}${group.teacher?' · '+group.teacher:''}`;
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('groupLayout').style.display  = 'grid';
+      renderGroupInfo();
+      renderStudentList();
+      await loadMonthAttendance();
+      renderAttendance();
+    } catch(e) {
+      document.getElementById('loadingState').textContent = 'Error loading group.';
+    }
   }
 
-  function renderHeader() {
-    document.getElementById('pageTitle').textContent = group.name;
-    const SCHED = { odd:'Odd days (Mon·Wed·Fri)', even:'Even days (Tue·Thu·Sat)', custom:'Custom' };
-    const LANG  = { UZ:'🇺🇿 Uzbek', RU:'🇷🇺 Russian' };
+  function renderGroupInfo() {
+    const SCHED = { odd:'Нечетные дни · Пн·Ср·Пт', even:'Четные дни · Вт·Чт·Сб', custom:'Custom' };
     const endTime = (() => {
       if (!group.time) return '';
       const [h,m] = group.time.split(':').map(Number);
       const e = h*60+(m||0)+90;
       return `${String(Math.floor(e/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`;
     })();
-    const enrolled = (group.studentIds||[]).length;
-
-    document.getElementById('groupHeader').innerHTML = `
-      <div style="flex-shrink:0">
-        <div style="width:64px;height:64px;border-radius:16px;background:var(--crimson);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:white">
-          ${group.name.slice(0,2).toUpperCase()}
-        </div>
-      </div>
-      <div class="gh-info">
-        <div class="gh-name">${group.name}</div>
-        <div class="gh-meta">
-          ${group.teacher ? `<span>👤 ${group.teacher}</span>` : ''}
-          ${group.room    ? `<span>📍 ${group.room}</span>`    : ''}
-          ${group.time    ? `<span>🕐 ${group.time}–${endTime}</span>` : ''}
-          ${group.level   ? `<span>📚 ${group.level}</span>`  : ''}
-          ${group.lang    ? `<span>${LANG[group.lang]||''}</span>` : ''}
-          <span>📅 ${SCHED[group.schedType]||'—'}</span>
-          <span>👥 ${enrolled} student${enrolled!==1?'s':''}</span>
-        </div>
-      </div>
-      <div style="text-align:center">
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Current Unit</div>
-        <div style="background:var(--crimson);color:white;border-radius:10px;padding:10px 20px;font-family:'Playfair Display',serif;font-size:28px;font-weight:900">
-          ${group.currentUnit||'1A'}
-        </div>
-      </div>`;
-  }
-
-  function renderUnitTracker() {
-    const cu = group.currentUnit || '1A';
-    document.getElementById('unitBadge').textContent = cu;
-    document.getElementById('unitSelect').value = cu;
-    document.getElementById('unitCard').style.display = '';
-  }
-
-  async function updateUnit() {
-    const unit = document.getElementById('unitSelect').value;
-    try {
-      await apiPatch('/api/groups/'+groupId+'/unit', { unit });
-      group.currentUnit = unit;
-      document.getElementById('unitBadge').textContent = unit;
-      // Update header badge too
-      renderHeader();
-      logActivity(`Updated unit for ${group.name}: ${unit}`, '');
-      showToast(`Unit updated to ${unit}!`);
-    } catch(e) { showToast('Error: '+e.message, 'error'); }
-  }
-
-  async function renderAttendance() {
-    document.getElementById('attSection').style.display = '';
-    document.getElementById('attDateLabel').textContent =
-      new Date(attDate+'T00:00:00').toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'});
-
-    const enrolled = (group.studentIds||[]).map(id => students.find(s=>s.id===id)).filter(Boolean);
-    const existing = await apiGet(`/api/attendance/${groupId}/${attDate}`).catch(()=>[]);
-
-    if (!enrolled.length) {
-      document.getElementById('attList').innerHTML = `
-        <div style="padding:32px;text-align:center;color:var(--muted)">
-          <div style="font-size:32px;margin-bottom:8px">👥</div>
-          <p>No students enrolled in this group yet.</p>
-        </div>`;
-      document.getElementById('attSummary').innerHTML = '';
-      return;
-    }
-
-    document.getElementById('attList').innerHTML = enrolled.map(s => {
-      const name   = s.firstName+' '+s.lastName;
-      const prev   = existing.find(a=>a.studentId===s.id);
-      const status = prev?.status || '';
-      // Check if trial student
-      return `<div class="att-row">
-        <div class="avatar" style="background:${avatarColor(name)};width:36px;height:36px;font-size:13px;flex-shrink:0">${initials(name)}</div>
-        <div class="att-name">${name}</div>
-        <div class="att-btns">
-          <button class="att-btn${status==='present'?' present':''}" data-sid="${s.id}" data-status="present" onclick="toggleAtt(this)" title="Present">✓</button>
-          <button class="att-btn${status==='absent'?' absent':''}"  data-sid="${s.id}" data-status="absent"  onclick="toggleAtt(this)" title="Absent">✗</button>
-        </div>
-      </div>`;
-    }).join('');
-
-    updateSummary(existing, enrolled.length);
-  }
-
-  function updateSummary(records, total) {
-    const present = records.filter(r=>r.status==='present').length;
-    const absent  = records.filter(r=>r.status==='absent').length;
-    const unmarked = total - present - absent;
-    document.getElementById('attSummary').innerHTML = `
-      <span class="att-sum-item" style="color:#2E7D32">✓ ${present} present</span>
-      <span class="att-sum-item" style="color:var(--crimson)">✗ ${absent} absent</span>
-      ${unmarked > 0 ? `<span class="att-sum-item" style="color:var(--muted)">— ${unmarked} unmarked</span>` : ''}
+    document.getElementById('groupInfoText').innerHTML = `
+      <div class="gi-row"><span class="gi-label">Курс:</span><span class="gi-val">${group.level||'—'}</span></div>
+      <div class="gi-row"><span class="gi-label">Учитель:</span><span class="gi-val">${group.teacher||'—'}</span></div>
+      <div class="gi-row"><span class="gi-label">Цена:</span><span class="gi-val">${group.price?Number(group.price).toLocaleString()+' UZS':'—'}</span></div>
+      <div class="gi-row"><span class="gi-label">Время:</span><span class="gi-val">${SCHED[group.schedType]||'—'}${group.time?' · '+group.time+(endTime?' – '+endTime:''):''}</span></div>
+      <div class="gi-row"><span class="gi-label">Кабинет:</span><span class="gi-val">${group.room||'—'}</span></div>
+      <div class="gi-row" style="margin-top:4px"><span class="gi-label" style="color:var(--muted);font-size:11px">id: ${group.id}</span></div>
     `;
   }
 
-  function toggleAtt(btn) {
-    const row = btn.closest('.att-btns');
-    const wasActive = btn.classList.contains(btn.dataset.status);
-    row.querySelectorAll('.att-btn').forEach(b => b.classList.remove('present','absent'));
-    if (!wasActive) btn.classList.add(btn.dataset.status);
-    // Update summary live
-    const rows = document.querySelectorAll('.att-btns');
-    const present = [...rows].filter(r => r.querySelector('.att-btn.present')).length;
-    const absent  = [...rows].filter(r => r.querySelector('.att-btn.absent')).length;
-    const total   = (group.studentIds||[]).length;
-    updateSummary(
-      [...Array(present).fill({status:'present'}), ...Array(absent).fill({status:'absent'})],
-      total
-    );
+  function renderStudentList() {
+    const sort = document.getElementById('sortSelect').value;
+    const sorted = [...students].sort((a,b) => {
+      const na = (a.firstName+' '+a.lastName).toLowerCase();
+      const nb = (b.firstName+' '+b.lastName).toLowerCase();
+      return sort==='az' ? na.localeCompare(nb) : nb.localeCompare(na);
+    });
+    const el = document.getElementById('studentList');
+    if (!sorted.length) {
+      el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">No students enrolled.</div>';
+      return;
+    }
+    el.innerHTML = sorted.map((s,i) => {
+      const name = s.firstName+' '+s.lastName;
+      return `<div class="student-list-item">
+        <span class="student-num">${i+1}.</span>
+        <span class="student-dot"></span>
+        <span class="student-list-name">${name}</span>
+        <span class="student-phone">${s.phone||''}</span>
+        <span class="student-menu">⋮</span>
+      </div>`;
+    }).join('');
+  }
+
+  // ── TABS ──
+  function setTab(name, btn) {
+    document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab-nav-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('tab-'+name).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // ── ATTENDANCE ──
+  function changeMonth(delta) {
+    currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth()+delta, 1);
+    loadMonthAttendance().then(renderAttendance);
+  }
+  function goToday() {
+    currentMonth = new Date();
+    loadMonthAttendance().then(renderAttendance);
+  }
+
+  async function loadMonthAttendance() {
+    const year  = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const days  = getDaysInMonth(year, month);
+    attData = {};
+    await Promise.all(days.map(async d => {
+      const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      try {
+        const records = await apiGet(`/api/attendance/${groupId}/${dateStr}`);
+        attData[dateStr] = {};
+        records.forEach(r => attData[dateStr][r.studentId] = r.status);
+      } catch(e) { attData[dateStr] = {}; }
+    }));
+  }
+
+  function getDaysInMonth(year, month) {
+    // Only return class days based on schedType
+    const days = [];
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dow = new Date(year, month, d).getDay(); // 0=Sun
+      if (group.schedType === 'odd'    && [1,3,5].includes(dow)) days.push(d);
+      else if (group.schedType === 'even'   && [2,4,6].includes(dow)) days.push(d);
+      else if (group.schedType === 'custom' && (group.customDays||[]).includes(dow)) days.push(d);
+    }
+    return days;
+  }
+
+  function renderAttendance() {
+    const year   = currentMonth.getFullYear();
+    const month  = currentMonth.getMonth();
+    const today  = new Date();
+    const days   = getDaysInMonth(year, month);
+
+    document.getElementById('monthLabel').textContent = MONTH_FULL[month]+' '+year;
+
+    const sort = document.getElementById('sortSelect').value;
+    const sorted = [...students].sort((a,b) => {
+      const na = (a.firstName+' '+a.lastName).toLowerCase();
+      const nb = (b.firstName+' '+b.lastName).toLowerCase();
+      return sort==='az' ? na.localeCompare(nb) : nb.localeCompare(na);
+    });
+
+    const DOW_SHORT = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+
+    // Header
+    let thead = `<thead><tr>
+      <th class="name-col">Имя</th>
+      ${days.map(d => {
+        const date = new Date(year, month, d);
+        const isToday = date.toDateString() === today.toDateString();
+        return `<th class="${isToday?'today-col':''}" style="min-width:48px">
+          <div>${d} ${MONTH_NAMES[month]}</div>
+        </th>`;
+      }).join('')}
+    </tr></thead>`;
+
+    // Body
+    let tbody = '<tbody>';
+    sorted.forEach(s => {
+      const name = s.firstName+' '+s.lastName;
+      tbody += `<tr>
+        <td class="name-col">
+          <div class="att-avatar">${initials(name)}</div>
+          <span>${name}</span>
+        </td>
+        ${days.map(d => {
+          const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+          const status  = attData[dateStr]?.[s.id] || '';
+          const date    = new Date(year, month, d);
+          const isFuture = date > today;
+          if (isFuture) return `<td><span class="chip-empty"></span></td>`;
+          if (status === 'present') return `<td><button class="chip chip-present" data-sid="${s.id}" data-date="${dateStr}" onclick="cycleAtt(this)">Был</button></td>`;
+          if (status === 'absent')  return `<td><button class="chip chip-absent"  data-sid="${s.id}" data-date="${dateStr}" onclick="cycleAtt(this)">Нет</button></td>`;
+          return `<td><span class="chip-empty" data-sid="${s.id}" data-date="${dateStr}" onclick="cycleAtt(this)"></span></td>`;
+        }).join('')}
+      </tr>`;
+    });
+    tbody += '</tbody>';
+
+    document.getElementById('attTable').innerHTML = thead + tbody;
+  }
+
+  function cycleAtt(el) {
+    const sid    = el.dataset.sid;
+    const date   = el.dataset.date;
+    const cur    = attData[date]?.[sid] || '';
+    const next   = cur==='' ? 'present' : cur==='present' ? 'absent' : '';
+    if (!attData[date]) attData[date] = {};
+    attData[date][sid] = next;
+
+    // Update cell
+    const td = el.parentElement;
+    if (next === 'present') {
+      td.innerHTML = `<button class="chip chip-present" data-sid="${sid}" data-date="${date}" onclick="cycleAtt(this)">Был</button>`;
+    } else if (next === 'absent') {
+      td.innerHTML = `<button class="chip chip-absent" data-sid="${sid}" data-date="${date}" onclick="cycleAtt(this)">Нет</button>`;
+    } else {
+      td.innerHTML = `<span class="chip-empty" data-sid="${sid}" data-date="${date}" onclick="cycleAtt(this)"></span>`;
+    }
   }
 
   async function saveAttendance() {
-    const records = [];
-    document.querySelectorAll('.att-btns').forEach(row => {
-      const active = row.querySelector('.att-btn.present,.att-btn.absent');
-      if (active) records.push({ studentId: active.dataset.sid, status: active.dataset.status });
-    });
     try {
-      await apiPost(`/api/attendance/${groupId}/${attDate}`, { records });
+      await Promise.all(Object.entries(attData).map(([date, records]) => {
+        const arr = Object.entries(records)
+          .filter(([,status]) => status !== '')
+          .map(([studentId, status]) => ({ studentId, status }));
+        return apiPost(`/api/attendance/${groupId}/${date}`, { records: arr });
+      }));
       logActivity(`Attendance saved for ${group.name}`, '');
       showToast('Attendance saved!');
     } catch(e) { showToast('Error: '+e.message, 'error'); }
   }
 
-  function changeDate(delta) {
-    const d = new Date(attDate+'T00:00:00');
-    d.setDate(d.getDate() + delta);
-    attDate = d.toISOString().split('T')[0];
-    renderAttendance();
+  function openEditModal() { window.location.href = `groups.html`; }
+  async function deleteGroup() {
+    if (!confirm(`Delete group "${group.name}"?`)) return;
+    await apiDelete('/api/groups/'+groupId);
+    window.location.replace('groups.html');
   }
-  function goToday() {
-    attDate = new Date().toISOString().split('T')[0];
-    renderAttendance();
-  }
+  function openAddStudentModal() { showToast('Use the Students page to enroll students, then assign them to this group.'); }
 
   load();
 </script>
