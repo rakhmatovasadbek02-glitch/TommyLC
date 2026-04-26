@@ -152,6 +152,7 @@ async function initDB() {
     `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS month        TEXT`,
     `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS payment_type TEXT DEFAULT 'Cash'`,
     `ALTER TABLE teachers ADD COLUMN IF NOT EXISTS password TEXT`,
+    `ALTER TABLE leads ADD COLUMN IF NOT EXISTS sub_container TEXT`,
   ];
   for (const sql of alters) {
     await pool.query(sql).catch(() => {});
@@ -557,7 +558,7 @@ app.get('/api/leads', async (req, res) => {
       phoneStudent: l.phone_student, phoneFather: l.phone_father,
       phoneMother: l.phone_mother, phoneOther: l.phone_other,
       currentLevel: l.current_level, testResult: l.test_result,
-      status: l.status, groupId: l.group_id, isTrial: l.is_trial,
+      status: l.status, groupId: l.group_id, isTrial: l.is_trial, subContainer: l.sub_container||null,
       notes: l.notes, createdAt: l.created_at
     })));
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -580,9 +581,9 @@ app.put('/api/leads/:id', async (req, res) => {
     const { firstName, lastName, phoneStudent, phoneFather, phoneMother, phoneOther, currentLevel, testResult, status, groupId, isTrial, notes } = req.body;
     await pool.query(
       `UPDATE leads SET first_name=$1,last_name=$2,phone_student=$3,phone_father=$4,phone_mother=$5,phone_other=$6,
-       current_level=$7,test_result=$8,status=$9,group_id=$10,is_trial=$11,notes=$12 WHERE id=$13`,
+       current_level=$7,test_result=$8,status=$9,group_id=$10,is_trial=$11,notes=$12,sub_container=$13 WHERE id=$14`,
       [firstName, lastName, phoneStudent||null, phoneFather||null, phoneMother||null, phoneOther||null,
-       currentLevel||null, testResult||null, status||'Registration', groupId||null, isTrial||false, notes||null, req.params.id]
+       currentLevel||null, testResult||null, status||'Registration', groupId||null, isTrial||false, notes||null, req.body.subContainer||null, req.params.id]
     );
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
