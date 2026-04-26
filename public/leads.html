@@ -5,92 +5,268 @@
   <title>Leads — Tommy LC</title>
   <link rel="stylesheet" href="shared.css">
   <style>
-    body { overflow: hidden; }
-    .page-content { padding: 0; display: flex; flex-direction: column; height: calc(100vh - 64px); overflow: hidden; }
+    /* ── Layout ── */
+    .page-content {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 64px);
+      overflow: hidden;
+    }
 
-    /* Filter bar */
-    .filter-bar { display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-bottom: 1px solid var(--border); background: white; flex-shrink: 0; }
+    /* ── Filter bar ── */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: white;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
     .filter-search { position: relative; }
-    .filter-search input { padding: 7px 12px 7px 32px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px; font-family: 'Inter', sans-serif; outline: none; width: 180px; background: var(--surface); }
+    .filter-search input {
+      padding: 7px 12px 7px 30px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      width: 160px;
+      background: var(--surface);
+    }
     .filter-search input:focus { border-color: var(--crimson); background: white; }
-    .filter-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 13px; pointer-events: none; }
-    .filter-select { padding: 7px 24px 7px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px; font-family: 'Inter', sans-serif; outline: none; background: var(--surface); cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23994444' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; }
+    .filter-search-icon {
+      position: absolute; left: 9px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted); font-size: 13px; pointer-events: none;
+    }
+    .filter-select {
+      padding: 7px 24px 7px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      background: var(--surface);
+      cursor: pointer;
+      appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23994444' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+    }
     .filter-select:focus { border-color: var(--crimson); }
     .filter-bar-right { margin-left: auto; display: flex; gap: 6px; }
-    .filter-icon-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; color: var(--muted); transition: all 0.14s; }
+    .filter-icon-btn {
+      width: 32px; height: 32px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 14px; color: var(--muted); transition: all 0.14s;
+    }
     .filter-icon-btn:hover { border-color: var(--crimson); color: var(--crimson); background: var(--crimson-soft); }
 
-    /* Main area = board + optional sidebar */
-    .board-area { display: flex; flex: 1; overflow: hidden; }
+    /* ── Kanban board ── */
+    .kanban-board {
+      display: flex;
+      flex: 1;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 14px 16px;
+      align-items: flex-start;
+      gap: 12px;
+    }
 
-    /* Kanban */
-    .kanban-board { display: flex; flex: 1; overflow-x: auto; overflow-y: hidden; padding: 16px 20px; align-items: flex-start; gap: 14px; }
+    /* ── Column ── */
+    .kanban-col {
+      /* Responsive: fill available width equally, minimum 220px */
+      flex: 1 1 220px;
+      min-width: 220px;
+      max-width: 320px;
+      display: flex;
+      flex-direction: column;
+      max-height: 100%;
+    }
+    .kanban-col-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .kanban-col-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
+    }
+    .kanban-col-count {
+      font-size: 11px; color: var(--muted); margin-left: 4px;
+    }
+    .kanban-col-menu-btn {
+      width: 26px; height: 26px; border-radius: 6px;
+      border: 1px solid var(--border); background: white;
+      cursor: pointer; color: var(--muted); font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.12s; flex-shrink: 0;
+    }
+    .kanban-col-menu-btn:hover,
+    .kanban-col-menu-btn.active {
+      border-color: var(--crimson); color: var(--crimson); background: var(--crimson-soft);
+    }
 
-    /* Column */
-    .kanban-col { flex-shrink: 0; width: 280px; display: flex; flex-direction: column; max-height: 100%; }
-    .kanban-col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-    .kanban-col-title { font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; }
-    .kanban-col-count { font-size: 12px; color: var(--muted); font-weight: 500; margin-left: 5px; }
-    .kanban-col-menu-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border); background: white; cursor: pointer; color: var(--muted); font-size: 15px; display: flex; align-items: center; justify-content: center; transition: all 0.12s; flex-shrink: 0; }
-    .kanban-col-menu-btn:hover { border-color: var(--crimson); color: var(--crimson); background: var(--crimson-soft); }
-    .kanban-col-menu-btn.active { border-color: var(--crimson); color: var(--crimson); background: var(--crimson-soft); }
-
-    /* Add button — Registration only */
-    .kanban-add-btn { width: 100%; padding: 9px; border-radius: 8px; background: var(--crimson); color: white; border: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.14s; }
+    /* ── Add button (Registration only) ── */
+    .kanban-add-btn {
+      width: 100%; padding: 8px; border-radius: 8px;
+      background: var(--crimson); color: white; border: none;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      font-family: 'Inter', sans-serif; margin-bottom: 8px;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+      transition: background 0.14s;
+    }
     .kanban-add-btn:hover { background: var(--crimson-dark); }
 
-    /* Cards scroll */
+    /* ── Cards ── */
     .kanban-cards { flex: 1; overflow-y: auto; padding-bottom: 8px; }
     .kanban-cards::-webkit-scrollbar { width: 3px; }
     .kanban-cards::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-    /* Sub-container */
-    .sub-container { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
-    .sub-container-header { display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; background: var(--surface); border-bottom: 1px solid var(--border); }
-    .sub-container-name { font-size: 11px; font-weight: 700; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; }
-    .sub-container-count { font-size: 11px; color: var(--muted); margin-left: 4px; }
-    .sub-toggle-btn { border: none; background: none; cursor: pointer; color: var(--muted); font-size: 12px; padding: 0 4px; }
-    .sub-container-body { padding: 6px; background: #fafafa; }
+    /* ── Sub-container ── */
+    .sub-container {
+      border: 1px solid var(--border); border-radius: 9px; margin-bottom: 7px; overflow: hidden;
+    }
+    .sub-container-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 10px; background: var(--surface); border-bottom: 1px solid var(--border);
+    }
+    .sub-container-name { font-size: 10px; font-weight: 700; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; }
+    .sub-container-count { font-size: 10px; color: var(--muted); margin-left: 4px; }
+    .sub-toggle-btn { border: none; background: none; cursor: pointer; color: var(--muted); font-size: 11px; padding: 0 3px; }
+    .sub-container-body { padding: 5px; background: #fafafa; }
     .sub-container-body.collapsed { display: none; }
 
-    /* Lead card */
-    .lead-card { background: white; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; transition: box-shadow 0.14s; overflow: hidden; }
-    .lead-card:hover { box-shadow: 0 4px 14px rgba(255,0,0,0.10); }
-    .lead-card-body { padding: 10px 12px; cursor: pointer; }
-    .lead-card-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+    /* ── Lead card ── */
+    .lead-card {
+      background: white; border: 1px solid var(--border);
+      border-radius: 8px; margin-bottom: 6px;
+      transition: box-shadow 0.14s; overflow: hidden;
+    }
+    .lead-card:hover { box-shadow: 0 3px 12px rgba(180,0,0,0.10); }
+    .lead-card-body { padding: 9px 11px; cursor: pointer; }
+    .lead-card-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
     .lead-card-meta { font-size: 11px; color: var(--muted); line-height: 1.5; }
-    .lead-card-actions { display: flex; gap: 4px; padding: 6px 8px; border-top: 1px solid var(--border); flex-wrap: wrap; align-items: center; background: white; }
+    .lead-card-actions {
+      display: flex; gap: 4px; padding: 5px 8px;
+      border-top: 1px solid var(--border); flex-wrap: wrap; align-items: center; background: white;
+    }
 
-    /* Activate button */
-    .btn-activate { background: #1E6B45; color: white; border: none; border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.14s; }
+    /* ── Activate button ── */
+    .btn-activate {
+      background: #1E6B45; color: white; border: none; border-radius: 6px;
+      padding: 3px 9px; font-size: 11px; font-weight: 700; cursor: pointer;
+      font-family: 'Inter', sans-serif; transition: background 0.14s;
+    }
     .btn-activate:hover { background: #155235; }
 
-    /* Step arrow in card */
-    .step-badge { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+    /* ── Empty ── */
+    .kanban-empty {
+      text-align: center; padding: 14px 8px; color: var(--muted);
+      font-size: 12px; border: 1.5px dashed var(--border); border-radius: 8px;
+    }
 
-    /* Empty */
-    .kanban-empty { text-align: center; padding: 16px 8px; color: var(--muted); font-size: 12px; border: 1.5px dashed var(--border); border-radius: 8px; }
+    /* ════════════════════════════════════════
+       CONTAINER EDITOR OVERLAY (per-column)
+       ════════════════════════════════════════ */
+    .cont-overlay-bg {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.35);
+      z-index: 500;
+      display: flex; align-items: flex-start; justify-content: flex-end;
+    }
+    .cont-overlay-bg.hidden { display: none; }
 
-    /* ── RIGHT SIDEBAR ── */
-    .col-sidebar { width: 280px; flex-shrink: 0; border-left: 1px solid var(--border); background: white; display: flex; flex-direction: column; overflow: hidden; transition: width 0.2s; }
-    .col-sidebar.hidden { width: 0; border-left: none; }
-    .col-sidebar-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-    .col-sidebar-title { font-size: 13px; font-weight: 700; color: var(--text); }
-    .col-sidebar-close { border: none; background: none; cursor: pointer; color: var(--muted); font-size: 18px; line-height: 1; }
-    .col-sidebar-close:hover { color: var(--text); }
-    .col-sidebar-body { flex: 1; overflow-y: auto; padding: 14px 16px; }
-    .col-sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border); flex-shrink: 0; }
+    .cont-panel {
+      width: min(360px, 90vw);
+      height: 100%;
+      background: white;
+      display: flex; flex-direction: column;
+      box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+      animation: slideInRight 0.18s ease;
+    }
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to   { transform: translateX(0);    opacity: 1; }
+    }
 
-    /* Container item in sidebar */
-    .sidebar-container-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; background: var(--surface); }
-    .sidebar-container-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--text); }
-    .sidebar-container-count { font-size: 11px; color: var(--muted); }
-    .sidebar-item-btn { border: none; background: none; cursor: pointer; color: var(--muted); font-size: 13px; padding: 2px 5px; border-radius: 4px; transition: all 0.12s; }
-    .sidebar-item-btn:hover { background: var(--border); color: var(--text); }
-    .sidebar-item-btn.danger:hover { background: var(--crimson); color: white; }
+    .cont-panel-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .cont-panel-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .cont-panel-subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .cont-panel-close {
+      border: none; background: none; cursor: pointer; color: var(--muted);
+      font-size: 20px; line-height: 1; padding: 0 4px;
+    }
+    .cont-panel-close:hover { color: var(--text); }
 
-    /* Inline name edit */
-    .sidebar-name-input { flex: 1; border: 1.5px solid var(--crimson); border-radius: 6px; padding: 4px 8px; font-size: 13px; font-family: 'Inter', sans-serif; outline: none; }
+    .cont-panel-body { flex: 1; overflow-y: auto; padding: 14px 18px; }
+
+    .cont-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--border); border-radius: 9px; margin-bottom: 8px;
+      background: var(--surface);
+      transition: box-shadow 0.12s;
+    }
+    .cont-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+    .cont-item-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--text); }
+    .cont-item-count { font-size: 11px; color: var(--muted); margin-right: 2px; }
+    .cont-item-btn {
+      border: none; background: none; cursor: pointer; color: var(--muted);
+      font-size: 13px; padding: 3px 6px; border-radius: 5px; transition: all 0.12s;
+    }
+    .cont-item-btn:hover { background: var(--border); color: var(--text); }
+    .cont-item-btn.danger:hover { background: var(--crimson); color: white; }
+
+    .cont-name-input {
+      flex: 1; border: 1.5px solid var(--crimson); border-radius: 6px;
+      padding: 4px 8px; font-size: 13px; font-family: 'Inter', sans-serif; outline: none;
+    }
+
+    .cont-panel-footer {
+      padding: 14px 18px; border-top: 1px solid var(--border); flex-shrink: 0;
+    }
+    .cont-add-row { display: flex; gap: 8px; }
+    .cont-add-input {
+      flex: 1; padding: 9px 12px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 13px; font-family: 'Inter', sans-serif; outline: none;
+      transition: border-color 0.14s;
+    }
+    .cont-add-input:focus { border-color: var(--crimson); }
+
+    /* ── Responsive: collapse columns on small screens ── */
+    @media (max-width: 640px) {
+      .kanban-board {
+        flex-direction: column;
+        overflow-x: hidden;
+        overflow-y: auto;
+        align-items: stretch;
+        padding: 10px 10px;
+      }
+      .kanban-col {
+        flex: none;
+        min-width: unset;
+        max-width: unset;
+        width: 100%;
+        max-height: none;
+      }
+      .kanban-cards { overflow: visible; }
+      .filter-search input { width: 130px; }
+    }
+
+    @media (max-width: 900px) and (min-width: 641px) {
+      .kanban-col { min-width: 200px; }
+    }
   </style>
 </head>
 <body>
@@ -105,7 +281,7 @@
     <div class="filter-bar">
       <div class="filter-search">
         <span class="filter-search-icon">🔍</span>
-        <input type="text" id="searchInput" placeholder="Search by name…" oninput="renderBoard()">
+        <input type="text" id="searchInput" placeholder="Search…" oninput="renderBoard()">
       </div>
       <select class="filter-select" id="filterLevel" onchange="renderBoard()">
         <option value="">All Levels</option>
@@ -120,29 +296,35 @@
       </div>
     </div>
 
-    <div class="board-area">
-      <div class="kanban-board" id="kanbanBoard"></div>
-      <!-- Right sidebar for container management -->
-      <div class="col-sidebar hidden" id="colSidebar">
-        <div class="col-sidebar-header">
-          <div class="col-sidebar-title" id="sidebarColTitle">Containers</div>
-          <button class="col-sidebar-close" onclick="closeSidebar()">✕</button>
-        </div>
-        <div class="col-sidebar-body" id="sidebarBody"></div>
-        <div class="col-sidebar-footer">
-          <div style="display:flex;gap:8px">
-            <input type="text" id="newContainerInput" placeholder="Container name…" style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;outline:none" onfocus="this.style.borderColor='var(--crimson)'" onblur="this.style.borderColor='var(--border)'" onkeydown="if(event.key==='Enter')addContainer()">
-            <button class="btn btn-primary btn-sm" onclick="addContainer()">Add</button>
-          </div>
-        </div>
+    <!-- Board -->
+    <div class="kanban-board" id="kanbanBoard"></div>
+  </div>
+</div>
+
+<!-- ═══ CONTAINER EDITOR OVERLAY ═══ -->
+<div class="cont-overlay-bg hidden" id="contOverlay" onclick="onOverlayClick(event)">
+  <div class="cont-panel" id="contPanel">
+    <div class="cont-panel-header">
+      <div>
+        <div class="cont-panel-title" id="contPanelTitle">Containers</div>
+        <div class="cont-panel-subtitle" id="contPanelSubtitle"></div>
+      </div>
+      <button class="cont-panel-close" onclick="closeContainerEditor()">✕</button>
+    </div>
+    <div class="cont-panel-body" id="contPanelBody"></div>
+    <div class="cont-panel-footer">
+      <div class="cont-add-row">
+        <input type="text" class="cont-add-input" id="newContInput" placeholder="New container name…"
+          onkeydown="if(event.key==='Enter')addContainer()">
+        <button class="btn btn-primary btn-sm" onclick="addContainer()">Add</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- REGISTER LEAD MODAL -->
+<!-- ═══ REGISTER LEAD MODAL ═══ -->
 <div class="modal-overlay" id="leadModal">
-  <div class="modal" style="width:560px">
+  <div class="modal" style="width:min(560px,96vw)">
     <div class="modal-header">
       <div class="modal-title" id="leadModalTitle">Register Lead</div>
       <button class="modal-close" onclick="closeModal('leadModal')">✕</button>
@@ -157,35 +339,35 @@
         <label>Phone Numbers <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(at least 2 required)</span></label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
           <div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">👤 Student</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:3px;font-weight:600">👤 Student</div>
             <div style="display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden" onfocusin="this.style.borderColor='var(--crimson)'" onfocusout="this.style.borderColor='var(--border)'">
-              <span style="padding:9px 10px;background:var(--crimson-soft);font-size:13px;font-weight:700;color:var(--crimson);border-right:1.5px solid var(--border);white-space:nowrap;user-select:none">+998</span>
-              <input type="tel" oninput="fmtPhone(this)" id="lPhoneStudent" placeholder="90 …" style="border:none;outline:none;flex:1;padding:9px 10px;font-size:13px;font-family:'Inter',sans-serif;background:white">
+              <span style="padding:9px 9px;background:var(--crimson-soft);font-size:12px;font-weight:700;color:var(--crimson);border-right:1.5px solid var(--border);user-select:none">+998</span>
+              <input type="tel" oninput="fmtPhone(this)" id="lPhoneStudent" placeholder="90 …" style="border:none;outline:none;flex:1;padding:9px 9px;font-size:13px;font-family:'Inter',sans-serif;background:white;min-width:0">
             </div>
           </div>
           <div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">👨 Father</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:3px;font-weight:600">👨 Father</div>
             <div style="display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden" onfocusin="this.style.borderColor='var(--crimson)'" onfocusout="this.style.borderColor='var(--border)'">
-              <span style="padding:9px 10px;background:var(--crimson-soft);font-size:13px;font-weight:700;color:var(--crimson);border-right:1.5px solid var(--border);white-space:nowrap;user-select:none">+998</span>
-              <input type="tel" oninput="fmtPhone(this)" id="lPhoneFather" placeholder="90 …" style="border:none;outline:none;flex:1;padding:9px 10px;font-size:13px;font-family:'Inter',sans-serif;background:white">
+              <span style="padding:9px 9px;background:var(--crimson-soft);font-size:12px;font-weight:700;color:var(--crimson);border-right:1.5px solid var(--border);user-select:none">+998</span>
+              <input type="tel" oninput="fmtPhone(this)" id="lPhoneFather" placeholder="90 …" style="border:none;outline:none;flex:1;padding:9px 9px;font-size:13px;font-family:'Inter',sans-serif;background:white;min-width:0">
             </div>
           </div>
           <div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">👩 Mother</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:3px;font-weight:600">👩 Mother</div>
             <div style="display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden" onfocusin="this.style.borderColor='var(--crimson)'" onfocusout="this.style.borderColor='var(--border)'">
-              <span style="padding:9px 10px;background:var(--crimson-soft);font-size:13px;font-weight:700;color:var(--crimson);border-right:1.5px solid var(--border);white-space:nowrap;user-select:none">+998</span>
-              <input type="tel" oninput="fmtPhone(this)" id="lPhoneMother" placeholder="90 …" style="border:none;outline:none;flex:1;padding:9px 10px;font-size:13px;font-family:'Inter',sans-serif;background:white">
+              <span style="padding:9px 9px;background:var(--crimson-soft);font-size:12px;font-weight:700;color:var(--crimson);border-right:1.5px solid var(--border);user-select:none">+998</span>
+              <input type="tel" oninput="fmtPhone(this)" id="lPhoneMother" placeholder="90 …" style="border:none;outline:none;flex:1;padding:9px 9px;font-size:13px;font-family:'Inter',sans-serif;background:white;min-width:0">
             </div>
           </div>
           <div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">👥 Other</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:3px;font-weight:600">👥 Other</div>
             <div style="display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden" onfocusin="this.style.borderColor='var(--crimson)'" onfocusout="this.style.borderColor='var(--border)'">
-              <span style="padding:9px 10px;background:var(--crimson-soft);font-size:13px;font-weight:700;color:var(--crimson);border-right:1.5px solid var(--border);white-space:nowrap;user-select:none">+998</span>
-              <input type="tel" oninput="fmtPhone(this)" id="lPhoneOther" placeholder="90 …" style="border:none;outline:none;flex:1;padding:9px 10px;font-size:13px;font-family:'Inter',sans-serif;background:white">
+              <span style="padding:9px 9px;background:var(--crimson-soft);font-size:12px;font-weight:700;color:var(--crimson);border-right:1.5px solid var(--border);user-select:none">+998</span>
+              <input type="tel" oninput="fmtPhone(this)" id="lPhoneOther" placeholder="90 …" style="border:none;outline:none;flex:1;padding:9px 9px;font-size:13px;font-family:'Inter',sans-serif;background:white;min-width:0">
             </div>
           </div>
         </div>
-        <div id="phoneError" style="color:var(--crimson);font-size:12px;margin-top:6px;display:none">⚠️ Please fill at least 2 phone numbers.</div>
+        <div id="phoneError" style="color:var(--crimson);font-size:12px;margin-top:6px;display:none">⚠️ At least 2 phone numbers required.</div>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -206,21 +388,21 @@
   </div>
 </div>
 
-<!-- TRIAL MODAL (assign to group) -->
+<!-- ═══ TRIAL MODAL ═══ -->
 <div class="modal-overlay" id="trialModal">
-  <div class="modal" style="width:440px">
+  <div class="modal" style="width:min(440px,94vw)">
     <div class="modal-header">
       <div class="modal-title">Send to Trial</div>
       <button class="modal-close" onclick="closeModal('trialModal')">✕</button>
     </div>
     <div class="modal-body">
-      <div id="trialLeadName" style="font-size:16px;font-weight:700;margin-bottom:16px;color:var(--text)"></div>
+      <div id="trialLeadName" style="font-size:16px;font-weight:700;margin-bottom:14px;color:var(--text)"></div>
       <div class="form-group">
         <label>Assign to Group *</label>
         <select id="trialGroupSelect"><option value="">— Select group —</option></select>
       </div>
       <div style="background:var(--crimson-soft);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--crimson-dark);line-height:1.6">
-        Student will be placed in the group for trial classes. An <strong>Activate</strong> button will appear after payment is confirmed.
+        Student will attend trial classes. An <strong>Activate</strong> button will appear once you confirm payment.
       </div>
     </div>
     <div class="modal-footer">
@@ -230,44 +412,49 @@
   </div>
 </div>
 
-<!-- ACTIVATE (payment) MODAL -->
+<!-- ═══ ACTIVATE MODAL ═══ -->
 <div class="modal-overlay" id="activateModal">
-  <div class="modal" style="width:440px">
+  <div class="modal" style="width:min(440px,94vw)">
     <div class="modal-header">
       <div class="modal-title">Activate Student</div>
       <button class="modal-close" onclick="closeModal('activateModal')">✕</button>
     </div>
     <div class="modal-body">
-      <div id="activateLeadName" style="font-size:16px;font-weight:700;margin-bottom:4px;color:var(--text)"></div>
-      <div id="activateGroupName" style="font-size:13px;color:var(--muted);margin-bottom:16px"></div>
-      <div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:8px;padding:14px;font-size:13px;color:#1B5E20;margin-bottom:16px;line-height:1.6">
-        ✅ Confirm that payment has been received. The student will be activated and moved to Converted.
+      <div id="activateLeadName" style="font-size:16px;font-weight:700;margin-bottom:2px;color:var(--text)"></div>
+      <div id="activateGroupName" style="font-size:13px;color:var(--muted);margin-bottom:14px"></div>
+      <div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:8px;padding:12px 14px;font-size:13px;color:#1B5E20;margin-bottom:14px;line-height:1.6">
+        ✅ Confirm payment received. The student will be activated and moved to Converted.
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Payment Amount (UZS)</label>
+          <label>Amount (UZS)</label>
           <input type="number" id="activateAmount" placeholder="0" min="0" step="1000">
         </div>
         <div class="form-group">
           <label>Payment Type</label>
-          <select id="activatePayType"><option value="Cash">💵 Cash</option><option value="Click">📱 Click</option></select>
+          <select id="activatePayType">
+            <option value="Cash">💵 Cash</option>
+            <option value="Click">📱 Click</option>
+            <option value="Payme">📱 Payme</option>
+            <option value="Bank transfer">🏦 Bank transfer</option>
+          </select>
         </div>
       </div>
       <div class="form-group">
-        <label>Notes</label>
+        <label>Notes (optional)</label>
         <input type="text" id="activateNotes" placeholder="Optional notes…">
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('activateModal')">Cancel</button>
-      <button class="btn-activate" style="padding:9px 18px;font-size:13px;border-radius:8px" onclick="confirmActivate()">✅ Confirm Payment & Activate</button>
+      <button class="btn-activate" style="padding:9px 16px;font-size:13px;border-radius:8px" onclick="confirmActivate()">✅ Confirm & Activate</button>
     </div>
   </div>
 </div>
 
-<!-- DETAIL MODAL -->
+<!-- ═══ DETAIL MODAL ═══ -->
 <div class="modal-overlay" id="detailModal">
-  <div class="modal" style="width:480px">
+  <div class="modal" style="width:min(480px,94vw)">
     <div class="modal-header">
       <div class="modal-title" id="detailName"></div>
       <button class="modal-close" onclick="closeModal('detailModal')">✕</button>
@@ -280,462 +467,469 @@
 <div class="toast-container" id="toastContainer"></div>
 <script src="shared.js"></script>
 <script>
-  function fmtPhone(input) {
-    let v = input.value.replace(/\D/g,'').slice(0,9), o='';
-    if(v.length>0) o+=v.slice(0,2);
-    if(v.length>2) o+=' '+v.slice(2,5);
-    if(v.length>5) o+=' '+v.slice(5,7);
-    if(v.length>7) o+=' '+v.slice(7,9);
-    input.value = o;
+/* ── Helpers ── */
+function fmtPhone(input) {
+  let v = input.value.replace(/\D/g,'').slice(0,9), o='';
+  if(v.length>0) o+=v.slice(0,2);
+  if(v.length>2) o+=' '+v.slice(2,5);
+  if(v.length>5) o+=' '+v.slice(5,7);
+  if(v.length>7) o+=' '+v.slice(7,9);
+  input.value = o;
+}
+
+requireAuth('leads');
+renderSidebar('leads');
+
+/* ── State ── */
+let leads = [], groups = [];
+let trialLeadId = null, activateLeadId = null;
+let editorColStatus = null; // which column's editor is open
+
+/* ── Columns ── */
+const COLUMNS = [
+  { status: 'Registration', label: 'Registration', color: '#1D4ED8' },
+  { status: 'Waitlist',     label: 'Waitlist',     color: '#7C3AED' },
+  { status: 'Trial',        label: 'Trial',        color: '#A05C00' },
+  { status: 'Student',      label: 'Converted',    color: '#1E6B45' },
+];
+
+/* ── LocalStorage containers ── */
+function getContainers(colStatus) {
+  try { return JSON.parse(localStorage.getItem('lc_cont_'+colStatus) || '[]'); }
+  catch { return []; }
+}
+function setContainers(colStatus, arr) {
+  localStorage.setItem('lc_cont_'+colStatus, JSON.stringify(arr));
+}
+
+/* ── Load ── */
+async function load() {
+  [leads, groups] = await Promise.all([apiGet('/api/leads'), apiGet('/api/groups')]);
+  const sel = document.getElementById('filterGroup');
+  sel.innerHTML = '<option value="">All Groups</option>' +
+    groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+  renderBoard();
+  if (editorColStatus) renderContainerEditor();
+}
+
+/* ── Board ── */
+function renderBoard() {
+  const q  = document.getElementById('searchInput').value.toLowerCase();
+  const fl = document.getElementById('filterLevel').value;
+  const fg = document.getElementById('filterGroup').value;
+
+  const filtered = leads.filter(l => {
+    const name = (l.firstName+' '+l.lastName).toLowerCase();
+    return (!q || name.includes(q) || (l.phoneStudent||'').includes(q))
+        && (!fl || l.currentLevel === fl)
+        && (!fg || l.groupId === fg);
+  });
+
+  document.getElementById('kanbanBoard').innerHTML =
+    COLUMNS.map(col => buildColumn(col, filtered)).join('');
+}
+
+function buildColumn(col, filtered) {
+  const colLeads = filtered.filter(l => l.status === col.status);
+  const total    = leads.filter(l => l.status === col.status).length;
+  const conts    = getContainers(col.status);
+  const isEditing = editorColStatus === col.status;
+
+  const usedIds   = new Set(conts.map(c => c.id));
+  const ungrouped = colLeads.filter(l => !l.subContainer || !usedIds.has(l.subContainer));
+
+  const ungroupedHtml = ungrouped.length
+    ? ungrouped.map(l => buildCard(l, col, conts)).join('')
+    : colLeads.length === 0
+      ? `<div class="kanban-empty">No leads</div>`
+      : '';
+
+  const contsHtml = conts.map(c => {
+    const cl = colLeads.filter(l => l.subContainer === c.id);
+    return `<div class="sub-container">
+      <div class="sub-container-header">
+        <span class="sub-container-name">${c.name}</span>
+        <span class="sub-container-count">(${cl.length})</span>
+        <button class="sub-toggle-btn" onclick="toggleSubCont('${col.status}','${c.id}')">${c.collapsed?'▸':'▾'}</button>
+      </div>
+      <div class="sub-container-body${c.collapsed?' collapsed':''}">
+        ${cl.length
+          ? cl.map(l => buildCard(l, col, conts)).join('')
+          : `<div style="padding:8px;text-align:center;font-size:12px;color:var(--muted)">Empty</div>`}
+      </div>
+    </div>`;
+  }).join('');
+
+  const addBtn = col.status === 'Registration'
+    ? `<button class="kanban-add-btn" onclick="openAdd()">➕ Register Lead</button>` : '';
+
+  return `<div class="kanban-col">
+    <div class="kanban-col-header">
+      <div>
+        <span class="kanban-col-title" style="color:${col.color}">${col.label}</span>
+        <span class="kanban-col-count">(${colLeads.length}/${total})</span>
+      </div>
+      <button class="kanban-col-menu-btn${isEditing?' active':''}"
+        onclick="toggleContainerEditor('${col.status}','${col.label}')"
+        title="Manage containers">☰</button>
+    </div>
+    ${addBtn}
+    <div class="kanban-cards">
+      ${ungroupedHtml}
+      ${contsHtml}
+    </div>
+  </div>`;
+}
+
+function buildCard(l, col, conts) {
+  const name  = l.firstName + ' ' + l.lastName;
+  const group = groups.find(g => g.id === l.groupId);
+  const phone = l.phoneStudent || l.phoneFather || '';
+
+  const moveHtml = conts.length
+    ? `<select style="font-size:11px;padding:2px 5px;border:1px solid var(--border);border-radius:5px;background:var(--surface);font-family:'Inter',sans-serif;color:var(--text);max-width:80px;"
+         onchange="moveToContainer(event,'${l.id}','${col.status}')" onclick="event.stopPropagation()">
+         <option value="">Move…</option>
+         <option value="__none__">No container</option>
+         ${conts.map(c => `<option value="${c.id}"${l.subContainer===c.id?' selected':''}>${c.name}</option>`).join('')}
+       </select>` : '';
+
+  let actionBtns = '';
+  if (col.status === 'Registration') {
+    actionBtns = `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();moveToWaitlist('${l.id}')">→ Waitlist</button>`;
+  } else if (col.status === 'Waitlist') {
+    actionBtns = `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openTrial('${l.id}')">→ Trial</button>`;
+  } else if (col.status === 'Trial') {
+    const grpLabel = group
+      ? `<span style="font-size:10px;color:#A05C00;font-weight:600;margin-right:2px">👥 ${group.name}</span>` : '';
+    actionBtns = `${grpLabel}<button class="btn-activate" onclick="event.stopPropagation();openActivate('${l.id}')">✅ Activate</button>`;
   }
 
-  requireAuth('leads');
-  renderSidebar('leads');
+  const groupBadge = col.status === 'Trial' && group
+    ? `<div class="lead-card-meta" style="color:#A05C00;font-weight:600;margin-top:2px">Group: ${group.name}${group.time?' · '+group.time:''}</div>` : '';
 
-  let leads = [], groups = [];
-  let trialLeadId = null, activateLeadId = null;
-  let activeSidebarCol = null; // which column's sidebar is open
+  return `<div class="lead-card">
+    <div class="lead-card-body" onclick="showDetail('${l.id}')">
+      <div class="lead-card-name">${name}</div>
+      <div class="lead-card-meta">${[l.currentLevel, phone].filter(Boolean).join(' · ')}</div>
+      ${groupBadge}
+    </div>
+    <div class="lead-card-actions">
+      ${actionBtns}
+      ${moveHtml}
+      <button class="btn btn-ghost btn-sm" style="margin-left:auto;padding:2px 6px" onclick="event.stopPropagation();editLead('${l.id}')">✏️</button>
+      <button class="btn btn-danger btn-sm" style="padding:2px 6px" onclick="event.stopPropagation();deleteLead('${l.id}')">🗑</button>
+    </div>
+  </div>`;
+}
 
-  // ── Columns ──
-  const COLUMNS = [
-    { status: 'Registration', label: 'REGISTRATION', color: '#1D4ED8' },
-    { status: 'Waitlist',     label: 'WAITLIST',     color: '#7C3AED' },
-    { status: 'Trial',        label: 'TRIAL',        color: '#A05C00' },
-    { status: 'Student',      label: 'CONVERTED',    color: '#1E6B45' },
+function toggleSubCont(colStatus, contId) {
+  const conts = getContainers(colStatus);
+  const c = conts.find(c => c.id === contId);
+  if (c) { c.collapsed = !c.collapsed; setContainers(colStatus, conts); renderBoard(); }
+}
+
+async function moveToContainer(event, leadId, colStatus) {
+  event.stopPropagation();
+  const val = event.target.value;
+  const l   = leads.find(l => l.id === leadId); if (!l) return;
+  l.subContainer = val === '__none__' || val === '' ? null : val;
+  try { await apiPut('/api/leads/'+leadId, { ...l }); renderBoard(); }
+  catch(e) { showToast('Error: '+e.message,'error'); }
+}
+
+/* ── Container Editor ── */
+function toggleContainerEditor(colStatus, colLabel) {
+  if (editorColStatus === colStatus) {
+    closeContainerEditor();
+  } else {
+    editorColStatus = colStatus;
+    document.getElementById('contPanelTitle').textContent = colLabel + ' — Containers';
+    document.getElementById('contPanelSubtitle').textContent = 'Organise leads into named groups';
+    document.getElementById('contOverlay').classList.remove('hidden');
+    document.getElementById('newContInput').value = '';
+    renderContainerEditor();
+    renderBoard(); // re-render to mark button active
+    setTimeout(() => document.getElementById('newContInput').focus(), 220);
+  }
+}
+
+function closeContainerEditor() {
+  editorColStatus = null;
+  document.getElementById('contOverlay').classList.add('hidden');
+  renderBoard();
+}
+
+function onOverlayClick(e) {
+  // Close if clicking the dark backdrop (not the panel)
+  if (e.target === document.getElementById('contOverlay')) closeContainerEditor();
+}
+
+function renderContainerEditor() {
+  const colStatus = editorColStatus;
+  const conts     = getContainers(colStatus);
+  const colLeads  = leads.filter(l => l.status === colStatus);
+  const body      = document.getElementById('contPanelBody');
+
+  if (!conts.length) {
+    body.innerHTML = `<div style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;line-height:1.8">
+      No containers yet.<br>Type a name below and press <strong>Add</strong>.
+    </div>`;
+    return;
+  }
+
+  body.innerHTML = conts.map(c => {
+    const count = colLeads.filter(l => l.subContainer === c.id).length;
+    return `<div class="cont-item" id="citem-${c.id}">
+      <span class="cont-item-name" id="cname-${c.id}">${c.name}</span>
+      <span class="cont-item-count">${count} lead${count!==1?'s':''}</span>
+      <button class="cont-item-btn" onclick="startRenameContainer('${colStatus}','${c.id}')" title="Rename">✏️</button>
+      <button class="cont-item-btn danger" onclick="deleteContainer('${colStatus}','${c.id}')" title="Delete">🗑</button>
+    </div>`;
+  }).join('');
+}
+
+function addContainer() {
+  const input = document.getElementById('newContInput');
+  const name  = input.value.trim();
+  if (!name) { input.focus(); return; }
+  const conts = getContainers(editorColStatus);
+  if (conts.find(c => c.name.toLowerCase() === name.toLowerCase())) {
+    showToast('Already exists.', 'error'); return;
+  }
+  conts.push({ id: genId(), name, collapsed: false });
+  setContainers(editorColStatus, conts);
+  input.value = '';
+  renderContainerEditor();
+  renderBoard();
+  showToast(`"${name}" added!`);
+  input.focus();
+}
+
+function startRenameContainer(colStatus, contId) {
+  const conts   = getContainers(colStatus);
+  const c       = conts.find(c => c.id === contId); if (!c) return;
+  const nameEl  = document.getElementById('cname-'+contId);
+  const input   = document.createElement('input');
+  input.className = 'cont-name-input';
+  input.value = c.name;
+  nameEl.replaceWith(input);
+  input.focus(); input.select();
+  const save = () => {
+    const val = input.value.trim();
+    if (val) { c.name = val; setContainers(colStatus, conts); }
+    renderContainerEditor();
+    renderBoard();
+  };
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') save();
+    if (e.key === 'Escape') { renderContainerEditor(); renderBoard(); }
+  });
+}
+
+function deleteContainer(colStatus, contId) {
+  if (!confirm('Delete this container? Leads will become ungrouped.')) return;
+  leads.filter(l => l.subContainer === contId).forEach(l => {
+    l.subContainer = null;
+    apiPut('/api/leads/'+l.id, { ...l }).catch(() => {});
+  });
+  const conts = getContainers(colStatus).filter(c => c.id !== contId);
+  setContainers(colStatus, conts);
+  renderContainerEditor();
+  renderBoard();
+  showToast('Container deleted.', 'error');
+}
+
+/* ── Lead CRUD ── */
+function openAdd() {
+  clearForm();
+  document.getElementById('leadModalTitle').textContent = 'Register Lead';
+  openModal('leadModal');
+}
+
+async function saveLead() {
+  const first = document.getElementById('lFirst').value.trim();
+  const last  = document.getElementById('lLast').value.trim();
+  if (!first || !last) { showToast('Name required.', 'error'); return; }
+  const phones = [
+    document.getElementById('lPhoneStudent').value.trim(),
+    document.getElementById('lPhoneFather').value.trim(),
+    document.getElementById('lPhoneMother').value.trim(),
+    document.getElementById('lPhoneOther').value.trim(),
   ];
-
-  // ── Sub-containers: stored in localStorage per column ──
-  function getContainers(colStatus) {
-    try { return JSON.parse(localStorage.getItem('lc_containers_'+colStatus) || '[]'); }
-    catch { return []; }
+  if (phones.filter(Boolean).length < 2) {
+    document.getElementById('phoneError').style.display = '';
+    showToast('At least 2 phone numbers required.', 'error'); return;
   }
-  function setContainers(colStatus, arr) {
-    localStorage.setItem('lc_containers_'+colStatus, JSON.stringify(arr));
-  }
-
-  // ── Load ──
-  async function load() {
-    [leads, groups] = await Promise.all([apiGet('/api/leads'), apiGet('/api/groups')]);
-    const sel = document.getElementById('filterGroup');
-    sel.innerHTML = '<option value="">All Groups</option>' +
-      groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
-    renderBoard();
-    if (activeSidebarCol) renderSidebar_col(activeSidebarCol);
-  }
-
-  // ── Board ──
-  function renderBoard() {
-    const q  = document.getElementById('searchInput').value.toLowerCase();
-    const fl = document.getElementById('filterLevel').value;
-    const fg = document.getElementById('filterGroup').value;
-
-    const filtered = leads.filter(l => {
-      const name = (l.firstName+' '+l.lastName).toLowerCase();
-      return (!q || name.includes(q) || (l.phoneStudent||'').includes(q))
-          && (!fl || l.currentLevel === fl)
-          && (!fg || l.groupId === fg);
-    });
-
-    document.getElementById('kanbanBoard').innerHTML =
-      COLUMNS.map(col => buildColumn(col, filtered)).join('');
-  }
-
-  function buildColumn(col, filtered) {
-    const colLeads = filtered.filter(l => l.status === col.status);
-    const total    = leads.filter(l => l.status === col.status).length;
-    const conts    = getContainers(col.status);
-    const isActive = activeSidebarCol === col.status;
-
-    // Ungrouped
-    const usedIds   = new Set(conts.map(c => c.id));
-    const ungrouped = colLeads.filter(l => !l.subContainer || !usedIds.has(l.subContainer));
-
-    const ungroupedHtml = ungrouped.length
-      ? ungrouped.map(l => buildCard(l, col, conts)).join('')
-      : colLeads.length === 0 ? `<div class="kanban-empty">No leads</div>` : '';
-
-    const contsHtml = conts.map(c => {
-      const cl = colLeads.filter(l => l.subContainer === c.id);
-      const bodyClass = c.collapsed ? 'collapsed' : '';
-      return `<div class="sub-container">
-        <div class="sub-container-header">
-          <span class="sub-container-name">${c.name}</span>
-          <span class="sub-container-count">(${cl.length})</span>
-          <button class="sub-toggle-btn" onclick="toggleContainer('${col.status}','${c.id}')">${c.collapsed ? '▸' : '▾'}</button>
-        </div>
-        <div class="sub-container-body ${bodyClass}">
-          ${cl.length ? cl.map(l => buildCard(l, col, conts)).join('') : `<div style="padding:8px;text-align:center;font-size:12px;color:var(--muted)">Empty</div>`}
-        </div>
-      </div>`;
-    }).join('');
-
-    const addBtn = col.status === 'Registration'
-      ? `<button class="kanban-add-btn" onclick="openAdd()">➕ Register Lead</button>` : '';
-
-    return `<div class="kanban-col">
-      <div class="kanban-col-header">
-        <div>
-          <span class="kanban-col-title" style="color:${col.color}">${col.label}</span>
-          <span class="kanban-col-count">(${colLeads.length} / ${total})</span>
-        </div>
-        <button class="kanban-col-menu-btn ${isActive?'active':''}" onclick="toggleSidebar('${col.status}','${col.label}')" title="Manage containers">☰</button>
-      </div>
-      ${addBtn}
-      <div class="kanban-cards">
-        ${ungroupedHtml}
-        ${contsHtml}
-      </div>
-    </div>`;
-  }
-
-  function buildCard(l, col, conts) {
-    const name  = l.firstName + ' ' + l.lastName;
-    const group = groups.find(g => g.id === l.groupId);
-    const phone = l.phoneStudent || l.phoneFather || '';
-
-    // Move to container dropdown
-    const moveHtml = conts.length
-      ? `<select style="font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:5px;background:var(--surface);font-family:'Inter',sans-serif;color:var(--text);max-width:85px;"
-           onchange="moveToContainer(event,'${l.id}','${col.status}')" onclick="event.stopPropagation()">
-           <option value="">Move…</option>
-           <option value="__none__">No container</option>
-           ${conts.map(c => `<option value="${c.id}" ${l.subContainer===c.id?'selected':''}>${c.name}</option>`).join('')}
-         </select>` : '';
-
-    // Action buttons — strict step by step
-    let actionBtns = '';
-    if (col.status === 'Registration') {
-      actionBtns = `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();moveToWaitlist('${l.id}')">→ Waitlist</button>`;
-    } else if (col.status === 'Waitlist') {
-      actionBtns = `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openTrial('${l.id}')">→ Trial</button>`;
-    } else if (col.status === 'Trial') {
-      // Show group info + Activate button
-      const grpLabel = group ? `<span style="font-size:11px;color:var(--amber);font-weight:600">👥 ${group.name}</span>` : '';
-      actionBtns = `${grpLabel}<button class="btn-activate" onclick="event.stopPropagation();openActivate('${l.id}')">✅ Activate</button>`;
-    }
-
-    // Group badge for Trial
-    const groupBadge = col.status === 'Trial' && group
-      ? `<div class="lead-card-meta" style="margin-top:3px;color:var(--amber);font-weight:600">Group: ${group.name}${group.time?' · '+group.time:''}</div>` : '';
-
-    return `<div class="lead-card">
-      <div class="lead-card-body" onclick="showDetail('${l.id}')">
-        <div class="lead-card-name">${name}</div>
-        <div class="lead-card-meta">${[l.currentLevel, phone].filter(Boolean).join(' · ')}</div>
-        ${groupBadge}
-      </div>
-      <div class="lead-card-actions">
-        ${actionBtns}
-        ${moveHtml}
-        <button class="btn btn-ghost btn-sm" style="margin-left:auto;padding:3px 7px" onclick="event.stopPropagation();editLead('${l.id}')">✏️</button>
-        <button class="btn btn-danger btn-sm" style="padding:3px 7px" onclick="event.stopPropagation();deleteLead('${l.id}')">🗑</button>
-      </div>
-    </div>`;
-  }
-
-  // ── Container move ──
-  async function moveToContainer(event, leadId, colStatus) {
-    event.stopPropagation();
-    const val = event.target.value;
-    const l   = leads.find(l => l.id === leadId); if (!l) return;
-    l.subContainer = val === '__none__' ? null : val || null;
-    try {
-      await apiPut('/api/leads/'+leadId, { ...l });
-      renderBoard();
-    } catch(e) { showToast('Error: '+e.message,'error'); }
-  }
-
-  function toggleContainer(colStatus, contId) {
-    const conts = getContainers(colStatus);
-    const c     = conts.find(c => c.id === contId);
-    if (c) { c.collapsed = !c.collapsed; setContainers(colStatus, conts); renderBoard(); }
-  }
-
-  // ── Sidebar ──
-  function toggleSidebar(colStatus, colLabel) {
-    if (activeSidebarCol === colStatus) {
-      closeSidebar();
+  document.getElementById('phoneError').style.display = 'none';
+  const id       = document.getElementById('editLeadId').value;
+  const existing = id ? leads.find(l => l.id === id) : null;
+  const data = {
+    firstName: first, lastName: last,
+    phoneStudent: phones[0]||null, phoneFather: phones[1]||null,
+    phoneMother: phones[2]||null, phoneOther: phones[3]||null,
+    currentLevel: document.getElementById('lLevel').value,
+    testResult: document.getElementById('lTest').value.trim(),
+    notes: document.getElementById('lNotes').value.trim(),
+    status: existing?.status || 'Registration',
+    subContainer: existing?.subContainer || null,
+  };
+  try {
+    if (id) {
+      await apiPut('/api/leads/'+id, data);
+      logActivity(`Updated lead: ${first} ${last}`, '');
     } else {
-      activeSidebarCol = colStatus;
-      document.getElementById('sidebarColTitle').textContent = colLabel + ' — Containers';
-      document.getElementById('colSidebar').classList.remove('hidden');
-      document.getElementById('newContainerInput').value = '';
-      renderSidebar_col(colStatus);
-      renderBoard();
+      data.id = genId();
+      await apiPost('/api/leads', data);
+      logActivity(`Registered lead: ${first} ${last}`, 'green');
     }
-  }
-
-  function closeSidebar() {
-    activeSidebarCol = null;
-    document.getElementById('colSidebar').classList.add('hidden');
-    renderBoard();
-  }
-
-  function renderSidebar_col(colStatus) {
-    const conts    = getContainers(colStatus);
-    const colLeads = leads.filter(l => l.status === colStatus);
-    const body     = document.getElementById('sidebarBody');
-
-    if (!conts.length) {
-      body.innerHTML = `<div style="text-align:center;padding:24px 12px;color:var(--muted);font-size:13px">No containers yet.<br>Add one below.</div>`;
-      return;
-    }
-
-    body.innerHTML = conts.map(c => {
-      const count = colLeads.filter(l => l.subContainer === c.id).length;
-      return `<div class="sidebar-container-item" id="sc-${c.id}">
-        <span class="sidebar-container-name" id="scname-${c.id}">${c.name}</span>
-        <span class="sidebar-container-count">${count}</span>
-        <button class="sidebar-item-btn" onclick="startRename('${colStatus}','${c.id}')" title="Rename">✏️</button>
-        <button class="sidebar-item-btn danger" onclick="deleteContainer('${colStatus}','${c.id}')" title="Delete">🗑</button>
-      </div>`;
-    }).join('');
-  }
-
-  function addContainer() {
-    const input = document.getElementById('newContainerInput');
-    const name  = input.value.trim();
-    if (!name) { input.focus(); return; }
-    const conts = getContainers(activeSidebarCol);
-    if (conts.find(c => c.name.toLowerCase() === name.toLowerCase())) {
-      showToast('Container already exists.', 'error'); return;
-    }
-    conts.push({ id: genId(), name, collapsed: false });
-    setContainers(activeSidebarCol, conts);
-    input.value = '';
-    renderSidebar_col(activeSidebarCol);
-    renderBoard();
-    showToast(`"${name}" added!`);
-  }
-
-  function startRename(colStatus, contId) {
-    const conts = getContainers(colStatus);
-    const c     = conts.find(c => c.id === contId); if (!c) return;
-    const item  = document.getElementById('sc-'+contId);
-    const nameEl = document.getElementById('scname-'+contId);
-    const input  = document.createElement('input');
-    input.className = 'sidebar-name-input';
-    input.value = c.name;
-    nameEl.replaceWith(input);
-    input.focus();
-    input.select();
-    const save = () => {
-      const val = input.value.trim();
-      if (val) { c.name = val; setContainers(colStatus, conts); }
-      renderSidebar_col(colStatus);
-      renderBoard();
-    };
-    input.addEventListener('blur', save);
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') { renderSidebar_col(colStatus); renderBoard(); } });
-  }
-
-  function deleteContainer(colStatus, contId) {
-    if (!confirm('Delete this container? Leads will become ungrouped.')) return;
-    // Ungroup leads
-    leads.filter(l => l.subContainer === contId).forEach(l => {
-      l.subContainer = null;
-      apiPut('/api/leads/'+l.id, { ...l }).catch(() => {});
-    });
-    const conts = getContainers(colStatus).filter(c => c.id !== contId);
-    setContainers(colStatus, conts);
-    renderSidebar_col(colStatus);
-    renderBoard();
-    showToast('Container deleted.', 'error');
-  }
-
-  // ── Lead CRUD ──
-  function openAdd() {
-    clearForm();
-    document.getElementById('leadModalTitle').textContent = 'Register Lead';
-    openModal('leadModal');
-  }
-
-  async function saveLead() {
-    const first = document.getElementById('lFirst').value.trim();
-    const last  = document.getElementById('lLast').value.trim();
-    if (!first || !last) { showToast('Name required.', 'error'); return; }
-    const phones = [
-      document.getElementById('lPhoneStudent').value.trim(),
-      document.getElementById('lPhoneFather').value.trim(),
-      document.getElementById('lPhoneMother').value.trim(),
-      document.getElementById('lPhoneOther').value.trim(),
-    ];
-    if (phones.filter(Boolean).length < 2) {
-      document.getElementById('phoneError').style.display = '';
-      showToast('At least 2 phone numbers required.', 'error'); return;
-    }
-    document.getElementById('phoneError').style.display = 'none';
-    const id  = document.getElementById('editLeadId').value;
-    const existing = id ? leads.find(l => l.id === id) : null;
-    const data = {
-      firstName: first, lastName: last,
-      phoneStudent: phones[0]||null, phoneFather: phones[1]||null,
-      phoneMother: phones[2]||null, phoneOther: phones[3]||null,
-      currentLevel: document.getElementById('lLevel').value,
-      testResult: document.getElementById('lTest').value.trim(),
-      notes: document.getElementById('lNotes').value.trim(),
-      status: existing?.status || 'Registration',
-      subContainer: existing?.subContainer || null,
-    };
-    try {
-      if (id) {
-        await apiPut('/api/leads/'+id, data);
-        logActivity(`Updated lead: ${first} ${last}`, '');
-      } else {
-        data.id = genId();
-        await apiPost('/api/leads', data);
-        logActivity(`Registered lead: ${first} ${last}`, 'green');
-      }
-      closeModal('leadModal');
-      await load();
-      showToast(id ? 'Lead updated!' : 'Lead registered!');
-    } catch(e) { showToast('Error: '+e.message, 'error'); }
-  }
-
-  // Registration → Waitlist
-  async function moveToWaitlist(id) {
-    const l = leads.find(l => l.id === id); if (!l) return;
-    try {
-      await apiPut('/api/leads/'+id, { ...l, status: 'Waitlist', subContainer: null });
-      await load();
-      showToast('Moved to Waitlist!');
-    } catch(e) { showToast('Error: '+e.message, 'error'); }
-  }
-
-  // Waitlist → Trial (assign group)
-  function openTrial(id) {
-    trialLeadId = id;
-    const l = leads.find(l => l.id === id);
-    document.getElementById('trialLeadName').textContent = l ? l.firstName+' '+l.lastName : '';
-    const sel = document.getElementById('trialGroupSelect');
-    sel.innerHTML = '<option value="">— Select group —</option>' +
-      groups.map(g => `<option value="${g.id}">${g.name}${g.level?' · '+g.level:''} · ${g.time||'—'} · ${g.room||'—'}</option>`).join('');
-    openModal('trialModal');
-  }
-
-  async function confirmTrial() {
-    const groupId = document.getElementById('trialGroupSelect').value;
-    if (!groupId) { showToast('Select a group.', 'error'); return; }
-    try {
-      await apiPost('/api/leads/'+trialLeadId+'/to-trial', { groupId });
-      logActivity('Sent lead to trial', 'green');
-      closeModal('trialModal');
-      await load();
-      showToast('Student sent to trial!');
-    } catch(e) { showToast('Error: '+e.message, 'error'); }
-  }
-
-  // Trial → Activate (payment confirmation)
-  function openActivate(id) {
-    activateLeadId = id;
-    const l     = leads.find(l => l.id === id);
-    const group = groups.find(g => g.id === l?.groupId);
-    document.getElementById('activateLeadName').textContent = l ? l.firstName+' '+l.lastName : '';
-    document.getElementById('activateGroupName').textContent = group ? `Group: ${group.name}` : '';
-    document.getElementById('activateAmount').value = group?.price || '';
-    document.getElementById('activateNotes').value = '';
-    openModal('activateModal');
-  }
-
-  async function confirmActivate() {
-    const l      = leads.find(l => l.id === activateLeadId);
-    const amount = document.getElementById('activateAmount').value;
-    const payType = document.getElementById('activatePayType').value;
-    const notes  = document.getElementById('activateNotes').value.trim();
-    if (!amount) { showToast('Enter payment amount.', 'error'); return; }
-    try {
-      // 1. Create invoice
-      const group = groups.find(g => g.id === l?.groupId);
-      const now   = new Date();
-      const month = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-      await apiPost('/api/invoices', {
-        id: genId(),
-        number: 'INV-'+Date.now().toString().slice(-6),
-        studentId: l.id,
-        groupId: l.groupId || null,
-        level: group?.level || l.currentLevel || null,
-        month,
-        total: Number(amount),
-        status: 'Paid',
-        paymentType: payType,
-        dueDate: null,
-        notes: notes || `Activation payment for ${l.firstName} ${l.lastName}`,
-        desc: `Activation — ${month}`,
-      });
-      // 2. Convert lead to active student
-      await apiPost('/api/leads/'+activateLeadId+'/convert', {});
-      logActivity(`Activated student: ${l.firstName} ${l.lastName}`, 'green');
-      closeModal('activateModal');
-      await load();
-      showToast('Student activated and converted! ✅');
-    } catch(e) { showToast('Error: '+e.message, 'error'); }
-  }
-
-  async function deleteLead(id) {
-    const l = leads.find(l => l.id === id);
-    if (!confirm(`Delete ${l?.firstName} ${l?.lastName}?`)) return;
-    await apiDelete('/api/leads/'+id);
-    logActivity(`Deleted lead: ${l?.firstName} ${l?.lastName}`, 'red');
+    closeModal('leadModal');
     await load();
-    showToast('Deleted.', 'error');
-  }
+    showToast(id ? 'Lead updated!' : 'Lead registered!');
+  } catch(e) { showToast('Error: '+e.message, 'error'); }
+}
 
-  function showDetail(id) {
-    const l = leads.find(l => l.id === id); if (!l) return;
-    const name  = l.firstName+' '+l.lastName;
-    const group = groups.find(g => g.id === l.groupId);
-    document.getElementById('detailName').textContent = name;
-    document.getElementById('detailBody').innerHTML = `
-      <div class="grid-2">
-        <div class="form-group"><label>Status</label><div style="font-weight:600">${l.status}</div></div>
-        <div class="form-group"><label>Level</label><div style="font-weight:600">${l.currentLevel||'—'}</div></div>
-        <div class="form-group"><label>Test Result</label><div style="font-weight:600">${l.testResult||'—'}</div></div>
-        <div class="form-group"><label>Group</label><div style="font-weight:600">${group?.name||'—'}</div></div>
-        <div class="form-group"><label>Registered</label><div style="font-weight:600">${formatDate(l.createdAt)}</div></div>
+/* Registration → Waitlist */
+async function moveToWaitlist(id) {
+  const l = leads.find(l => l.id === id); if (!l) return;
+  try {
+    await apiPut('/api/leads/'+id, { ...l, status: 'Waitlist', subContainer: null });
+    await load(); showToast('Moved to Waitlist!');
+  } catch(e) { showToast('Error: '+e.message, 'error'); }
+}
+
+/* Waitlist → Trial */
+function openTrial(id) {
+  trialLeadId = id;
+  const l = leads.find(l => l.id === id);
+  document.getElementById('trialLeadName').textContent = l ? l.firstName+' '+l.lastName : '';
+  const sel = document.getElementById('trialGroupSelect');
+  sel.innerHTML = '<option value="">— Select group —</option>' +
+    groups.map(g => `<option value="${g.id}">${g.name}${g.level?' · '+g.level:''} · ${g.time||'—'} · ${g.room||'—'}</option>`).join('');
+  openModal('trialModal');
+}
+
+async function confirmTrial() {
+  const groupId = document.getElementById('trialGroupSelect').value;
+  if (!groupId) { showToast('Select a group.', 'error'); return; }
+  try {
+    await apiPost('/api/leads/'+trialLeadId+'/to-trial', { groupId });
+    logActivity('Sent lead to trial', 'green');
+    closeModal('trialModal');
+    await load();
+    showToast('Student sent to trial!');
+  } catch(e) { showToast('Error: '+e.message, 'error'); }
+}
+
+/* Trial → Activate */
+function openActivate(id) {
+  activateLeadId = id;
+  const l     = leads.find(l => l.id === id);
+  const group = groups.find(g => g.id === l?.groupId);
+  document.getElementById('activateLeadName').textContent  = l ? l.firstName+' '+l.lastName : '';
+  document.getElementById('activateGroupName').textContent = group ? 'Group: '+group.name : '';
+  document.getElementById('activateAmount').value  = group?.price || '';
+  document.getElementById('activateNotes').value   = '';
+  openModal('activateModal');
+}
+
+async function confirmActivate() {
+  const l       = leads.find(l => l.id === activateLeadId);
+  const amount  = document.getElementById('activateAmount').value;
+  const payType = document.getElementById('activatePayType').value;
+  const notes   = document.getElementById('activateNotes').value.trim();
+  if (!amount) { showToast('Enter payment amount.', 'error'); return; }
+  try {
+    const group = groups.find(g => g.id === l?.groupId);
+    const now   = new Date();
+    const month = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    await apiPost('/api/invoices', {
+      id: genId(),
+      number: 'INV-'+Date.now().toString().slice(-6),
+      studentId: l.id,
+      groupId: l.groupId || null,
+      level: group?.level || l.currentLevel || null,
+      month,
+      total: Number(amount),
+      status: 'Paid',
+      paymentType: payType,
+      dueDate: null,
+      notes: notes || `Activation — ${l.firstName} ${l.lastName}`,
+      desc: `Activation — ${month}`,
+    });
+    await apiPost('/api/leads/'+activateLeadId+'/convert', {});
+    logActivity(`Activated: ${l.firstName} ${l.lastName}`, 'green');
+    closeModal('activateModal');
+    await load();
+    showToast('Student activated! ✅');
+  } catch(e) { showToast('Error: '+e.message, 'error'); }
+}
+
+async function deleteLead(id) {
+  const l = leads.find(l => l.id === id);
+  if (!confirm(`Delete ${l?.firstName} ${l?.lastName}?`)) return;
+  await apiDelete('/api/leads/'+id);
+  logActivity(`Deleted lead: ${l?.firstName} ${l?.lastName}`, 'red');
+  await load();
+  showToast('Deleted.', 'error');
+}
+
+function showDetail(id) {
+  const l = leads.find(l => l.id === id); if (!l) return;
+  const group = groups.find(g => g.id === l.groupId);
+  document.getElementById('detailName').textContent = l.firstName+' '+l.lastName;
+  document.getElementById('detailBody').innerHTML = `
+    <div class="grid-2">
+      <div class="form-group"><label>Status</label><div style="font-weight:600">${l.status}</div></div>
+      <div class="form-group"><label>Level</label><div style="font-weight:600">${l.currentLevel||'—'}</div></div>
+      <div class="form-group"><label>Test Result</label><div style="font-weight:600">${l.testResult||'—'}</div></div>
+      <div class="form-group"><label>Group</label><div style="font-weight:600">${group?.name||'—'}</div></div>
+      <div class="form-group"><label>Registered</label><div style="font-weight:600">${formatDate(l.createdAt)}</div></div>
+    </div>
+    <div class="form-group"><label>Phones</label>
+      <div style="display:flex;flex-direction:column;gap:5px;margin-top:4px">
+        ${l.phoneStudent?`<div>👤 Student: <strong>${l.phoneStudent}</strong></div>`:''}
+        ${l.phoneFather ?`<div>👨 Father: <strong>${l.phoneFather}</strong></div>`:''}
+        ${l.phoneMother ?`<div>👩 Mother: <strong>${l.phoneMother}</strong></div>`:''}
+        ${l.phoneOther  ?`<div>👥 Other: <strong>${l.phoneOther}</strong></div>`:''}
       </div>
-      <div class="form-group"><label>Phones</label>
-        <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
-          ${l.phoneStudent?`<div>👤 Student: <strong>${l.phoneStudent}</strong></div>`:''}
-          ${l.phoneFather ?`<div>👨 Father: <strong>${l.phoneFather}</strong></div>`:''}
-          ${l.phoneMother ?`<div>👩 Mother: <strong>${l.phoneMother}</strong></div>`:''}
-          ${l.phoneOther  ?`<div>👥 Other: <strong>${l.phoneOther}</strong></div>`:''}
-        </div>
-      </div>
-      ${l.notes?`<div class="form-group"><label>Notes</label><div style="background:var(--crimson-soft);padding:12px;border-radius:8px;font-size:14px">${l.notes}</div></div>`:''}
-    `;
-    document.getElementById('detailFooter').innerHTML = `
-      <button class="btn btn-ghost" onclick="editLead('${id}')">✏️ Edit</button>
-      ${l.status==='Trial'?`<button class="btn-activate" style="padding:8px 14px;border-radius:8px;font-size:13px" onclick="closeModal('detailModal');openActivate('${id}')">✅ Activate</button>`:''}
-      <button class="btn btn-outline" onclick="closeModal('detailModal')">Close</button>
-    `;
-    openModal('detailModal');
-  }
+    </div>
+    ${l.notes?`<div class="form-group"><label>Notes</label><div style="background:var(--crimson-soft);padding:12px;border-radius:8px;font-size:14px">${l.notes}</div></div>`:''}
+  `;
+  document.getElementById('detailFooter').innerHTML = `
+    <button class="btn btn-ghost" onclick="editLead('${id}')">✏️ Edit</button>
+    ${l.status==='Trial'?`<button class="btn-activate" style="padding:8px 14px;border-radius:8px;font-size:13px" onclick="closeModal('detailModal');openActivate('${id}')">✅ Activate</button>`:''}
+    <button class="btn btn-outline" onclick="closeModal('detailModal')">Close</button>
+  `;
+  openModal('detailModal');
+}
 
-  function editLead(id) {
-    const l = leads.find(l => l.id === id); if (!l) return;
-    clearForm();
-    document.getElementById('editLeadId').value    = id;
-    document.getElementById('lFirst').value        = l.firstName;
-    document.getElementById('lLast').value         = l.lastName;
-    document.getElementById('lPhoneStudent').value = l.phoneStudent||'';
-    document.getElementById('lPhoneFather').value  = l.phoneFather||'';
-    document.getElementById('lPhoneMother').value  = l.phoneMother||'';
-    document.getElementById('lPhoneOther').value   = l.phoneOther||'';
-    document.getElementById('lLevel').value        = l.currentLevel||'';
-    document.getElementById('lTest').value         = l.testResult||'';
-    document.getElementById('lNotes').value        = l.notes||'';
-    document.getElementById('leadModalTitle').textContent = 'Edit Lead';
-    closeModal('detailModal');
-    openModal('leadModal');
-  }
+function editLead(id) {
+  const l = leads.find(l => l.id === id); if (!l) return;
+  clearForm();
+  document.getElementById('editLeadId').value    = id;
+  document.getElementById('lFirst').value        = l.firstName;
+  document.getElementById('lLast').value         = l.lastName;
+  document.getElementById('lPhoneStudent').value = l.phoneStudent||'';
+  document.getElementById('lPhoneFather').value  = l.phoneFather||'';
+  document.getElementById('lPhoneMother').value  = l.phoneMother||'';
+  document.getElementById('lPhoneOther').value   = l.phoneOther||'';
+  document.getElementById('lLevel').value        = l.currentLevel||'';
+  document.getElementById('lTest').value         = l.testResult||'';
+  document.getElementById('lNotes').value        = l.notes||'';
+  document.getElementById('leadModalTitle').textContent = 'Edit Lead';
+  closeModal('detailModal');
+  openModal('leadModal');
+}
 
-  function clearForm() {
-    ['editLeadId','lFirst','lLast','lPhoneStudent','lPhoneFather','lPhoneMother','lPhoneOther','lLevel','lTest','lNotes']
-      .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-    document.getElementById('phoneError').style.display = 'none';
-  }
+function clearForm() {
+  ['editLeadId','lFirst','lLast','lPhoneStudent','lPhoneFather','lPhoneMother','lPhoneOther','lLevel','lTest','lNotes']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('phoneError').style.display = 'none';
+}
 
-  load();
+load();
 </script>
 </body>
 </html>
