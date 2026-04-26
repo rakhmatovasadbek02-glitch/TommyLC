@@ -9,21 +9,30 @@
 
     /* LEFT PANEL */
     .left-panel { background: white; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; position: sticky; top: 84px; }
+
     .group-info-block { padding: 20px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; align-items: flex-start; }
     .group-info-text { flex: 1; }
     .gi-row { font-size: 13px; color: var(--text); margin-bottom: 5px; display: flex; gap: 6px; }
     .gi-label { color: var(--muted); font-size: 12px; min-width: 64px; flex-shrink: 0; }
     .gi-val { font-weight: 600; }
-    .info-actions { display: flex; flex-direction: column; gap: 6px; }
-    .icon-btn { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--border); background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px; transition: all 0.15s; flex-shrink: 0; }
-    .icon-btn:hover { border-color: var(--crimson); background: var(--crimson-soft); }
-    .icon-btn.green { border-color: #1E6B45; color: #1E6B45; }
-    .icon-btn.red   { border-color: var(--crimson); color: var(--crimson); }
+
+    /* Unit badge top-right */
+    .unit-badge {
+      background: var(--crimson); color: white;
+      border-radius: 10px; padding: 8px 14px;
+      font-family: 'Playfair Display', serif;
+      font-size: 22px; font-weight: 900;
+      text-align: center; cursor: pointer;
+      transition: background 0.15s; flex-shrink: 0;
+      min-width: 56px;
+    }
+    .unit-badge:hover { background: var(--crimson-dark); }
+    .unit-badge-label { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.7); display: block; margin-bottom: 2px; }
 
     .sort-bar { padding: 10px 16px; border-bottom: 1px solid var(--border); }
     .sort-bar select { width: 100%; padding: 7px 10px; font-size: 13px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'DM Sans', sans-serif; color: var(--text); background: white; outline: none; }
 
-    .student-list { max-height: 420px; overflow-y: auto; }
+    .student-list { max-height: 380px; overflow-y: auto; }
     .student-list-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 13px; transition: background 0.1s; }
     .student-list-item:last-child { border-bottom: none; }
     .student-list-item:hover { background: var(--crimson-soft); }
@@ -32,14 +41,31 @@
     .student-list-name { flex: 1; font-weight: 500; }
     .student-phone { font-size: 11px; color: var(--muted); }
 
-    .archive-btn { margin: 12px 16px; width: calc(100% - 32px); padding: 8px; background: var(--crimson); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background 0.15s; }
+    .archive-btn { margin: 12px 16px 0; width: calc(100% - 32px); padding: 8px; background: var(--crimson); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background 0.15s; }
     .archive-btn:hover { background: var(--crimson-dark); }
-    .download-btn-wrap { display: flex; justify-content: center; padding: 8px 16px 16px; }
+
+    /* Bottom action bar — horizontal */
+    .left-action-bar {
+      display: flex; gap: 8px; padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      justify-content: center;
+    }
+    .icon-btn {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 1.5px solid var(--border); background: white;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 16px; transition: all 0.15s; flex-shrink: 0;
+    }
+    .icon-btn:hover { border-color: var(--crimson); background: var(--crimson-soft); }
+    .icon-btn.green { border-color: #1E6B45; color: #1E6B45; }
+    .icon-btn.green:hover { background: #E8F5E9; border-color: #1E6B45; }
+    .icon-btn.red   { border-color: var(--crimson); color: var(--crimson); }
+    .icon-btn.red:hover { background: var(--crimson); color: white; }
 
     /* RIGHT PANEL */
     .right-panel { background: white; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
 
-    .tab-nav { display: flex; border-bottom: 2px solid var(--border); padding: 0 20px; gap: 0; overflow-x: auto; }
+    .tab-nav { display: flex; border-bottom: 2px solid var(--border); padding: 0 20px; overflow-x: auto; }
     .tab-nav-btn { padding: 14px 16px; font-size: 13px; font-weight: 600; color: var(--muted); background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; white-space: nowrap; }
     .tab-nav-btn:hover { color: var(--text); }
     .tab-nav-btn.active { color: var(--crimson); border-bottom-color: var(--crimson); }
@@ -66,9 +92,9 @@
     .att-table tr:last-child td { border-bottom: none; }
 
     .att-name-cell { display: flex; align-items: center; gap: 10px; }
-    .att-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--muted); flex-shrink: 0; }
+    .att-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: white; flex-shrink: 0; }
 
-    .chip { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 26px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s; border: none; }
+    .chip { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 26px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; border: none; }
     .chip-present { background: #1E6B45; color: white; }
     .chip-absent  { background: var(--crimson); color: white; }
     .chip-empty   { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--border); background: white; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s; }
@@ -83,10 +109,15 @@
     .note-send-btn:hover { background: var(--crimson); color: white; }
     .page-content { padding-bottom: 70px; }
 
-    /* Add student modal search */
     .student-search-result { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; border-radius: 8px; transition: background 0.1s; font-size: 13px; }
     .student-search-result:hover { background: var(--crimson-soft); }
     .student-search-result.already { opacity: 0.4; cursor: default; }
+
+    /* Unit select modal */
+    .unit-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 8px; }
+    .unit-opt { padding: 10px; text-align: center; border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; transition: all 0.15s; }
+    .unit-opt:hover { border-color: var(--crimson); background: var(--crimson-soft); color: var(--crimson); }
+    .unit-opt.active { background: var(--crimson); color: white; border-color: var(--crimson); }
   </style>
 </head>
 <body>
@@ -106,15 +137,17 @@
       <!-- LEFT PANEL -->
       <div>
         <div class="left-panel">
+
+          <!-- Info block: text left, unit badge right -->
           <div class="group-info-block">
             <div class="group-info-text" id="groupInfoText"></div>
-            <div class="info-actions">
-              <button class="icon-btn" title="Edit group" onclick="goEdit()">✏️</button>
-              <button class="icon-btn red" title="Delete group" onclick="doDeleteGroup()">🗑</button>
-              <button class="icon-btn green" title="Add student" onclick="openAddStudent()">➕</button>
+            <div class="unit-badge" onclick="openUnitModal()" title="Change current unit">
+              <span class="unit-badge-label">Unit</span>
+              <span id="unitBadgeVal">1A</span>
             </div>
           </div>
 
+          <!-- Sort -->
           <div class="sort-bar">
             <select id="sortSelect" onchange="renderStudentList();renderAttendance()">
               <option value="az">A → Z</option>
@@ -122,10 +155,18 @@
             </select>
           </div>
 
+          <!-- Student list -->
           <div class="student-list" id="studentList"></div>
+
+          <!-- Archive -->
           <button class="archive-btn">Show archived students</button>
-          <div class="download-btn-wrap">
-            <button class="icon-btn" title="Download" style="border-color:#1E6B45;color:#1E6B45">⬇</button>
+
+          <!-- Bottom action bar: horizontal buttons -->
+          <div class="left-action-bar">
+            <button class="icon-btn" title="Edit group" onclick="goEdit()">✏️</button>
+            <button class="icon-btn red" title="Delete group" onclick="doDeleteGroup()">🗑</button>
+            <button class="icon-btn green" title="Add student" onclick="openAddStudent()">➕</button>
+            <button class="icon-btn" title="Download list" style="border-color:#1D4ED8;color:#1D4ED8">⬇</button>
           </div>
         </div>
       </div>
@@ -160,21 +201,11 @@
           </div>
         </div>
 
-        <div class="tab-content" id="tab-grades">
-          <div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">📝</div><p>Grades coming soon.</p></div>
-        </div>
-        <div class="tab-content" id="tab-materials">
-          <div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">📚</div><p>Materials coming soon.</p></div>
-        </div>
-        <div class="tab-content" id="tab-prices">
-          <div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">💳</div><p>Prices coming soon.</p></div>
-        </div>
-        <div class="tab-content" id="tab-exams">
-          <div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">🎓</div><p>Exams coming soon.</p></div>
-        </div>
-        <div class="tab-content" id="tab-history">
-          <div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">🕐</div><p>History coming soon.</p></div>
-        </div>
+        <div class="tab-content" id="tab-grades"><div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">📝</div><p>Grades coming soon.</p></div></div>
+        <div class="tab-content" id="tab-materials"><div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">📚</div><p>Materials coming soon.</p></div></div>
+        <div class="tab-content" id="tab-prices"><div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">💳</div><p>Prices coming soon.</p></div></div>
+        <div class="tab-content" id="tab-exams"><div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">🎓</div><p>Exams coming soon.</p></div></div>
+        <div class="tab-content" id="tab-history"><div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">🕐</div><p>History coming soon.</p></div></div>
       </div>
     </div>
 
@@ -207,6 +238,23 @@
   </div>
 </div>
 
+<!-- UNIT MODAL -->
+<div class="modal-overlay" id="unitModal">
+  <div class="modal" style="width:420px">
+    <div class="modal-header">
+      <div class="modal-title">📖 Current Unit</div>
+      <button class="modal-close" onclick="closeModal('unitModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="unit-grid" id="unitGrid"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('unitModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveUnit()">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-container" id="toastContainer"></div>
 <script src="shared.js"></script>
 <script>
@@ -220,9 +268,14 @@
   let group = null, students = [], allStudents = [];
   let currentMonth = new Date();
   let attData = {};
+  let selectedUnit = '1A';
 
-  const MONTH_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const MONTH_FULL  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // All units 1A-12C
+  const UNITS = [];
+  for (let u = 1; u <= 12; u++) ['A','B','C'].forEach(s => UNITS.push(`${u}${s}`));
 
   async function load() {
     try {
@@ -231,7 +284,6 @@
       allStudents = studs;
       if (!group) { window.location.replace('groups.html'); return; }
 
-      // FIX: if price is 0 or missing, fetch from pricing
       if (!group.price || group.price === 0) {
         try {
           const pricing = await apiGet('/api/pricing');
@@ -241,8 +293,11 @@
       }
 
       students = (group.studentIds||[]).map(id => studs.find(s=>s.id===id)).filter(Boolean);
+      selectedUnit = group.currentUnit || '1A';
+
       document.getElementById('pageTitle').textContent =
         [group.name, group.level, group.teacher].filter(Boolean).join(' · ');
+      document.getElementById('unitBadgeVal').textContent = selectedUnit;
       document.getElementById('loadingState').style.display = 'none';
       document.getElementById('groupLayout').style.display  = 'grid';
       renderGroupInfo();
@@ -255,7 +310,7 @@
   }
 
   function renderGroupInfo() {
-    const SCHED = { odd:'Odd days (Mon·Wed·Fri)', even:'Even days (Tue·Thu·Sat)', custom:'Custom' };
+    const SCHED = { odd:'Odd days', even:'Even days', custom:'Custom' };
     const endTime = (() => {
       if (!group.time) return '';
       const [h,m] = group.time.split(':').map(Number);
@@ -295,12 +350,36 @@
       </div>`).join('');
   }
 
-  // ── TABS ──
   function setTab(name, btn) {
     document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
     document.querySelectorAll('.tab-nav-btn').forEach(b=>b.classList.remove('active'));
     document.getElementById('tab-'+name).classList.add('active');
     btn.classList.add('active');
+  }
+
+  // ── UNIT MODAL ──
+  function openUnitModal() {
+    document.getElementById('unitGrid').innerHTML = UNITS.map(u =>
+      `<div class="unit-opt ${u===selectedUnit?'active':''}" onclick="selectUnit('${u}')">${u}</div>`
+    ).join('');
+    openModal('unitModal');
+  }
+
+  function selectUnit(u) {
+    selectedUnit = u;
+    document.querySelectorAll('.unit-opt').forEach(el => {
+      el.classList.toggle('active', el.textContent === u);
+    });
+  }
+
+  async function saveUnit() {
+    try {
+      await apiPatch('/api/groups/'+groupId+'/unit', { unit: selectedUnit });
+      group.currentUnit = selectedUnit;
+      document.getElementById('unitBadgeVal').textContent = selectedUnit;
+      closeModal('unitModal');
+      showToast(`Unit updated to ${selectedUnit}!`);
+    } catch(e) { showToast('Error: '+e.message, 'error'); }
   }
 
   // ── ATTENDANCE ──
@@ -333,7 +412,7 @@
     const days = [], total = new Date(year, month+1, 0).getDate();
     for (let d = 1; d <= total; d++) {
       const dow = new Date(year, month, d).getDay();
-      if (group.schedType==='odd'    && [1,3,5].includes(dow)) days.push(d);
+      if      (group.schedType==='odd'    && [1,3,5].includes(dow)) days.push(d);
       else if (group.schedType==='even'   && [2,4,6].includes(dow)) days.push(d);
       else if (group.schedType==='custom' && (group.customDays||[]).includes(dow)) days.push(d);
     }
@@ -360,12 +439,13 @@
       return;
     }
 
+    // Header: just the day number, no month text repeated
     let thead = `<thead><tr>
       <th class="name-col">Name</th>
       ${days.map(d => {
         const date = new Date(year, month, d); date.setHours(0,0,0,0);
         const isToday = date.getTime() === today.getTime();
-        return `<th class="${isToday?'today-col':''}" style="min-width:50px">${d} ${MONTH_SHORT[month]}</th>`;
+        return `<th class="${isToday?'today-col':''}" style="min-width:46px">${d}</th>`;
       }).join('')}
     </tr></thead>`;
 
@@ -375,7 +455,7 @@
       tbody += `<tr>
         <td class="name-col">
           <div class="att-name-cell">
-            <div class="att-avatar" style="background:${avatarColor(name)};color:white">${initials(name)}</div>
+            <div class="att-avatar" style="background:${avatarColor(name)}">${initials(name)}</div>
             <span>${name}</span>
           </div>
         </td>
@@ -420,19 +500,14 @@
     } catch(e) { showToast('Error: '+e.message, 'error'); }
   }
 
-  // ── PENCIL: go directly to edit modal on groups page ──
-  function goEdit() {
-    window.location.href = `groups.html?edit=${groupId}`;
-  }
+  function goEdit() { window.location.href = `groups.html?edit=${groupId}`; }
 
-  // ── DELETE ──
   async function doDeleteGroup() {
     if (!confirm(`Delete group "${group.name}"?`)) return;
     await apiDelete('/api/groups/'+groupId);
     window.location.replace('groups.html');
   }
 
-  // ── ADD STUDENT MODAL ──
   function openAddStudent() {
     document.getElementById('studentSearchInput').value = '';
     filterStudentSearch();
@@ -440,7 +515,7 @@
   }
 
   function filterStudentSearch() {
-    const q = document.getElementById('studentSearchInput').value.toLowerCase();
+    const q       = document.getElementById('studentSearchInput').value.toLowerCase();
     const enrolled = new Set(group.studentIds||[]);
     const results  = allStudents.filter(s =>
       !q || (s.firstName+' '+s.lastName).toLowerCase().includes(q) || (s.phone||'').includes(q)
@@ -457,7 +532,7 @@
         <div style="width:32px;height:32px;border-radius:50%;background:${avatarColor(name)};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0">${initials(name)}</div>
         <div style="flex:1">
           <div style="font-weight:600;font-size:13px">${name}</div>
-          <div style="font-size:11px;color:var(--muted)">${s.phone||''} ${s.level?'· '+s.level:''}</div>
+          <div style="font-size:11px;color:var(--muted)">${s.phone||''}${s.level?' · '+s.level:''}</div>
         </div>
         ${already ? '<span style="font-size:11px;color:var(--muted)">Already enrolled</span>' : '<span style="font-size:11px;color:var(--green);font-weight:700">+ Add</span>'}
       </div>`;
